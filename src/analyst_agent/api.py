@@ -47,12 +47,13 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from analyst_agent import __version__
 from analyst_agent import config
 from analyst_agent import authoring
+from analyst_agent import converge as converge_mod
 from analyst_agent import coverage
 from analyst_agent import framing
-from analyst_agent import gaps as gaps_mod
 from analyst_agent import refine
 from analyst_agent import classify as classify_mod
 from analyst_agent import package as package_mod
+from analyst_agent import questions as questions_mod
 from analyst_agent import store as pj
 from analyst_agent.assess import iter_assessment
 from analyst_agent.ingest.dispatch import SUPPORTED_EXTENSIONS
@@ -64,7 +65,7 @@ STORE = config.STORE
 # What the "done/total" of each stage counts — used to label the progress readout.
 _STAGE_UNIT = {"ingest": "documents", "score": "requirements", "review": "requirements",
                "judges": "domains", "refine": "requirements", "classify": "requirements",
-               "author": "gaps", "closure": "gaps"}
+               "author": "gaps", "converge": "rounds"}
 
 
 @dataclass
@@ -129,13 +130,18 @@ class JobManager:
             job.progress = {"stage": "review", "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
                             "unit": "requirements"}
-        elif et in ("refined", "classified", "authored", "gap_checked"):  # one per item
+        elif et in ("refined", "classified", "authored"):   # one per item finished
             stage = {"refined": "refine", "classified": "classify",
-                     "authored": "author", "gap_checked": "closure"}[et]
+                     "authored": "author"}[et]
             job.stage = stage
             job.progress = {"stage": stage, "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
                             "unit": _STAGE_UNIT.get(stage, "requirements")}
+        elif et == "round":           # convergence: one per loop round
+            job.stage = "converge"
+            job.progress = {"stage": "converge", "done": event.get("round"),
+                            "total": event.get("total"), "status": "progress",
+                            "unit": "rounds"}
         elif et == "domain":          # coverage: one per domain judge finished
             job.stage = "judges"
             job.progress = {"stage": "judges", "done": event.get("done"),
@@ -350,13 +356,13 @@ class JobManager:
         threading.Thread(target=self._run_author, args=(job, quality_run), daemon=True).start()
         return job
 
-    # --- gap closure re-check (Phase D: the loop's progress signal) ---
-    def _run_closure(self, job: Job, quality_run: str) -> None:
+    # --- convergence loop (Phase D: rounds until complete, stalled or capped) ---
+    def _run_converge(self, job: Job, quality_run: str) -> None:
         job.status = "running"
         job.started_at = time.time()
         self._emit(job, {"type": "stage", "stage": "queued", "status": "done"})
         try:
-            for event in gaps_mod.iter_check_closure(
+            for event in converge_mod.iter_converge(
                     job.project_id, quality_run, should_cancel=job.cancel_event.is_set):
                 self._emit(job, event)
             if job.cancel_event.is_set():
@@ -370,11 +376,11 @@ class JobManager:
             job.error = f"{type(e).__name__}: {e}"
             self._emit(job, {"type": "job_error", "message": job.error})
 
-    def create_closure_run(self, pid: str, quality_run: str) -> Job:
+    def create_converge_run(self, pid: str, quality_run: str) -> Job:
         job = Job(job_id=uuid.uuid4().hex, doc_id="", source_file="")
-        job.project_id, job.run_id, job.kind = pid, job.job_id, "closure"
+        job.project_id, job.run_id, job.kind = pid, job.job_id, "converge"
         self.jobs[job.job_id] = job
-        threading.Thread(target=self._run_closure, args=(job, quality_run), daemon=True).start()
+        threading.Thread(target=self._run_converge, args=(job, quality_run), daemon=True).start()
         return job
 
     # --- problem framing (streamed) runs ---
@@ -949,14 +955,15 @@ def run_project_author(pid: str, payload: dict | None = None) -> JSONResponse:
                                  "quality_run": run, "status": job.status})
 
 
-@api.post("/projects/{pid}/gaps:check")
-def run_gap_closure(pid: str, payload: dict | None = None) -> JSONResponse:
-    """Re-check every open coverage gap against the project's current requirement set.
+@api.post("/projects/{pid}/converge:run")
+def run_project_converge(pid: str, payload: dict | None = None) -> JSONResponse:
+    """Drive the set to complete and at/above threshold.
 
-    This is the convergence loop's progress signal. Gaps are minted ONCE from the
-    first coverage run and carried (their wording is LLM-generated per run, so they
-    cannot be re-identified by matching text); each check asks whether the set now
-    covers the carried gap. Only `closed` retires a gap — `partial` stays open.
+    Each round: refine below-threshold requirements → run coverage → author a
+    requirement per open gap. Terminates on the gap COUNT — zero gaps with clean
+    quality is `converged`; a count that stops dropping is `stalled` and needs a
+    human; `MAX_ROUNDS` is a safety backstop, never the completion test.
+    Long-running: state persists at each round boundary. Streamed + abortable.
     """
     if not pj.get_project(pid):
         raise HTTPException(404, "unknown project")
@@ -964,30 +971,41 @@ def run_gap_closure(pid: str, payload: dict | None = None) -> JSONResponse:
     if not run:
         runs = pj.list_quality_runs(pid)
         if not runs:
-            raise HTTPException(400, "no quality run to check against")
+            raise HTTPException(400, "no quality run to converge")
         run = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
-    if not pj.get_coverage(pid):
-        raise HTTPException(400, "no coverage run — gaps must be identified first")
-    job = jm.create_closure_run(pid, run)
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such quality run")
+    job = jm.create_converge_run(pid, run)
     return JSONResponse(status_code=202,
                         content={"job_id": job.job_id, "project_id": pid,
                                  "quality_run": run, "status": job.status})
 
 
-@api.get("/projects/{pid}/gaps")
-def get_gap_ledger(pid: str) -> JSONResponse:
-    """The carried gap ledger: every gap, its status, and what closed it."""
+@api.get("/projects/{pid}/questions")
+def get_open_questions(pid: str, run: str | None = None) -> JSONResponse:
+    """What the Analyst needs a human to answer before the set can converge.
+
+    Aggregated from data already stored — unfilled placeholders, the INCOSE
+    reviewer's advisories on still-blocked requirements, and questions the gap
+    author recorded. No LLM call. Questions asking the same thing are merged so one
+    answer unblocks every requirement waiting on it.
+    """
     if not pj.get_project(pid):
         raise HTTPException(404, "unknown project")
-    ledger = pj.get_gap_ledger(pid)
-    if not ledger:
-        raise HTTPException(404, "no gap ledger — run coverage, then gaps:check")
-    entries = list((ledger.get("gaps") or {}).values())
-    counts = {s: sum(1 for e in entries if e.get("status") == s)
-              for s in ("closed", "partial", "open")}
-    return JSONResponse({"project_id": pid, "updated_at": ledger.get("updated_at"),
-                         "counts": {**counts, "total": len(entries)},
-                         "gaps": entries})
+    qs = questions_mod.collect_questions(pid, run)
+    return JSONResponse({"project_id": pid, "summary": questions_mod.summarize(qs),
+                         "questions": qs})
+
+
+@api.get("/projects/{pid}/convergence")
+def get_convergence_state(pid: str) -> JSONResponse:
+    """Where the convergence loop got to: round, per-round gap counts, outcome."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    state = pj.get_convergence(pid)
+    if not state:
+        raise HTTPException(404, "no convergence run for this project")
+    return JSONResponse(state)
 
 
 @api.post("/projects/{pid}/coverage:run")

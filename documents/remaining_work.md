@@ -276,31 +276,62 @@ scores it reads and the tests that pin its exit conditions.
   for `store/` and `__pycache__` — **88 files are still tracked**; untracking is a
   git index operation left to the user (`git rm -r --cached store`).
 - 2026-07-18 — **Clone deleted** after inspection; the 3 real projects verified intact.
-- 2026-07-18 — **D started: the closure-check mechanism (option c) is built.**
-  `incose_gap_closure_judge` preset (HTTP 201) + `src/analyst_agent/gaps.py` +
-  `store.get_gap_ledger`/`save_gap_ledger` + `POST /projects/{pid}/gaps:check`
-  and `GET /projects/{pid}/gaps` (**35 routes**). **146 tests green.**
-  Gaps are **minted once and carried** — the ledger holds the gap object verbatim,
-  so identity never depends on matching LLM-regenerated wording. Only `closed`
-  retires a gap; `partial` stays open. Candidates per gap are chosen by reranker
-  and capped at `TOP_K_CANDIDATES=12`, so prompt size is independent of set size.
-  **Bias is deliberate and asymmetric:** a false `closed` deletes a gap
-  permanently and ships a real hole; a false `open` costs one more round. So an
-  LLM error, an unparseable verdict, an unknown status, an uncited `closed`, and a
-  citation naming a requirement outside the candidate set all fall to
-  open/partial.
-  **Live discrimination test** (real NIST gap, read-only):
-  | requirement shown | verdict |
-  |---|---|
-  | retention 7 years + archive after 90 days + secure erase | **closed** (cited) |
-  | "shall enforce data retention policies" (the vague authored one) | **partial** |
-  | "shall retain data for [RETENTION_PERIOD]" | **partial** |
-  | "shall encrypt stored data using AES-256" (same topic, wrong obligation) | **open** |
-  Plus a negative control: the 3 critical NIST gaps all judged **open** against the
-  original 85 requirements, with accurate reasoning.
-  This is the discrimination the loop needs — vague and placeholder text do NOT
-  retire a gap, and topical adjacency does not either.
-  **NOT done:** `iter_check_closure` end-to-end (ledger persistence across a run,
-  cancel path) is unit-tested but has not been run against a project; and the
-  round orchestrator, termination/no-progress detection, `needs_input` state
-  machine and `converge:run` endpoint are all still unbuilt.
+- 2026-07-18 — **D: closure-check mechanism built, then REMOVED the same day.**
+  Built `incose_gap_closure_judge` + `gaps.py` + a carried gap ledger + 2 endpoints
+  + 20 tests to solve gap identity across rounds. **Removed on review — it was
+  solving a problem v1 does not have.**
+  The loop needs a *number*, not identities: re-run coverage, read the gap count,
+  stop at 0 (converged) or when it stops dropping (stalled), with a round cap as a
+  pure safety backstop. Nothing needs matching between rounds.
+  Two things I got wrong and should have caught before building:
+  (a) **the cost argument was backwards** — I justified closure checking as cheaper
+  than "a 16-domain panel that re-derives everything", but that is 78 calls versus
+  16, using numbers I had already measured;
+  (b) per-gap attempt caps — the only thing identity actually buys — are a v2
+  refinement I treated as a v1 blocker.
+  Reverted: `gaps.py`, `tests/test_gaps.py`, `store.get_gap_ledger`/`save_gap_ledger`,
+  the API wiring (`gaps:check`, `GET /gaps`, closure job runner, stage unit,
+  progress mapping), and the preset (deleted from agent_server, HTTP 200, gone from
+  disk). Back to **33 routes, 125 tests**.
+  *Kept from the exercise:* the measured knowledge that authored requirements are
+  often vague or placeholder-bearing, so a re-run of coverage will legitimately
+  still report those gaps — which the count-based loop handles correctly by
+  stalling and asking the human.
+- 2026-07-18 — **D: convergence loop built (count-based).** `src/analyst_agent/
+  converge.py` + `store.get_convergence`/`save_convergence` +
+  `POST /projects/{pid}/converge:run` + `GET /projects/{pid}/convergence`
+  (**35 routes**). A round sequences pieces that already work: refine → coverage →
+  author. Termination is one number, the gap count:
+  `0 + clean quality → converged`; `count stops dropping → stalled`;
+  `MAX_ROUNDS=6 → capped` (a backstop, never the completion test).
+  Noise margin: `MIN_DROP=1` and `FLAT_ROUNDS_BEFORE_STALL=2`, because coverage is
+  an LLM and one flat round is variance rather than a plateau.
+  The exit test mirrors the release blockers exactly (below-threshold,
+  incompletely-judged, placeholders) so the loop cannot converge on a set the gate
+  would then reject. State persists at every round boundary.
+  **19 termination tests with stubbed refine/coverage/author**, all offline, driving
+  scripted gap sequences down each path: converged, converged-immediately, stalled
+  on a flat count, stalled on a rising count, single-flat-round tolerated as noise,
+  capped with real-but-slow progress, cancel before/after rounds, state persisted,
+  no authoring on the final round, and each of the three quality blockers
+  independently preventing convergence. **144 tests total.**
+  **NOT verified:** the loop has never run against a real project — every round in
+  the tests is stubbed. The pieces it sequences are individually live-verified
+  (refine P4, coverage, authoring 78-gap run) but their composition is not.
+- 2026-07-18 — **D: `needs_input` solved by aggregation, no new LLM call.**
+  `src/analyst_agent/questions.py` + `GET /projects/{pid}/questions` (**36 routes**);
+  `stalled` and `capped` now carry `questions[]` + `question_summary`, persisted
+  with the convergence state. **164 tests.**
+  The data already existed: unfilled placeholders (deterministic), the INCOSE
+  reviewer's `advisories[{characteristic, issue, suggestion}]` — carried by 85/85
+  requirements of a real run — and `provenance.open_question` from the gap author.
+  An LLM "question generator" would have restated these, cost a call per
+  requirement, and varied between runs.
+  **Live on NIST, sub-second:** 167 questions, all blocking, over 75 requirements
+  (163 advisory + 4 placeholder).
+  ⚠️ **Merging barely helps in practice.** 167 questions for 75 requirements — the
+  top question affects 2, nearly all affect 1 — because advisories are phrased per
+  requirement ("Define the criteria for an *object-of-interest*"). The promise of
+  "answer once, unblock many" is not being delivered by exact-text merging. 167
+  prompts is arguably no more actionable than 75 below-threshold requirements, and
+  grouping by theme rather than by literal text is the obvious next step.

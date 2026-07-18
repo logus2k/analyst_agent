@@ -59,61 +59,47 @@ with a stubbed LLM, not observed by eye.
 
 | Mode | Cause | Guard |
 |---|---|---|
-| **Gap thrash** | authoring for gap G, next coverage still reports G | per-gap attempt cap; needs **gap identity** (§4) |
+| **Gap thrash** | authoring for a gap the next coverage run still reports | the gap count stops dropping → `stalled` (§4) |
 | **Oscillation** | refining X creates an overlap with Y; fixing Y reopens X | per-requirement edit cap; fingerprint the whole set per round and stop on repeat |
 | **Plateau** | refinement cannot reach threshold without external facts | `needs_input` with a specific question (§5) |
 
-## 4. Gap identity — the crux
+## 4. Termination signal — the gap COUNT
 
-**Coverage gaps have no stable id.** A real gap record is:
+**Simplest thing that works.** Each round re-runs coverage and reads one number:
+how many gaps. That is the progress signal. Nothing is matched across rounds.
 
-```json
-{"title": "Data Retention, Archival, and Deletion Policies",
- "severity": "critical", "domain": "data",
- "detail": "...", "question": "...",
- "grounding": ["Data & information domain concerns: retention, archival, deletion", ...]}
+```
+converged  when gaps == 0
+stalled    when the count stops dropping
+capped     when MAX_ROUNDS is reached          (safety backstop only)
 ```
 
-`domain` is stable (16 catalog ids). `title`/`detail`/`question` are free text
-generated per run by an LLM, so round 2's phrasing of the same gap will differ
-from round 1's. Without identity the loop cannot cap attempts per gap, cannot
-detect no-progress, and may author near-duplicates forever.
+Counting *rounds* alone is not enough — it tells you that you stopped, not that
+you are done. Counting *gaps* answers "done"; the round cap only stops a bug from
+spinning forever. Both are needed, and both are a constant plus a comparison.
 
-**Measured, not assumed:** of the 130 `grounding` strings in the NIST run, only
-**6 (4 %) match a catalog concern exactly**. Grounding is LLM-paraphrased and
-mixes three sources — domain concerns, *archetype* concerns ("Web / SaaS
-application concerns: …"), and standards leaves ("Time behaviour
-(iso-25010:2023)"). So grounding **cannot** be used as a key as it stands, and a
-single gap often spans several sources, so one concern index would not represent
-it anyway.
+**Noise.** Coverage is an LLM, so two identical runs will not return exactly the
+same count. Require a real drop before calling it progress, and allow two flat
+rounds before declaring `stalled`, so ordinary variance is not mistaken for a
+plateau.
 
-Three candidate mechanisms:
+**What this gives up** (accepted, for now):
+- *Rotation is invisible* — closing 5 gaps while 5 new ones open reads as a
+  plateau. Stalling is the right response there anyway.
+- *Repeat authoring* — a round may re-author for a gap it already failed at.
+  Authoring's rerank dedup catches most (26 of 78 suppressed on the NIST run); a
+  repeat costs a wasted draft + 9 judges.
+- *No per-gap history* — you see the remaining gaps, not what was attempted.
 
-- **(a) Catalog-concern keying.** Requires changing `coverage_judge` to emit
-  `(domain_id, concern_index)` *deliberately* as a structured field — it cannot
-  be recovered from today's output (see the 4 % measurement above), and cannot be
-  backfilled onto existing runs. Constrains judges to catalog concerns, so a
-  legitimate gap outside the catalog becomes unkeyable, and multi-source gaps fit
-  poorly.
-- **(b) Embedding/rerank match.** Match round-N gaps to round-(N−1) gaps by
-  similarity, reusing the reranker already used for dedup and overlap. No preset
-  change; thresholds are another tunable, and it inherits reranker error.
-- **(c) Explicit closure check.** Carry each open gap forward and ask a judge
-  "does the current set now cover this gap?" instead of re-deriving gaps. Turns
-  identity into a non-problem; costs one call per open gap per round (78 calls on
-  the NIST project) and risks drift from what a fresh panel would say.
+What is **not** given up: termination, and gap → requirement traceability (each
+authored requirement already carries `gap_id`/`gap_title` in its provenance,
+independent of any ledger).
 
-Recommendation (revised after the 4 % measurement): **(c) as the primary
-mechanism.** Carrying each open gap forward and asking whether the current set now
-covers it makes identity a non-problem — the gap object *is* its own identity,
-minted once and tracked, never re-derived. A fresh full panel runs on the first
-round (to discover gaps) and the final round (to confirm nothing new opened);
-interior rounds only ask the closure question. Cost is one call per open gap per
-round (78 on the NIST project), which is cheaper than a full 16-domain panel.
-
-(a) stays available if we later want structural keys, but it needs a deliberate
-preset change and buys less than it appeared to. (b) is the fallback for matching
-a final-round fresh gap against a carried one.
+**Rejected: a carried gap ledger + closure judge.** Built and removed on
+2026-07-18. It solved gap identity across rounds — real, but only needed for
+per-gap attempt caps, which is a v2 refinement, not a v1 requirement. It also cost
+*more*: one closure call per open gap (78) versus one coverage panel (16 domain
+judges). Simpler and cheaper to re-run coverage and read the count.
 
 ## 5. `needs_input` detection
 
@@ -149,12 +135,11 @@ is a prerequisite for planning this honestly.
 Consequences, all load-bearing rather than optional:
 - **incremental scoring** (`text_hash` → skip unchanged) is mandatory, not a nicety
 - coverage re-runs only when the set changed
-- the per-gap closure check (§4c) replaces full re-derivation on interior rounds
 - round boundaries persist, so a long run survives restart (Phase G)
 
 ## 7. Persistence
 
-Loop state (`round`, `state`, per-gap attempts, open questions, set fingerprint)
+Loop state (`round`, `state`, gap counts per round, open questions, set fingerprint)
 persists under the project each round boundary. A restart resumes at the last
 completed round instead of restarting — today `JobManager.jobs` is an in-memory
 dict and a restart loses everything, which is survivable for a 3-minute quality
@@ -176,8 +161,8 @@ review by looking reasonable. Mitigations:
 
 ## 9. Open decisions
 
-1. Gap identity mechanism — (c) carried-forward closure checks is now the
-   recommendation; (a) was weakened by the 4 % grounding measurement.
+1. ~~Gap identity mechanism~~ — **resolved: not needed.** The loop terminates on
+   the gap count; identity was solving a problem v1 does not have.
 2. Whether all-severity authoring is really wanted given +92 % set growth, or
    whether medium/low gaps should raise *questions* to the human rather than
    authored requirements.

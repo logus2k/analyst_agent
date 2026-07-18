@@ -277,21 +277,20 @@ def get_coverage(pid: str, run_id: str | None = None) -> dict | None:
     return _read_json(os.path.join(_coverage_dir(pid, run_id), "coverage.json"))
 
 
-# ---- gap ledger (Phase D: gaps are minted once and CARRIED, never re-derived) ----
+
+# ---- convergence loop state (Phase D) ----
 #
-# Coverage gaps have no id and their wording is LLM-generated per run, so the same
-# gap phrased differently across two runs cannot be matched. The convergence loop
-# therefore mints ids ONCE from the first coverage run and tracks those objects,
-# asking "is this covered now?" each round instead of re-deriving the gap list.
-# Identity stops being a matching problem: the gap object IS its identity.
+# The loop runs for many minutes across several rounds; persisting at each round
+# boundary means a crash or restart leaves a readable record of where it got to
+# rather than nothing. `JobManager.jobs` is in-memory and does not survive either.
 
-def get_gap_ledger(pid: str) -> dict | None:
-    return _read_json(os.path.join(_project_dir(pid), "gap_ledger.json"))
+def get_convergence(pid: str) -> dict | None:
+    return _read_json(os.path.join(_project_dir(pid), "convergence.json"))
 
 
-def save_gap_ledger(pid: str, ledger: dict) -> dict | None:
+def save_convergence(pid: str, state: dict) -> dict | None:
     if not get_project(pid):
         return None
-    ledger["updated_at"] = _now()
-    _write_json(os.path.join(_project_dir(pid), "gap_ledger.json"), ledger)
-    return ledger
+    state["updated_at"] = _now()
+    _write_json(os.path.join(_project_dir(pid), "convergence.json"), state)
+    return state
