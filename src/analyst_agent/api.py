@@ -49,6 +49,7 @@ from analyst_agent import config
 from analyst_agent import authoring
 from analyst_agent import coverage
 from analyst_agent import framing
+from analyst_agent import gaps as gaps_mod
 from analyst_agent import refine
 from analyst_agent import classify as classify_mod
 from analyst_agent import package as package_mod
@@ -63,7 +64,7 @@ STORE = config.STORE
 # What the "done/total" of each stage counts — used to label the progress readout.
 _STAGE_UNIT = {"ingest": "documents", "score": "requirements", "review": "requirements",
                "judges": "domains", "refine": "requirements", "classify": "requirements",
-               "author": "gaps"}
+               "author": "gaps", "closure": "gaps"}
 
 
 @dataclass
@@ -128,9 +129,9 @@ class JobManager:
             job.progress = {"stage": "review", "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
                             "unit": "requirements"}
-        elif et in ("refined", "classified", "authored"):   # one per item finished
+        elif et in ("refined", "classified", "authored", "gap_checked"):  # one per item
             stage = {"refined": "refine", "classified": "classify",
-                     "authored": "author"}[et]
+                     "authored": "author", "gap_checked": "closure"}[et]
             job.stage = stage
             job.progress = {"stage": stage, "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
@@ -347,6 +348,33 @@ class JobManager:
         job.project_id, job.run_id, job.kind = pid, job.job_id, "author"
         self.jobs[job.job_id] = job
         threading.Thread(target=self._run_author, args=(job, quality_run), daemon=True).start()
+        return job
+
+    # --- gap closure re-check (Phase D: the loop's progress signal) ---
+    def _run_closure(self, job: Job, quality_run: str) -> None:
+        job.status = "running"
+        job.started_at = time.time()
+        self._emit(job, {"type": "stage", "stage": "queued", "status": "done"})
+        try:
+            for event in gaps_mod.iter_check_closure(
+                    job.project_id, quality_run, should_cancel=job.cancel_event.is_set):
+                self._emit(job, event)
+            if job.cancel_event.is_set():
+                job.status = "cancelled"
+                self._emit(job, {"type": "job_cancelled", "project_id": job.project_id})
+            else:
+                job.status = "done"
+                self._emit(job, {"type": "job_done", "project_id": job.project_id})
+        except Exception as e:  # noqa: BLE001
+            job.status = "error"
+            job.error = f"{type(e).__name__}: {e}"
+            self._emit(job, {"type": "job_error", "message": job.error})
+
+    def create_closure_run(self, pid: str, quality_run: str) -> Job:
+        job = Job(job_id=uuid.uuid4().hex, doc_id="", source_file="")
+        job.project_id, job.run_id, job.kind = pid, job.job_id, "closure"
+        self.jobs[job.job_id] = job
+        threading.Thread(target=self._run_closure, args=(job, quality_run), daemon=True).start()
         return job
 
     # --- problem framing (streamed) runs ---
@@ -919,6 +947,47 @@ def run_project_author(pid: str, payload: dict | None = None) -> JSONResponse:
     return JSONResponse(status_code=202,
                         content={"job_id": job.job_id, "project_id": pid,
                                  "quality_run": run, "status": job.status})
+
+
+@api.post("/projects/{pid}/gaps:check")
+def run_gap_closure(pid: str, payload: dict | None = None) -> JSONResponse:
+    """Re-check every open coverage gap against the project's current requirement set.
+
+    This is the convergence loop's progress signal. Gaps are minted ONCE from the
+    first coverage run and carried (their wording is LLM-generated per run, so they
+    cannot be re-identified by matching text); each check asks whether the set now
+    covers the carried gap. Only `closed` retires a gap — `partial` stays open.
+    """
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    run = (payload or {}).get("run")
+    if not run:
+        runs = pj.list_quality_runs(pid)
+        if not runs:
+            raise HTTPException(400, "no quality run to check against")
+        run = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
+    if not pj.get_coverage(pid):
+        raise HTTPException(400, "no coverage run — gaps must be identified first")
+    job = jm.create_closure_run(pid, run)
+    return JSONResponse(status_code=202,
+                        content={"job_id": job.job_id, "project_id": pid,
+                                 "quality_run": run, "status": job.status})
+
+
+@api.get("/projects/{pid}/gaps")
+def get_gap_ledger(pid: str) -> JSONResponse:
+    """The carried gap ledger: every gap, its status, and what closed it."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    ledger = pj.get_gap_ledger(pid)
+    if not ledger:
+        raise HTTPException(404, "no gap ledger — run coverage, then gaps:check")
+    entries = list((ledger.get("gaps") or {}).values())
+    counts = {s: sum(1 for e in entries if e.get("status") == s)
+              for s in ("closed", "partial", "open")}
+    return JSONResponse({"project_id": pid, "updated_at": ledger.get("updated_at"),
+                         "counts": {**counts, "total": len(entries)},
+                         "gaps": entries})
 
 
 @api.post("/projects/{pid}/coverage:run")

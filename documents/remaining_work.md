@@ -275,3 +275,32 @@ scores it reads and the tests that pin its exit conditions.
   floor (+ the incomplete-judging and placeholder blockers). Added `.gitignore`
   for `store/` and `__pycache__` — **88 files are still tracked**; untracking is a
   git index operation left to the user (`git rm -r --cached store`).
+- 2026-07-18 — **Clone deleted** after inspection; the 3 real projects verified intact.
+- 2026-07-18 — **D started: the closure-check mechanism (option c) is built.**
+  `incose_gap_closure_judge` preset (HTTP 201) + `src/analyst_agent/gaps.py` +
+  `store.get_gap_ledger`/`save_gap_ledger` + `POST /projects/{pid}/gaps:check`
+  and `GET /projects/{pid}/gaps` (**35 routes**). **146 tests green.**
+  Gaps are **minted once and carried** — the ledger holds the gap object verbatim,
+  so identity never depends on matching LLM-regenerated wording. Only `closed`
+  retires a gap; `partial` stays open. Candidates per gap are chosen by reranker
+  and capped at `TOP_K_CANDIDATES=12`, so prompt size is independent of set size.
+  **Bias is deliberate and asymmetric:** a false `closed` deletes a gap
+  permanently and ships a real hole; a false `open` costs one more round. So an
+  LLM error, an unparseable verdict, an unknown status, an uncited `closed`, and a
+  citation naming a requirement outside the candidate set all fall to
+  open/partial.
+  **Live discrimination test** (real NIST gap, read-only):
+  | requirement shown | verdict |
+  |---|---|
+  | retention 7 years + archive after 90 days + secure erase | **closed** (cited) |
+  | "shall enforce data retention policies" (the vague authored one) | **partial** |
+  | "shall retain data for [RETENTION_PERIOD]" | **partial** |
+  | "shall encrypt stored data using AES-256" (same topic, wrong obligation) | **open** |
+  Plus a negative control: the 3 critical NIST gaps all judged **open** against the
+  original 85 requirements, with accurate reasoning.
+  This is the discrimination the loop needs — vague and placeholder text do NOT
+  retire a gap, and topical adjacency does not either.
+  **NOT done:** `iter_check_closure` end-to-end (ledger persistence across a run,
+  cancel path) is unit-tested but has not been run against a project; and the
+  round orchestrator, termination/no-progress detection, `needs_input` state
+  machine and `converge:run` endpoint are all still unbuilt.

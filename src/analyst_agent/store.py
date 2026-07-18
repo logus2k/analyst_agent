@@ -275,3 +275,23 @@ def get_coverage(pid: str, run_id: str | None = None) -> dict | None:
             return None
         run_id = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
     return _read_json(os.path.join(_coverage_dir(pid, run_id), "coverage.json"))
+
+
+# ---- gap ledger (Phase D: gaps are minted once and CARRIED, never re-derived) ----
+#
+# Coverage gaps have no id and their wording is LLM-generated per run, so the same
+# gap phrased differently across two runs cannot be matched. The convergence loop
+# therefore mints ids ONCE from the first coverage run and tracks those objects,
+# asking "is this covered now?" each round instead of re-deriving the gap list.
+# Identity stops being a matching problem: the gap object IS its identity.
+
+def get_gap_ledger(pid: str) -> dict | None:
+    return _read_json(os.path.join(_project_dir(pid), "gap_ledger.json"))
+
+
+def save_gap_ledger(pid: str, ledger: dict) -> dict | None:
+    if not get_project(pid):
+        return None
+    ledger["updated_at"] = _now()
+    _write_json(os.path.join(_project_dir(pid), "gap_ledger.json"), ledger)
+    return ledger
