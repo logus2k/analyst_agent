@@ -1,0 +1,1580 @@
+{
+ "run_id": "7d0e36860c014d8f9915ba2ecd80b640",
+ "project_id": "9498c61312cd4039a08c4522914b0d0f",
+ "threshold": {
+  "mode": "avg_ge",
+  "value": 4.3
+ },
+ "updated_at": "2026-07-18T15:55:16+00:00",
+ "requirements": {
+  "REQ-0002": {
+   "status": "unreviewed",
+   "original_text": "The VDS supports real-time datamonitoring activities.",
+   "final_text": "The VDS supports real-time datamonitoring activities.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a core capability or action the system is designed to perform."
+   }
+  },
+  "REQ-0003": {
+   "status": "unreviewed",
+   "original_text": "The QDR enables object-of-interest observation.",
+   "final_text": "The QDR enables object-of-interest observation.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a core capability or action the system is designed to perform."
+   }
+  },
+  "REQ-0004": {
+   "status": "unreviewed",
+   "original_text": "The data distributed via the software system enables research in manufacturing-related domains.",
+   "final_text": "The data distributed via the software system enables research in manufacturing-related domains.",
+   "note": "",
+   "overall_before": 2.44,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes the intended capability and purpose of the data provided by the system."
+   }
+  },
+  "REQ-0005": {
+   "status": "unreviewed",
+   "original_text": "The distributed data also supports the optimization and enhancement of practitioner processes.",
+   "final_text": "The distributed data also supports the optimization and enhancement of practitioner processes.",
+   "note": "",
+   "overall_before": 1.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a capability of the distributed data system to support process optimization."
+   }
+  },
+  "REQ-0006": {
+   "status": "unreviewed",
+   "original_text": "Lastly, the distributed data supports solution-provider development activities, such as designing, coding, testing, and debugging software applications.",
+   "final_text": "Lastly, the distributed data supports solution-provider development activities, such as designing, coding, testing, and debugging software applications.",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "operational",
+    "constraints": [],
+    "justification": "Describes the operational purpose of the data support, enabling development activities."
+   }
+  },
+  "REQ-0007": {
+   "status": "unreviewed",
+   "original_text": "The VDS must provide a report of all data items available in the VDS",
+   "final_text": "The VDS must provide a report of all data items available in the VDS",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a capability the system must perform: generating a report of available data items."
+   }
+  },
+  "REQ-0008": {
+   "status": "unreviewed",
+   "original_text": "The VDS must provide a near-real-time stream of most current value for each data item",
+   "final_text": "The VDS must provide a near-real-time stream of most current value for each data item",
+   "note": "",
+   "overall_before": 3,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "performance",
+    "constraints": [
+     "latency",
+     "throughput"
+    ],
+    "justification": "This requirement describes a capability (providing a stream) whose point is the timing bound of 'near-real-time'."
+   }
+  },
+  "REQ-0009": {
+   "status": "unreviewed",
+   "original_text": "The VDS must provide a time series of most recent values collected for each data item available in the VDS buffer",
+   "final_text": "The VDS must provide a time series of most recent values collected for each data item available in the VDS buffer",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Describes a capability of the VDS to provide specific data."
+   }
+  },
+  "REQ-0011": {
+   "status": "unreviewed",
+   "original_text": "Provide a data stream through the VDS in a form compliant with MTConnect and data templates in the QDR",
+   "final_text": "Provide a data stream through the VDS in a form compliant with MTConnect and data templates in the QDR",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface"
+    ],
+    "type": "interface",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "Defines the required format and protocol for data exchange with an external system."
+   }
+  },
+  "REQ-0012": {
+   "status": "unreviewed",
+   "original_text": "Upload, edit, and create data templates",
+   "final_text": "Upload, edit, and create data templates",
+   "note": "",
+   "overall_before": 2.67,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Describes a set of capabilities related to data template management."
+   }
+  },
+  "REQ-0013": {
+   "status": "unreviewed",
+   "original_text": "Make all data available over a RESTful API",
+   "final_text": "Make all data available over a RESTful API",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface",
+     "functional"
+    ],
+    "type": "interface",
+    "constraints": [],
+    "justification": "Defines a capability (making data available) that must be exposed via a specific external interface (RESTful API)."
+   }
+  },
+  "REQ-0014": {
+   "status": "unreviewed",
+   "original_text": "Provide a User Interface (UI) for administration and managing templates and queries",
+   "final_text": "Provide a User Interface (UI) for administration and managing templates and queries",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "usability",
+    "constraints": [],
+    "justification": "Describes a capability (providing a UI) whose primary intent is user interaction."
+   }
+  },
+  "REQ-0015": {
+   "status": "unreviewed",
+   "original_text": "Allow the administrator to create predefined user queries with limits set on results by a time range (e.g., number of days, hours, minutes), a limited set of query-able data elements, or a limited set of records",
+   "final_text": "Allow the administrator to create predefined user queries with limits set on results by a time range (e.g., number of days, hours, minutes), a limited set of query-able data elements, or a limited set of records",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "constraint"
+    ],
+    "type": "functional",
+    "constraints": [
+     "capacity",
+     "resource"
+    ],
+    "justification": "This describes a capability (creating queries) that is bounded by limits on result size, data scope, and time range."
+   }
+  },
+  "REQ-0016": {
+   "status": "unreviewed",
+   "original_text": "List all data elements",
+   "final_text": "List all data elements",
+   "note": "",
+   "overall_before": 2.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "other",
+    "constraints": [],
+    "justification": "This is a request for metadata or a capability to list elements, which is classified as a general function."
+   }
+  },
+  "REQ-0017": {
+   "status": "unreviewed",
+   "original_text": "The server-side components of the software system must operate within a Linux operating system environment",
+   "final_text": "The server-side components of the software system must operate within a Linux operating system environment",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "structural"
+    ],
+    "type": "operational",
+    "constraints": [],
+    "justification": "Specifies the required execution environment for the system's components."
+   }
+  },
+  "REQ-0018": {
+   "status": "unreviewed",
+   "original_text": "The client-side components of the software system must operate within common webbrowser environments using Secure Sockets Layer (SSL) / Transport Layer Security (TLS) cryptographic protocols at a minimum encryption level of 128 bits",
+   "final_text": "The client-side components of the software system must operate within common webbrowser environments using Secure Sockets Layer (SSL) / Transport Layer Security (TLS) cryptographic protocols at a minimum encryption level of 128 bits",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface",
+     "constraint"
+    ],
+    "type": "security",
+    "constraints": [
+     "interoperability",
+     "security"
+    ],
+    "justification": "This requirement mandates an external communication protocol (SSL/TLS) and sets a specific cryptographic bound (128 bits) for interoperability."
+   }
+  },
+  "REQ-0019": {
+   "status": "unreviewed",
+   "original_text": "Microsoft Internet Explorer 10+",
+   "final_text": "Microsoft Internet Explorer 10+",
+   "note": "",
+   "overall_before": 2,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "other",
+    "constraints": [],
+    "justification": "This requirement specifies a compatibility constraint regarding supported software versions."
+   }
+  },
+  "REQ-0020": {
+   "status": "unreviewed",
+   "original_text": "Mozilla Firefox 40+",
+   "final_text": "Mozilla Firefox 40+",
+   "note": "",
+   "overall_before": 2.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "other",
+    "constraints": [
+     "portability"
+    ],
+    "justification": "Specifies a minimum required operating environment or compatibility level."
+   }
+  },
+  "REQ-0021": {
+   "status": "unreviewed",
+   "original_text": "All QDR and administrative services must be available over a RESTful API",
+   "final_text": "All QDR and administrative services must be available over a RESTful API",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface",
+     "functional"
+    ],
+    "type": "interface",
+    "constraints": [
+     "availability",
+     "interoperability"
+    ],
+    "justification": "Defines a required external interface (RESTful API) for core services, implying availability and interoperability."
+   }
+  },
+  "REQ-0022": {
+   "status": "unreviewed",
+   "original_text": "The QDR must be able to curate data collected in batches from the Industrial-Equipment Network",
+   "final_text": "The QDR must be able to curate data collected in batches from the Industrial-Equipment Network",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Describes a core capability of the QDR system to process incoming data batches."
+   }
+  },
+  "REQ-0023": {
+   "status": "unreviewed",
+   "original_text": "At a predetermined time each calendar day, the QDR must process all curated data and populate a list of available elements for query",
+   "final_text": "At a predetermined time each calendar day, the QDR must process all curated data and populate a list of available elements for query",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "behavioral"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Describes a scheduled, recurring capability (processing and populating a list) that defines a system action."
+   }
+  },
+  "REQ-0024": {
+   "status": "unreviewed",
+   "original_text": "A range of short document types (e.g., guidelines, tutorials, frequently asked questions) in HyperText Markup Language (HTML) and/or Portable Document Format (PDF) format must describe the use of the software system.",
+   "final_text": "A range of short document types (e.g., guidelines, tutorials, frequently asked questions) in HyperText Markup Language (HTML) and/or Portable Document Format (PDF) format must describe the use of the software system.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "usability",
+    "constraints": [],
+    "justification": "Defines a capability (documentation) that must adhere to specific external data formats."
+   }
+  },
+  "REQ-0025": {
+   "status": "unreviewed",
+   "original_text": "The UI for the VDS must comply with the requirements of the application that executes the MTConnect Agent as defined by the standard documentation [1].",
+   "final_text": "The UI for the VDS must comply with the requirements of the application that executes the MTConnect Agent as defined by the standard documentation [1].",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface"
+    ],
+    "type": "interface",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "The requirement mandates adherence to an external standard's interface specifications."
+   }
+  },
+  "REQ-0026": {
+   "status": "unreviewed",
+   "original_text": "All pages of the QDR UI should employ an organizational method that separates the major sections of the application for easy access.",
+   "final_text": "All pages of the QDR UI should employ an organizational method that separates the major sections of the application for easy access.",
+   "note": "",
+   "overall_before": 3,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "usability",
+    "constraints": [
+     "usability"
+    ],
+    "justification": "Describes a capability related to the user experience, specifically ease of access."
+   }
+  },
+  "REQ-0027": {
+   "status": "unreviewed",
+   "original_text": "The user should be able to determine the sections of the QDR UI currently being viewed using visual cues, such as bold fonts, arrows, and highlighting.",
+   "final_text": "The user should be able to determine the sections of the QDR UI currently being viewed using visual cues, such as bold fonts, arrows, and highlighting.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "usability",
+    "constraints": [
+     "usability"
+    ],
+    "justification": "Describes a user-facing capability related to the interface's presentation and ease of use."
+   }
+  },
+  "REQ-0028": {
+   "status": "unreviewed",
+   "original_text": "The application's major sections should be available from any page of the QDR and include the following pages: Query, Help, Introduction, Administration, Login, and Logout.",
+   "final_text": "The application's major sections should be available from any page of the QDR and include the following pages: Query, Help, Introduction, Administration, Login, and Logout.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "structural"
+    ],
+    "type": "usability",
+    "constraints": [],
+    "justification": "This requirement specifies the required composition and navigation structure of the application's user interface."
+   }
+  },
+  "REQ-0029": {
+   "status": "unreviewed",
+   "original_text": "The user must be presented with a login page when accessing any page, expect a landing or front page, as an anonymous user.",
+   "final_text": "The user must be presented with a login page when accessing any page, expect a landing or front page, as an anonymous user.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "usability",
+    "constraints": [],
+    "justification": "Defines a required user experience flow (presenting a login page) under specific conditions."
+   }
+  },
+  "REQ-0030": {
+   "status": "unreviewed",
+   "original_text": "Administrative tasks and running queries must have a UI.",
+   "final_text": "Administrative tasks and running queries must have a UI.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "usability",
+    "constraints": [],
+    "justification": "States a requirement for a user interface to support specific system capabilities."
+   }
+  },
+  "REQ-0031": {
+   "status": "unreviewed",
+   "original_text": "The UI for administrative tasks must included the ability to manage Users, manage Groups, manage permissions, manage data templates, manage group assignments, and manage query templates.",
+   "final_text": "The UI for administrative tasks must included the ability to manage Users, manage Groups, manage permissions, manage data templates, manage group assignments, and manage query templates.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement lists several distinct administrative capabilities the system must provide."
+   }
+  },
+  "REQ-0032": {
+   "status": "unreviewed",
+   "original_text": "The UI for running queries may include the ability to query the database using query templates defined by the administrator.",
+   "final_text": "The UI for running queries may include the ability to query the database using query templates defined by the administrator.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Describes a capability (querying) that utilizes a defined external structure (templates)."
+   }
+  },
+  "REQ-0033": {
+   "status": "unreviewed",
+   "original_text": "All pages should use a consistent visual theme.",
+   "final_text": "All pages should use a consistent visual theme.",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "usability",
+    "constraints": [
+     "usability"
+    ],
+    "justification": "This requirement imposes a quality bound on the user experience regarding visual consistency."
+   }
+  },
+  "REQ-0034": {
+   "status": "unreviewed",
+   "original_text": "Pop-ups displaying notifications, error messages, or warnings should use the same theme and template as the rest of the application.",
+   "final_text": "Pop-ups displaying notifications, error messages, or warnings should use the same theme and template as the rest of the application.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "usability",
+    "constraints": [
+     "maintainability",
+     "usability"
+    ],
+    "justification": "This requirement imposes a design constraint on the visual presentation to ensure consistency."
+   }
+  },
+  "REQ-0035": {
+   "status": "unreviewed",
+   "original_text": "All server-side components must execute on server-class computers.",
+   "final_text": "All server-side components must execute on server-class computers.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "allocation"
+    ],
+    "type": "operational",
+    "constraints": [
+     "resource"
+    ],
+    "justification": "Assigns all server-side components to a specific class of execution resource."
+   }
+  },
+  "REQ-0036": {
+   "status": "unreviewed",
+   "original_text": "All client-side components must execute on workstation-class and personal-class computers.",
+   "final_text": "All client-side components must execute on workstation-class and personal-class computers.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "operational",
+    "constraints": [
+     "resource"
+    ],
+    "justification": "This requirement imposes a bound on the execution environment (resource) for the client components."
+   }
+  },
+  "REQ-0037": {
+   "status": "unreviewed",
+   "original_text": "The software interface should follow the Model-View-Controller (MVC) model for rendering and modeling data objects.",
+   "final_text": "The software interface should follow the Model-View-Controller (MVC) model for rendering and modeling data objects.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface"
+    ],
+    "type": "usability",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "Specifies a required architectural pattern (MVC) for data modeling and rendering, which relates to how components interact."
+   }
+  },
+  "REQ-0038": {
+   "status": "unreviewed",
+   "original_text": "The interface must be able to connect to a database to store XML schema defined using XSD and data streams.",
+   "final_text": "The interface must be able to connect to a database to store XML schema defined using XSD and data streams.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface",
+     "functional"
+    ],
+    "type": "interface",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "Defines an external connection capability that must handle specific data formats (XML/XSD) and streams."
+   }
+  },
+  "REQ-0039": {
+   "status": "unreviewed",
+   "original_text": "Source and destination formats for data must include XML and may also include: Extensible Stylesheet Lanaguage Transformation (XSLT), JavaScript Object Notation (JSON), Comma Separated Value (CSV), and American Standard Code for Information Interchange (ASCII).",
+   "final_text": "Source and destination formats for data must include XML and may also include: Extensible Stylesheet Lanaguage Transformation (XSLT), JavaScript Object Notation (JSON), Comma Separated Value (CSV), and American Standard Code for Information Interchange (ASCII).",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface"
+    ],
+    "type": "interface",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "Specifies the required data formats for external exchanges, ensuring interoperability."
+   }
+  },
+  "REQ-0045": {
+   "status": "unreviewed",
+   "original_text": "Client-side UI applications must run within a web browser and not require any additional software interfaces on the client.",
+   "final_text": "Client-side UI applications must run within a web browser and not require any additional software interfaces on the client.",
+   "note": "",
+   "overall_before": 4.78,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "usability",
+    "constraints": [
+     "interoperability",
+     "portability"
+    ],
+    "justification": "This requirement constrains the deployment environment, ensuring it runs within a standard browser without external dependencies."
+   }
+  },
+  "REQ-0046": {
+   "status": "unreviewed",
+   "original_text": "The communication architecture must follow the client-server model.",
+   "final_text": "The communication architecture must follow the client-server model.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "structural"
+    ],
+    "type": "other",
+    "constraints": [],
+    "justification": "This requirement specifies the high-level architectural pattern or composition of the system."
+   }
+  },
+  "REQ-0047": {
+   "status": "unreviewed",
+   "original_text": "Communication between the client and server should utilize a REST-compliant web service and must be served over HTTP Secure (HTTPS).",
+   "final_text": "Communication between the client and server should utilize a REST-compliant web service and must be served over HTTP Secure (HTTPS).",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface"
+    ],
+    "type": "interface",
+    "constraints": [
+     "interoperability",
+     "security"
+    ],
+    "justification": "Defines the required communication protocol (REST/HTTPS) for external interaction."
+   }
+  },
+  "REQ-0048": {
+   "status": "unreviewed",
+   "original_text": "The client-server communication must be stateless.",
+   "final_text": "The client-server communication must be stateless.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "interface",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "This requirement imposes a specific architectural constraint on the nature of the communication protocol between systems."
+   }
+  },
+  "REQ-0049": {
+   "status": "unreviewed",
+   "original_text": "A uniform interface must separate the client roles from the server roles.",
+   "final_text": "A uniform interface must separate the client roles from the server roles.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface"
+    ],
+    "type": "interface",
+    "constraints": [],
+    "justification": "This requirement defines a necessary separation boundary via a uniform interface between two defined roles."
+   }
+  },
+  "REQ-0050": {
+   "status": "unreviewed",
+   "original_text": "Communication over the VDS must conform to a reference MTConnect data schema [2] using XML.",
+   "final_text": "Communication over the VDS must conform to a reference MTConnect data schema [2] using XML.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface",
+     "constraint"
+    ],
+    "type": "interface",
+    "constraints": [
+     "data_retention",
+     "interoperability"
+    ],
+    "justification": "Defines the required data format (XML/MTConnect schema) for external communication."
+   }
+  },
+  "REQ-0051": {
+   "status": "unreviewed",
+   "original_text": "Communication over the QDR must provide the user with the option of formatted ASCII CSV, JSON, or XML structured with a reference MTConnect data schema [2].",
+   "final_text": "Communication over the QDR must provide the user with the option of formatted ASCII CSV, JSON, or XML structured with a reference MTConnect data schema [2].",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface"
+    ],
+    "type": "interface",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "Defines the supported data formats and schema for an external communication interface."
+   }
+  },
+  "REQ-0052": {
+   "status": "unreviewed",
+   "original_text": "The VDS component of the software system must comply with all enumerated requirements for an application to execute an MTConnect Agent in the standard documentation [1].",
+   "final_text": "The VDS component of the software system must comply with all enumerated requirements for an application to execute an MTConnect Agent in the standard documentation [1].",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "allocation",
+     "constraint"
+    ],
+    "type": "other",
+    "constraints": [
+     "compliance",
+     "interoperability"
+    ],
+    "justification": "This requirement mandates that a specific component must adhere to external standards, which acts as a compliance and interoperability constraint."
+   }
+  },
+  "REQ-0053": {
+   "status": "unreviewed",
+   "original_text": "The QDR component of the software system must retrieve data from an indexed database based on a user-defined query request via a template-driven web-based user interface, an endpoint query, and/or a RESTful API call.",
+   "final_text": "The QDR component of the software system must retrieve data from an indexed database based on a user-defined query request via a template-driven web-based user interface, an endpoint query, and/or a RESTful API call.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "This requirement describes a capability (data retrieval) that must interact with multiple external interfaces (UI, endpoint, API)."
+   }
+  },
+  "REQ-0054": {
+   "status": "unreviewed",
+   "original_text": "The QDR must provide the administrator with the ability to predefine queries for use by non-administrator users.",
+   "final_text": "The QDR must provide the administrator with the ability to predefine queries for use by non-administrator users.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Describes a capability (predefine queries) that is exposed to a specific user role (administrator/non-administrator)."
+   }
+  },
+  "REQ-0055": {
+   "status": "unreviewed",
+   "original_text": "The QDR must enable the administrator to limit query results by date ranges and/or number of records.",
+   "final_text": "The QDR must enable the administrator to limit query results by date ranges and/or number of records.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "usability",
+    "constraints": [],
+    "justification": "Describes a capability provided to an administrator, which implies an interface for inputting limits."
+   }
+  },
+  "REQ-0056": {
+   "status": "unreviewed",
+   "original_text": "When configured in a query by the administrator, the QDR must provide the user a list of all available devices in the database and all available associated data elements for that device.",
+   "final_text": "When configured in a query by the administrator, the QDR must provide the user a list of all available devices in the database and all available associated data elements for that device.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "This describes a capability (providing a list) that interacts with the database/system via a query interface."
+   }
+  },
+  "REQ-0057": {
+   "status": "unreviewed",
+   "original_text": "The user may be provided the ability to select what data elements to retrieve via the predefined query.",
+   "final_text": "The user may be provided the ability to select what data elements to retrieve via the predefined query.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Describes a capability (selecting data elements) that is exposed via a predefined query interface."
+   }
+  },
+  "REQ-0058": {
+   "status": "unreviewed",
+   "original_text": "The user must have the ability to select the time range and/or number of records for the data to retrieve via the query.",
+   "final_text": "The user must have the ability to select the time range and/or number of records for the data to retrieve via the query.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Describes a user capability that dictates parameters for an external data retrieval operation."
+   }
+  },
+  "REQ-0059": {
+   "status": "unreviewed",
+   "original_text": "The user must have the ability to retrieve and view data as formatted ASCII CSV, JSON, or XML.",
+   "final_text": "The user must have the ability to retrieve and view data as formatted ASCII CSV, JSON, or XML.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Defines a capability to retrieve data while specifying multiple acceptable external data formats."
+   }
+  },
+  "REQ-0060": {
+   "status": "unreviewed",
+   "original_text": "The user must have the ability to download retrieved data as ASCII CSV, JSON, or XML.",
+   "final_text": "The user must have the ability to download retrieved data as ASCII CSV, JSON, or XML.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Defines a capability (download) that specifies multiple allowed output formats."
+   }
+  },
+  "REQ-0061": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide a function to store and manage data in a database according to a data-structure template (e.g., schema, ontology).",
+   "final_text": "The software system must provide a function to store and manage data in a database according to a data-structure template (e.g., schema, ontology).",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "data",
+    "constraints": [
+     "data_retention"
+    ],
+    "justification": "The requirement describes a capability (store/manage data) whose primary focus is adherence to a specific data structure template."
+   }
+  },
+  "REQ-0062": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide a RESTful API for curating data in the database.",
+   "final_text": "The software system must provide a RESTful API for curating data in the database.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface",
+     "functional"
+    ],
+    "type": "interface",
+    "constraints": [],
+    "justification": "Defines an external API surface (RESTful) for a core system capability (curating data)."
+   }
+  },
+  "REQ-0063": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide the data curator with the ability to add data to the database in accordance with a stored data-structure template.",
+   "final_text": "The software system must provide the data curator with the ability to add data to the database in accordance with a stored data-structure template.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Describes a capability (adding data) that must adhere to a specific data structure template."
+   }
+  },
+  "REQ-0064": {
+   "status": "unreviewed",
+   "original_text": "The software system may provide all curation functionality via a web-based user interface.",
+   "final_text": "The software system may provide all curation functionality via a web-based user interface.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "usability",
+    "constraints": [],
+    "justification": "Describes a capability (curation) delivered through a specific user-facing interface."
+   }
+  },
+  "REQ-0065": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide a function to manage user accounts and data-structure templates (e.g., schemas, ontologies).",
+   "final_text": "The software system must provide a function to manage user accounts and data-structure templates (e.g., schemas, ontologies).",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "structural"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "The requirement describes a capability (manage accounts/templates) that implies the existence of underlying structural components to support it."
+   }
+  },
+  "REQ-0066": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide a web-based UI to CRUD manage users.",
+   "final_text": "The software system must provide a web-based UI to CRUD manage users.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "usability",
+    "constraints": [],
+    "justification": "Defines a user-facing capability (CRUD) that requires a specific interface type (web-based UI)."
+   }
+  },
+  "REQ-0067": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide the administrator with the ability to CRUD manage users.",
+   "final_text": "The software system must provide the administrator with the ability to CRUD manage users.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a core capability the system must provide to an administrator."
+   }
+  },
+  "REQ-0068": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide the administrator with the ability to CRUD manage groups.",
+   "final_text": "The software system must provide the administrator with the ability to CRUD manage groups.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a core capability the system must provide to an administrator."
+   }
+  },
+  "REQ-0069": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide the administrator with the ability to CRUD manage user group assignments.",
+   "final_text": "The software system must provide the administrator with the ability to CRUD manage user group assignments.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a core capability the system must provide to an administrator."
+   }
+  },
+  "REQ-0070": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide the administrator with the ability to CRUD manage permissions assigned to users and groups.",
+   "final_text": "The software system must provide the administrator with the ability to CRUD manage permissions assigned to users and groups.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a core capability the system must provide to an administrator."
+   }
+  },
+  "REQ-0071": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide a web-based user interface for CRUD manage data templates.",
+   "final_text": "The software system must provide a web-based user interface for CRUD manage data templates.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "usability",
+    "constraints": [],
+    "justification": "Defines a user-facing capability (CRUD) that requires a specific presentation mechanism (web-based UI)."
+   }
+  },
+  "REQ-0072": {
+   "status": "unreviewed",
+   "original_text": "The software system must provide the administrator with the ability to CRUD manage data-structure templates using the XSD format.",
+   "final_text": "The software system must provide the administrator with the ability to CRUD manage data-structure templates using the XSD format.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "interface"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "Defines a capability (CRUD management) that requires adherence to a specific external data format (XSD)."
+   }
+  },
+  "REQ-0073": {
+   "status": "unreviewed",
+   "original_text": "The software system may provide all administration functionality via a RESTful API.",
+   "final_text": "The software system may provide all administration functionality via a RESTful API.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface"
+    ],
+    "type": "interface",
+    "constraints": [
+     "interoperability"
+    ],
+    "justification": "Defines the system's external interaction surface using a specific protocol (RESTful API)."
+   }
+  },
+  "REQ-0074": {
+   "status": "unreviewed",
+   "original_text": "The software system must allow the administrator to create a Universally Unique Identifier (UUID) associated with a device.",
+   "final_text": "The software system must allow the administrator to create a Universally Unique Identifier (UUID) associated with a device.",
+   "note": "",
+   "overall_before": 4.78,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a capability the system must perform for an administrator."
+   }
+  },
+  "REQ-0075": {
+   "status": "unreviewed",
+   "original_text": "The software system must require a UUID to be provided with any data streams uploaded.",
+   "final_text": "The software system must require a UUID to be provided with any data streams uploaded.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface",
+     "constraint"
+    ],
+    "type": "data",
+    "constraints": [
+     "data_retention",
+     "interoperability"
+    ],
+    "justification": "This requirement mandates a specific data format (UUID) for all incoming data streams, acting as an interface constraint."
+   }
+  },
+  "REQ-0076": {
+   "status": "unreviewed",
+   "original_text": "The VDS must provide available fresh data to the requesting client at a rate of no less than 1 Hz.",
+   "final_text": "The VDS must provide available fresh data to the requesting client at a rate of no less than 1 Hz.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "constraint"
+    ],
+    "type": "performance",
+    "constraints": [
+     "availability",
+     "throughput"
+    ],
+    "justification": "This requirement defines a capability (providing data) that is strictly bounded by a minimum rate (1 Hz) and availability."
+   }
+  },
+  "REQ-0081": {
+   "status": "unreviewed",
+   "original_text": "The software system defined in this SRS must follow industry recommended practices for secure software development.",
+   "final_text": "The software system defined in this SRS must follow industry recommended practices for secure software development.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "security",
+    "constraints": [
+     "compliance",
+     "security"
+    ],
+    "justification": "This requirement imposes a quality bound on the entire development process based on industry standards."
+   }
+  },
+  "REQ-0082": {
+   "status": "unreviewed",
+   "original_text": "At a minimum, the software development must practice the principle of least privilege for defining access-level requirements of the software system and its associated services.",
+   "final_text": "At a minimum, the software development must practice the principle of least privilege for defining access-level requirements of the software system and its associated services.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "security",
+    "constraints": [
+     "compliance",
+     "security"
+    ],
+    "justification": "This requirement mandates a security principle (least privilege) that acts as a binding rule for access control."
+   }
+  },
+  "REQ-0083": {
+   "status": "unreviewed",
+   "original_text": "The production-release version of the software system must pass an automated dynamic application security testing tool (e.g., HP WEBINSPECT).",
+   "final_text": "The production-release version of the software system must pass an automated dynamic application security testing tool (e.g., HP WEBINSPECT).",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "security",
+    "constraints": [
+     "compliance",
+     "security"
+    ],
+    "justification": "This requirement imposes a mandatory quality gate (a bound) related to security testing compliance."
+   }
+  },
+  "REQ-0084": {
+   "status": "unreviewed",
+   "original_text": "The architecture, design, implementation, and documentation of the application must minimize the maintenance costs of the software system.",
+   "final_text": "The architecture, design, implementation, and documentation of the application must minimize the maintenance costs of the software system.",
+   "note": "",
+   "overall_before": 2.22,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "constraint",
+    "constraints": [
+     "cost",
+     "maintainability"
+    ],
+    "justification": "This requirement sets a quality budget on the overall development process, specifically targeting maintenance cost."
+   }
+  },
+  "REQ-0085": {
+   "status": "unreviewed",
+   "original_text": "The maximum person-time required to fi x a security defect (including regression testing and documentation update) must not exceed two person days.",
+   "final_text": "The maximum person-time required to fi x a security defect (including regression testing and documentation update) must not exceed two person days.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "constraint",
+    "constraints": [
+     "cost",
+     "schedule"
+    ],
+    "justification": "This requirement sets a time bound on the effort required for maintenance activities."
+   }
+  },
+  "REQ-0086": {
+   "status": "unreviewed",
+   "original_text": "Otherwise, the software system must be taken offline or the offending feature disabled.",
+   "final_text": "Otherwise, the software system must be taken offline or the offending feature disabled.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "behavioral",
+     "constraint"
+    ],
+    "type": "reliability",
+    "constraints": [
+     "availability"
+    ],
+    "justification": "This requirement mandates a specific recovery action (taking offline or disabling) when a failure occurs, defining a behavioral constraint on system availability."
+   }
+  },
+  "REQ-0087": {
+   "status": "unreviewed",
+   "original_text": "The average person-time required to make a minor enhancement (including testing and documentation update) must not exceed one person week.",
+   "final_text": "The average person-time required to make a minor enhancement (including testing and documentation update) must not exceed one person week.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "constraint",
+    "constraints": [
+     "cost",
+     "schedule"
+    ],
+    "justification": "This requirement sets a bound on the effort (time/cost) required for maintenance activities."
+   }
+  },
+  "REQ-0088": {
+   "status": "unreviewed",
+   "original_text": "The system must have at least a Super-User role and a User role defined for accessing and interacting with the system.",
+   "final_text": "The system must have at least a Super-User role and a User role defined for accessing and interacting with the system.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "structural"
+    ],
+    "type": "operational",
+    "constraints": [],
+    "justification": "Defines the required set of roles/access levels that constitute the system's operational structure."
+   }
+  },
+  "REQ-0089": {
+   "status": "unreviewed",
+   "original_text": "Additional roles may be defined for the system as long as the business rules for the administrator and user roles are satisfied.",
+   "final_text": "Additional roles may be defined for the system as long as the business rules for the administrator and user roles are satisfied.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "constraint"
+    ],
+    "type": "other",
+    "constraints": [
+     "compliance"
+    ],
+    "justification": "This requirement imposes a constraint on the definition of new roles based on existing business rules."
+   }
+  },
+  "REQ-0090": {
+   "status": "unreviewed",
+   "original_text": "At a minimum, the Super-User role must account for the data explorer , data curator , and administrator accounttype requirements described in Section 4.3.",
+   "final_text": "At a minimum, the Super-User role must account for the data explorer , data curator , and administrator accounttype requirements described in Section 4.3.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "allocation"
+    ],
+    "type": "operational",
+    "constraints": [],
+    "justification": "This requirement allocates the Super-User role to encompass several defined account types."
+   }
+  },
+  "REQ-0091": {
+   "status": "unreviewed",
+   "original_text": "At a minimum, the User role must account for the data explorer account-type requirements described in Section 4.3.",
+   "final_text": "At a minimum, the User role must account for the data explorer account-type requirements described in Section 4.3.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "allocation"
+    ],
+    "type": "operational",
+    "constraints": [],
+    "justification": "This requirement allocates the User role to adhere to the data explorer account-type requirements defined elsewhere."
+   }
+  },
+  "REQ-0092": {
+   "status": "unreviewed",
+   "original_text": "SuperUserRole/001 Maintains all VDS and QDR back-end system configurations",
+   "final_text": "SuperUserRole/001 Maintains all VDS and QDR back-end system configurations",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "operational",
+    "constraints": [],
+    "justification": "Describes a maintenance capability performed by a specific role."
+   }
+  },
+  "REQ-0093": {
+   "status": "unreviewed",
+   "original_text": "SuperUserRole/002 Maintains all VDS and QDR schemas and templates",
+   "final_text": "SuperUserRole/002 Maintains all VDS and QDR schemas and templates",
+   "note": "",
+   "overall_before": 3,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional",
+     "structural"
+    ],
+    "type": "operational",
+    "constraints": [],
+    "justification": "Defines a maintenance capability related to the structure (schemas/templates) of the system data."
+   }
+  },
+  "REQ-0094": {
+   "status": "unreviewed",
+   "original_text": "SuperUserRole/003 Maintains all user groups and user accounts",
+   "final_text": "SuperUserRole/003 Maintains all user groups and user accounts",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a core administrative capability that the system must perform."
+   }
+  },
+  "REQ-0095": {
+   "status": "unreviewed",
+   "original_text": "SuperUserRole/004 Maintains all QDR predefined queries",
+   "final_text": "SuperUserRole/004 Maintains all QDR predefined queries",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "functional"
+    ],
+    "type": "functional",
+    "constraints": [],
+    "justification": "This requirement describes a capability or action that a specific role maintains."
+   }
+  },
+  "REQ-0096": {
+   "status": "unreviewed",
+   "original_text": "UserRole/001 Connects to and retrieves and reads data from VDS and QDR in conformance with the maintained VDS and QDR schemas and templates",
+   "final_text": "UserRole/001 Connects to and retrieves and reads data from VDS and QDR in conformance with the maintained VDS and QDR schemas and templates",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null,
+   "classification": {
+    "classes": [
+     "interface",
+     "functional"
+    ],
+    "type": "interface",
+    "constraints": [
+     "data_retention",
+     "interoperability"
+    ],
+    "justification": "Defines an interaction (connect/retrieve) with external data sources while adhering to specific data formats."
+   }
+  }
+ }
+}

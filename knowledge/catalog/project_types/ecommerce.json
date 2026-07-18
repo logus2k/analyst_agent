@@ -1,0 +1,72 @@
+{
+  "id": "ecommerce",
+  "name": "E-commerce / marketplace / payments",
+  "class": "data-dominant",
+  "aliases": ["ecommerce", "e-commerce", "online store", "webshop", "marketplace", "payments", "checkout", "shopping cart", "retail", "storefront", "order management"],
+  "summary": "A transactional commerce system where users browse a catalog, add to cart, and pay, with money, inventory, and fulfilment as systems of record. Correctness of payment and inventory, fraud resistance, and survival of seasonal traffic peaks dominate; marketplaces add multi-party settlement and trust.",
+  "matching_signals": ["cart", "checkout", "payment", "catalog", "inventory", "order", "sku", "storefront", "marketplace", "seller", "buyer", "shipping", "tax", "refund", "coupon", "stripe", "paypal", "pci", "fulfilment", "wishlist"],
+  "salient_domains": ["security", "functional", "data", "reliability", "performance", "legal-privacy", "operational", "usability", "compatibility", "quality-in-use"],
+  "grounding": ["iso-25010:2023", "pci-dss", "owasp-asvs", "gdpr", "iso-25019:2023", "wcag-2.2", "volere"],
+  "domains": {
+    "security": {
+      "emphasis": "critical",
+      "concerns": ["PCI-DSS 4.0.1 scope minimization via tokenization / hosted fields / wallets so the app never handles PAN", "payment-page script integrity and change monitoring (PCI 6.4.3 / 11.6.1); SAQ-A vs SAQ-A-EP scoping", "fraud prevention: velocity checks, device fingerprinting, address/CVV verification, 3-D Secure / SCA (PSD2)", "account-takeover, credential-stuffing, and carding/BIN-attack protection on login and payment endpoints", "coupon/promo and price-manipulation abuse; parameter tampering on cart totals", "PII and payment-token protection, secure secrets and key rotation"],
+      "typical_requirements": ["PCI-DSS scope & tokenization approach", "payment-script integrity monitoring", "3-D Secure / SCA & fraud controls", "ATO / credential-stuffing protection", "promo/price-tamper protection", "rate limiting on payment/auth"],
+      "questions": ["Is PCI-DSS scope minimized (tokenization/hosted fields/wallets) so cardholder data never touches your systems, and is the SAQ level identified?", "Are fraud controls (SCA/3-DS, velocity, device fingerprinting) and carding/ATO protections specified?", "Are cart totals, prices, and promos validated server-side against tampering?"]
+    },
+    "functional": {
+      "emphasis": "critical",
+      "concerns": ["checkout integrity: totals = items + tax + shipping - discounts, computed authoritatively server-side", "order state machine: pending -> authorized -> captured -> fulfilled -> refunded/cancelled, with valid transitions only", "payment lifecycle: auth vs capture, partial capture, voids, chargebacks, and idempotent retries", "cart/session semantics: merge on login, expiry, price/availability revalidation at checkout", "returns, refunds (full/partial), exchanges, store credit, and their inventory/ledger effects", "tax calculation (VAT/GST/sales tax by jurisdiction) and shipping rate/method selection", "promotions: stacking rules, eligibility, minimums, per-customer/global usage limits"],
+      "typical_requirements": ["order/payment state machine", "authoritative price & tax/shipping calc", "cart merge/expiry/revalidation", "refund & return workflows", "promotion & discount rules", "idempotent payment operations"],
+      "questions": ["Is order/payment totals and state-machine transitions specified authoritatively (server-side), including auth/capture/void/refund?", "Are cart merge, expiry, and price/availability revalidation at checkout defined?", "Are refund/return/exchange flows and their inventory and ledger effects specified?"]
+    },
+    "data": {
+      "emphasis": "critical",
+      "concerns": ["inventory consistency: oversell prevention, reservations/holds, atomic decrement under concurrency", "catalog model: products, variants/SKUs, options, pricing (list/sale/tiered), currency, availability", "order/financial ledger accuracy and reconciliation with the payment processor and accounting", "search/faceting index kept consistent with catalog (denormalized read model)", "customer, address, and payment-token data with retention and PII classification", "marketplace: seller catalogs, inventory ownership, and settlement/payout records"],
+      "typical_requirements": ["inventory-consistency & reservation model", "catalog / variant / pricing model", "financial-ledger reconciliation", "search-index consistency", "seller/settlement data (marketplace)"],
+      "questions": ["Is inventory consistency under concurrency specified to prevent oversell (reservations, atomic decrement)?", "Is the order/payment ledger reconciled against the processor, and are discrepancies handled?", "Is the catalog/variant/pricing model and its search-index consistency defined?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["checkout must not double-charge or lose orders on retry/timeout (idempotency keys, dedup)", "graceful degradation when payment/fraud/tax/shipping providers are slow or down (queue, fallback, allow-browse)", "high availability during revenue-critical windows; no lost orders on partial failure", "backups, RTO/RPO for order and payment data; exactly-once payment capture", "webhook reliability from processors (retries, ordering, replay) with idempotent handlers"],
+      "typical_requirements": ["idempotent checkout / no double-charge", "provider-outage degradation", "order-durability guarantees", "webhook idempotency & replay", "RTO/RPO for financial data"],
+      "questions": ["Is checkout idempotent so timeouts/retries never double-charge or drop an order?", "Is graceful degradation specified when payment/tax/shipping providers fail?", "Are processor webhooks handled idempotently with retry/replay tolerance?"]
+    },
+    "performance": {
+      "emphasis": "high",
+      "concerns": ["seasonal/flash-sale peak load (Black Friday, drops) many multiples over baseline; autoscaling & load-shedding", "catalog browse and faceted search latency at scale; caching and CDN for product pages/images", "cart and checkout latency under contention on hot inventory (popular SKUs, single-item drops)", "queueing/virtual-waiting-room for extreme spikes to protect checkout integrity", "conversion sensitivity to page speed (Core Web Vitals) on product and checkout pages"],
+      "typical_requirements": ["peak/seasonal load & scaling targets", "browse/search latency & caching", "hot-inventory contention handling", "waiting-room / load-shed strategy", "Core Web Vitals budgets"],
+      "questions": ["Are peak/seasonal load targets and the scaling/load-shedding strategy quantified?", "Is browse/search latency and caching/CDN strategy specified at catalog scale?", "Is contention on hot inventory (drops/flash sales) handled without oversell or checkout collapse?"]
+    },
+    "legal-privacy": {
+      "emphasis": "high",
+      "concerns": ["consumer-protection law: pricing transparency, right of withdrawal/returns, receipts/invoicing", "cross-border tax obligations (VAT MOSS/OSS, marketplace facilitator tax, US nexus)", "GDPR/CCPA consent, cookie/tracking consent, and marketing-consent management", "strong customer authentication (PSD2/SCA) obligations in applicable regions", "marketplace: KYC/AML on sellers, payout/settlement compliance, seller tax reporting (e.g. 1099-K/DAC7)"],
+      "typical_requirements": ["consumer-protection & returns law", "cross-border tax compliance", "consent & cookie management", "SCA/PSD2 compliance", "marketplace KYC/AML & tax reporting"],
+      "questions": ["Are consumer-protection obligations (pricing transparency, withdrawal/returns, invoicing) captured?", "Are cross-border tax and, for marketplaces, KYC/AML and seller tax-reporting obligations specified?", "Are consent/cookie and SCA (PSD2) requirements defined for the target regions?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["order-management/fulfilment operations, dispatch, tracking, and exception handling (stuck orders, failed payments)", "monitoring of the revenue funnel and payment-success/decline rates with alerting", "safe deploys during peak periods (change freezes, feature flags, canary)", "catalog/price/promo publishing pipeline and merchandising operations", "refund/dispute/chargeback operational workflows"],
+      "typical_requirements": ["order-management & fulfilment ops", "funnel & payment monitoring/alerting", "peak-period change control", "merchandising/publish pipeline", "chargeback/dispute handling"],
+      "questions": ["Are order-management, fulfilment, and stuck-order/failed-payment exception workflows specified?", "Is monitoring of payment-success and funnel metrics with alerting defined?", "Is change control (freezes, canary) around peak periods specified?"]
+    },
+    "usability": {
+      "emphasis": "high",
+      "concerns": ["low-friction, guest-capable checkout to minimize abandonment; minimal steps and clear cost breakdown", "trust signals: security badges, clear pricing/shipping/returns before payment, no surprise fees", "product discovery: search relevance, faceted filtering, recommendations", "error recovery on payment decline/validation without losing cart", "mobile-first commerce ergonomics and wallet/express-checkout (Apple Pay/Google Pay/one-click)"],
+      "typical_requirements": ["low-friction / guest checkout", "transparent cost breakdown & trust signals", "search & discovery UX", "payment-error recovery", "express/wallet checkout"],
+      "questions": ["Is checkout friction minimized (guest checkout, express wallets) and total cost shown before payment?", "Is payment-decline/error recovery specified without losing the cart?", "Are search relevance and product-discovery expectations stated?"]
+    },
+    "compatibility": {
+      "emphasis": "medium",
+      "concerns": ["payment-gateway/PSP integrations and method coverage (cards, wallets, BNPL, local methods)", "tax, shipping-carrier, fraud, and ERP/OMS/accounting integrations via versioned APIs and webhooks", "product-feed syndication to channels/marketplaces (Google Shopping, Amazon) and their schemas", "marketplace seller-integration APIs and inventory feeds"],
+      "typical_requirements": ["PSP & payment-method coverage", "tax/shipping/ERP integrations", "channel product-feed syndication", "webhook contracts"],
+      "questions": ["Are the payment, tax, shipping, and ERP/OMS integrations and their versioned contracts specified?", "Are supported payment methods and channel/feed syndication requirements defined?"]
+    },
+    "quality-in-use": {
+      "emphasis": "medium",
+      "concerns": ["conversion-rate and cart-abandonment outcomes tied to funnel design", "checkout completion time and effort to purchase", "buyer trust/satisfaction and, for marketplaces, two-sided trust (ratings, dispute resolution)", "freedom from economic risk: no incorrect charges, clear refunds"],
+      "typical_requirements": ["conversion / abandonment targets", "time-to-purchase", "trust & dispute-resolution outcomes"],
+      "questions": ["Are conversion, abandonment, and time-to-purchase outcome metrics defined?", "For marketplaces, are two-sided trust and dispute-resolution outcomes specified?"]
+    }
+  }
+}

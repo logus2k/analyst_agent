@@ -1,0 +1,72 @@
+{
+  "id": "ml-service",
+  "name": "ML / AI service (training + inference)",
+  "class": "computation-dominant",
+  "aliases": ["ml service", "ml model", "machine learning service", "ai service", "model serving", "inference service", "prediction api", "ml platform", "mlops", "model api", "recommender", "computer vision service", "nlp service", "llm service"],
+  "summary": "A service that trains statistical/ML models from data and serves predictions (batch or online) behind an API. Its behaviour is learned from data rather than fully specified, so correctness is defined by measured metrics on evaluation sets and remains valid only while the input distribution holds.",
+  "matching_signals": ["model", "training", "inference", "prediction", "dataset", "features", "embeddings", "fine-tune", "accuracy", "precision/recall", "F1", "AUC", "GPU", "drift", "retraining", "model registry", "ground truth", "labels", "classifier", "recommendation"],
+  "salient_domains": ["data", "functional", "performance", "reliability", "maintainability", "security", "legal-privacy", "operational", "quality-in-use", "safety"],
+  "grounding": ["iso-25010:2023", "iso-25012", "iso-42001:2023", "iso-23894:2023", "iso-25019:2023", "owasp-llm-top-10:2025", "gdpr", "29148:2018"],
+  "domains": {
+    "data": {
+      "emphasis": "critical",
+      "concerns": ["training/validation/test dataset provenance, lineage and versioning (immutable, reproducible snapshots)", "label quality, inter-annotator agreement, and ground-truth definition; class balance and coverage of the target population", "train/serve and train/test leakage prevention; temporal splits for time-dependent data", "PII/sensitive attributes in training data: minimisation, consent basis, and de-identification", "data governance: ownership, access controls, and licensing/usage rights of source data"],
+      "typical_requirements": ["dataset versioning & lineage", "labeling/annotation quality thresholds", "leakage & split policy", "training-data PII classification & consent", "data-usage licensing / rights"],
+      "questions": ["Are training datasets versioned and reproducible, with documented provenance and licensing?", "Are label quality, class balance, and population coverage specified against acceptance thresholds?", "Is leakage between train/serve and across splits explicitly prevented, and is PII in training data governed?"]
+    },
+    "functional": {
+      "emphasis": "high",
+      "concerns": ["precise task definition (inputs, outputs, prediction target) and the operational design domain the model is valid within", "offline evaluation sets and the metrics (accuracy, precision/recall, F1, AUC, calibration) with pass/fail thresholds", "online evaluation (A/B, shadow, canary) and the business/quality metrics that gate promotion", "explainability/interpretability requirements for predictions where decisions must be justified", "handling of low-confidence, out-of-distribution, and abstain cases"],
+      "typical_requirements": ["model spec & operational design domain", "offline metric thresholds & eval sets", "online eval / promotion gates", "explainability requirements", "OOD / low-confidence handling"],
+      "questions": ["Is the prediction target defined with acceptance metrics and thresholds on a held-out evaluation set?", "Are online-evaluation gates (shadow/canary/A-B) required before a model reaches production?", "Are out-of-distribution and low-confidence inputs handled with a defined fallback or abstain behaviour?"]
+    },
+    "performance": {
+      "emphasis": "high",
+      "concerns": ["inference latency (p95/p99) and throughput targets for the serving mode (online, streaming, batch)", "GPU/accelerator VRAM and compute ceilings; batch-size, quantisation, and model-size tradeoffs", "cost per prediction / per token and total serving cost envelope", "training time, GPU-hour budget, and time-to-retrain", "cold-start / model-load latency and autoscaling under bursty load"],
+      "typical_requirements": ["inference latency/throughput SLOs", "GPU/VRAM & model-size budget", "cost-per-inference ceiling", "training time & GPU-hour budget", "batching / quantisation policy"],
+      "questions": ["Are inference latency (p95/p99) and throughput targets quantified for each serving mode?", "Are GPU/VRAM limits and cost-per-prediction ceilings specified?", "Are training-time and GPU-hour budgets bounded for the retraining cycle?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["data and concept drift detection with defined metrics, thresholds, and alerting", "retraining triggers (scheduled vs drift-triggered) and the automated retrain/validate/deploy loop", "model rollback to a known-good version and champion/challenger safeguards", "graceful degradation: fallback model, cached prediction, or rules-based path when serving fails", "prediction-quality regression detection between model versions"],
+      "typical_requirements": ["drift detection & thresholds", "retraining trigger policy", "model rollback / champion-challenger", "serving fallback behaviour", "quality-regression gates"],
+      "questions": ["Is drift detection specified with metrics, thresholds, and an alerting/retraining response?", "Can a bad model be rolled back to a known-good version, and is a serving fallback defined?", "Are quality-regression checks required to block a degraded model from promotion?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["reproducibility: pinned code, data snapshot, hyperparameters, seeds, and environment for every trained model", "experiment tracking and a model registry recording metrics, lineage, and approval state", "testing of a non-deterministic system: behavioural/invariant tests, metric-based CI gates, and eval harnesses", "feature/transform parity between training and serving (single source of feature logic)", "documentation via model cards / datasheets for accountability"],
+      "typical_requirements": ["reproducible training pipeline", "experiment tracking & model registry", "model CI / metric-gated tests", "train-serve feature parity", "model card / datasheet"],
+      "questions": ["Can any deployed model be reproduced from pinned code, data, config, and environment?", "Is a model registry required with lineage, metrics, and an approval/promotion state?", "Are metric-gated CI tests and train/serve feature parity required?"]
+    },
+    "security": {
+      "emphasis": "high",
+      "concerns": ["adversarial robustness: evasion, model extraction, membership-inference, and data-poisoning defenses", "prompt/model safety for generative models: jailbreak resistance, harmful-output filtering, output validation", "protection of model artifacts and weights as intellectual property (access control, encryption)", "authn/authz and rate limiting / abuse protection on inference endpoints", "supply-chain integrity of pretrained/base models and third-party datasets"],
+      "typical_requirements": ["adversarial-robustness requirements", "output safety / content filtering", "model-artifact protection", "inference authN/authZ & rate limiting", "model/dataset supply-chain verification"],
+      "questions": ["Are adversarial threats (poisoning, extraction, evasion, membership inference) assessed and mitigated?", "For generative models, are jailbreak resistance and harmful-output filtering required?", "Are inference endpoints authenticated, rate-limited, and model artifacts access-controlled?"]
+    },
+    "legal-privacy": {
+      "emphasis": "high",
+      "concerns": ["lawful basis and consent for using personal data in training; purpose limitation", "GDPR Art. 22 automated decision-making: right to explanation, human review, and contestability", "right to erasure of training data and its propagation into models (retraining / unlearning)", "copyright and licensing of training corpora and generated outputs", "bias/fairness obligations and discrimination risk for protected attributes; AI-regulation classification (e.g. EU AI Act risk tier)"],
+      "typical_requirements": ["training-data lawful basis & consent", "automated-decision rights (Art. 22)", "erasure / unlearning propagation", "training-corpus licensing", "fairness / non-discrimination & AI-Act tier"],
+      "questions": ["Is there a lawful basis for personal data used in training, and are automated-decision rights (explanation, human review) provided?", "Is erasure of a subject's training data propagated into retrained models?", "Are fairness/non-discrimination obligations and the applicable AI-regulation risk tier addressed?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["production monitoring of model quality, drift, and prediction distributions (not just infra health)", "serving infrastructure: GPU capacity planning, autoscaling, and multi-model / model-version routing", "feature store / online-feature freshness and availability", "the retraining/deployment pipeline as an operated system (schedules, approvals, runbooks)", "ground-truth/feedback collection loop for delayed labels"],
+      "typical_requirements": ["model-quality & drift monitoring", "GPU capacity & autoscaling", "feature-store freshness/SLA", "retrain/deploy pipeline runbooks", "feedback / ground-truth collection"],
+      "questions": ["Is production monitoring of model quality and drift (beyond infra metrics) required?", "Is GPU capacity, autoscaling, and version routing specified for serving?", "Is a ground-truth/feedback collection loop defined for continuous evaluation?"]
+    },
+    "quality-in-use": {
+      "emphasis": "medium",
+      "concerns": ["fairness of outcomes across user subgroups (disparate impact, equalised odds) as an in-use property", "calibrated user trust: surfacing uncertainty/confidence and avoiding over-reliance", "real-world effectiveness of decisions vs the offline metric proxy", "harm from false positives/negatives weighted by their real cost"],
+      "typical_requirements": ["subgroup fairness metrics", "confidence/uncertainty surfacing", "decision cost/benefit & error-cost weighting"],
+      "questions": ["Are fairness metrics across user subgroups defined as acceptance criteria?", "Are per-class error costs (false-positive vs false-negative harm) weighted in the success definition?"]
+    },
+    "safety": {
+      "emphasis": "medium",
+      "concerns": ["harm from confidently wrong predictions in consequential decisions (health, finance, safety functions)", "human-in-the-loop / human oversight for high-stakes automated decisions", "guardrails and safe-default behaviour when the model is uncertain or unavailable", "toxic/unsafe generative output and its downstream real-world consequences"],
+      "typical_requirements": ["human-oversight for high-stakes decisions", "safe-default / abstain behaviour", "harmful-output guardrails"],
+      "questions": ["For consequential decisions, is human oversight or a safe-default required when confidence is low?", "Are guardrails specified for harmful, unsafe, or out-of-domain outputs?"]
+    }
+  }
+}

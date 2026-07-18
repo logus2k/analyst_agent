@@ -1,0 +1,72 @@
+{
+  "id": "data-pipeline",
+  "name": "Data pipeline / analytics / ETL",
+  "class": "data-dominant",
+  "aliases": ["data pipeline", "etl", "elt", "data ingestion", "streaming pipeline", "batch pipeline", "data engineering", "analytics pipeline", "data platform", "lakehouse", "cdc"],
+  "summary": "A system that ingests, transforms, and delivers data across batch and/or streaming stages into warehouses, lakes, or downstream consumers. Correctness under reprocessing, data quality, schema change, and governance dominate over interactive UX.",
+  "matching_signals": ["etl", "elt", "pipeline", "ingest", "batch", "streaming", "kafka", "spark", "airflow", "dbt", "warehouse", "data lake", "lakehouse", "cdc", "backfill", "partition", "schema", "lineage", "data quality", "orchestration", "flink"],
+  "salient_domains": ["data", "reliability", "functional", "operational", "performance", "maintainability", "legal-privacy", "security", "compatibility", "constraints"],
+  "grounding": ["iso-25010:2023", "iso-25012", "iso-25024", "29148:2018", "gdpr", "volere"],
+  "domains": {
+    "data": {
+      "emphasis": "critical",
+      "concerns": ["data-quality dimensions with enforced thresholds: accuracy, completeness, consistency, uniqueness, validity, timeliness/freshness", "schema evolution and data contracts: backward/forward compatibility, additive-only vs breaking changes, schema registry", "validation and quarantine of bad records (dead-letter/reject tables) rather than silent drop or pipeline halt", "data lineage and provenance: source-to-target traceability, transformation documentation, impact analysis", "partitioning, layout (bronze/silver/gold), and file/format choice (Parquet/Avro/Iceberg/Delta) with compaction", "reference-data and slowly-changing-dimension handling; deduplication and merge keys", "late-arriving, out-of-order, and corrected/restated data handling"],
+      "typical_requirements": ["data-quality rules & thresholds", "schema-evolution / data-contract policy", "validation & dead-letter handling", "lineage/provenance capture", "partitioning & storage-format layout", "late/out-of-order data handling"],
+      "questions": ["Are data-quality dimensions and their enforced thresholds (freshness, completeness, accuracy) specified?", "Is schema evolution governed by data contracts with defined compatibility rules and a handling path for breaking changes?", "Are bad records validated and quarantined (not silently dropped), and is lineage/provenance captured?"]
+    },
+    "reliability": {
+      "emphasis": "critical",
+      "concerns": ["idempotent, deterministic transforms so a re-run produces identical output (partition overwrite / MERGE / dedup)", "exactly-once vs at-least-once + idempotent-consumer semantics, explicitly chosen per stage", "backfill and replay: re-processing historical windows correctly regardless of existing data, without double counting", "checkpointing, offset management, and recovery of streaming state after failure", "failure isolation: a bad batch/partition fails without corrupting downstream or blocking unrelated data", "watermarking and completeness signals so consumers know when a partition is final"],
+      "typical_requirements": ["idempotency / delivery-semantics per stage", "backfill & replay strategy", "checkpoint/offset recovery", "partition-level failure isolation", "completeness/watermark signaling"],
+      "questions": ["Is idempotency and the delivery semantics (exactly-once vs at-least-once) specified per stage so re-runs don't double-count?", "Is a backfill/replay strategy defined that reprocesses history correctly without duplication?", "Is streaming-state checkpointing/recovery and partition-level failure isolation specified?"]
+    },
+    "functional": {
+      "emphasis": "high",
+      "concerns": ["transformation/business-logic correctness and its testability against known input/output fixtures", "batch vs streaming (or unified/lambda-kappa) processing semantics per dataset", "aggregation, windowing (tumbling/sliding/session), and join correctness across sources", "CDC capture semantics (inserts/updates/deletes, tombstones) and merge into targets", "handling of corrections/restatements and their propagation downstream"],
+      "typical_requirements": ["transformation logic & test fixtures", "batch/stream processing model", "windowing & join semantics", "CDC/merge semantics", "restatement propagation"],
+      "questions": ["Are transformation rules specified precisely enough to test against known input/output fixtures?", "Are windowing, aggregation, and join semantics across sources defined?", "Is CDC/merge behaviour for updates and deletes (tombstones) specified?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["orchestration and scheduling (DAGs, dependencies, sensors, triggers) with retry, backoff, and SLA/miss alerting", "data-freshness/SLA monitoring, pipeline health, and lag/backpressure alerting", "observability of data (volume anomalies, null-rate drift, distribution shift) beyond system metrics", "operational runbooks for backfills, replays, and stuck/failed jobs; on-call for data incidents", "environment/config management and safe promotion of pipeline/transform code"],
+      "typical_requirements": ["orchestration & scheduling with retry/SLA alerts", "freshness/lag monitoring", "data-observability & anomaly detection", "backfill/replay runbooks", "config & deploy promotion"],
+      "questions": ["Is orchestration with dependency management, retry/backoff, and SLA-miss alerting specified?", "Is data-freshness/lag monitoring and data-anomaly observability (volume, null-rate, drift) defined?", "Are runbooks for backfill/replay and failed-job recovery specified?"]
+    },
+    "performance": {
+      "emphasis": "high",
+      "concerns": ["throughput and end-to-end latency targets (batch window completion; streaming p95 event-to-sink lag)", "scalability with data volume growth; partitioning/parallelism and skew/hot-key handling", "streaming backpressure, buffering, and consumer-lag bounds", "resource and compute-cost efficiency (shuffle, small-files, over-partitioning, scan cost) with cost budgets", "incremental processing over full recompute to bound cost and time"],
+      "typical_requirements": ["throughput & latency/lag targets", "scaling & data-skew handling", "backpressure/lag bounds", "compute-cost budgets", "incremental-processing strategy"],
+      "questions": ["Are throughput and latency/lag targets quantified (batch window, streaming event-to-sink)?", "Is scaling with volume growth and data-skew/hot-key handling specified?", "Are compute-cost budgets and incremental-vs-full-recompute strategy defined?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["testability of transforms: unit tests on logic, data tests/assertions (dbt tests, Great Expectations) in-pipeline", "modular, reusable, version-controlled transformations and DAGs; environment parity", "documentation of datasets, contracts, and semantics (data catalog); discoverability", "reproducibility and deterministic rebuilds from source; versioned datasets/transform code", "impact analysis for schema/logic changes across downstream consumers"],
+      "typical_requirements": ["transform unit & data tests", "version-controlled modular DAGs", "data catalog / documentation", "reproducible rebuilds", "downstream impact analysis"],
+      "questions": ["Are automated transform unit tests and in-pipeline data-quality assertions required?", "Are datasets, contracts, and semantics documented (catalog) for discoverability?", "Is reproducibility (deterministic rebuild from source, versioned code) specified?"]
+    },
+    "legal-privacy": {
+      "emphasis": "high",
+      "concerns": ["PII governance across the pipeline: classification, masking/tokenization/pseudonymization, and column-level access control", "GDPR/CCPA data-subject rights over derived/aggregated data: erasure/right-to-be-forgotten propagation through lakes and backups", "purpose limitation and consent-scope enforcement on downstream analytics use", "data residency/sovereignty of processing and storage locations", "retention and defensible deletion of raw and derived datasets; audit of data access"],
+      "typical_requirements": ["PII classification & masking/tokenization", "erasure/DSAR propagation", "purpose/consent enforcement", "data residency", "retention & access audit"],
+      "questions": ["Is PII classified, masked/tokenized, and access-controlled at column level through the pipeline?", "Is erasure/right-to-be-forgotten propagated to derived datasets, lakes, and backups?", "Are data-residency and retention/deletion rules specified for raw and derived data?"]
+    },
+    "security": {
+      "emphasis": "medium",
+      "concerns": ["least-privilege access to sources, sinks, and intermediate storage; per-dataset/role access control", "encryption in transit and at rest across staging, lake, and warehouse; key management", "secrets/credential management for source/sink connectors (no plaintext in DAG code)", "integrity/authenticity of ingested data and protection against poisoned/malicious input", "isolation of tenant/domain data in shared processing infrastructure"],
+      "typical_requirements": ["dataset/role access control", "encryption at rest & in transit", "connector secrets management", "input integrity/validation", "multi-tenant data isolation"],
+      "questions": ["Is least-privilege, per-dataset access control across sources/sinks/intermediates specified?", "Is encryption at rest and in transit across all stages, with key and connector-secret management, defined?", "Is ingested-data integrity and multi-tenant isolation addressed?"]
+    },
+    "compatibility": {
+      "emphasis": "medium",
+      "concerns": ["heterogeneous source/sink connectors (DBs, APIs, files, queues, SaaS) and their format/protocol variance", "serialization formats and their schema-registry compatibility (Avro/Protobuf/JSON) across producers and consumers", "downstream consumer contracts: stable dataset interfaces so consumers don't break on change", "interoperability with orchestration, catalog, and BI tools; open table formats"],
+      "typical_requirements": ["source/sink connector coverage", "serialization & schema-registry compatibility", "consumer-facing dataset contracts", "tooling interoperability"],
+      "questions": ["Are the source/sink connectors, formats, and protocols specified with their compatibility rules?", "Are stable consumer-facing dataset contracts defined so downstream consumers don't break on change?"]
+    },
+    "constraints": {
+      "emphasis": "medium",
+      "concerns": ["compute/storage cost ceilings and budget as a first-class constraint (warehouse credits, egress, cluster hours)", "mandated platform/stack (e.g. specific warehouse, orchestrator, cloud) and its limits", "processing-window / SLA deadlines constraining architecture (batch cutoffs)", "open-source licensing of pipeline components and data-usage/license constraints on source data"],
+      "typical_requirements": ["cost/budget ceilings", "mandated platform/stack", "processing-window deadlines", "component & data licensing"],
+      "questions": ["Are compute/storage cost ceilings captured as explicit constraints?", "Are mandated platforms/tools and processing-window/SLA deadlines specified?", "Are licensing constraints on components and source data addressed?"]
+    }
+  }
+}

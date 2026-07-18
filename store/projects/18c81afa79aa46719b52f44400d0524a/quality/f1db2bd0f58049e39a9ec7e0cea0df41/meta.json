@@ -1,0 +1,71 @@
+{
+ "run_id": "f1db2bd0f58049e39a9ec7e0cea0df41",
+ "project_id": "18c81afa79aa46719b52f44400d0524a",
+ "kind": "quality",
+ "finished_at": "2026-07-11T14:26:02+00:00",
+ "source_file": "Lotify",
+ "total": 263,
+ "produced_in_s": 1562,
+ "documents": [
+  {
+   "document_id": "79e663cd0a294d2ea5bee0e53fec6eff",
+   "filename": "sdd.md"
+  },
+  {
+   "document_id": "1ba30e979ad847cdb6134f5a207af2a3",
+   "filename": "architecture.md"
+  },
+  {
+   "document_id": "cf16832e7503476cb7284545f2a73e39",
+   "filename": "04-doctor.md"
+  },
+  {
+   "document_id": "e34d194c58ef438db34d56df4f28ca49",
+   "filename": "02-user.md"
+  },
+  {
+   "document_id": "8ffb326c6ad44377acc39a4a6591e4ac",
+   "filename": "03-auth.md"
+  },
+  {
+   "document_id": "3a44d055a87248f2bb7651d9460ce127",
+   "filename": "05-specialty.md"
+  },
+  {
+   "document_id": "943253df6345493bbfb16f510e4277d4",
+   "filename": "06-doctor-specialty.md"
+  },
+  {
+   "document_id": "919454fe008c44b0ae66e791f362377d",
+   "filename": "07-medication.md"
+  },
+  {
+   "document_id": "91f1e09fa78e4c7e90df32f75dba0255",
+   "filename": "08-prescription.md"
+  },
+  {
+   "document_id": "fad6a9d7e8b04019a4922729df0346dc",
+   "filename": "09-documents.md"
+  },
+  {
+   "document_id": "e53a2f23f4c049018897d4ebfdc2a614",
+   "filename": "10-share.md"
+  },
+  {
+   "document_id": "0c369253c92648af9a879bf1b80735e0",
+   "filename": "11-attendant-doctor.md"
+  },
+  {
+   "document_id": "0fd1c21407df461cb52d4263399d81f5",
+   "filename": "12-schedule.md"
+  },
+  {
+   "document_id": "2ad1b363bc7747f2a295774f08d89b06",
+   "filename": "13-finalization.md"
+  },
+  {
+   "document_id": "c19e45cec1bc4e44909f2f9fc1360748",
+   "filename": "01-setup.md"
+  }
+ ]
+}

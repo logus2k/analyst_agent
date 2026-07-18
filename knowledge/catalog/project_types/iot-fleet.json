@@ -1,0 +1,72 @@
+{
+  "id": "iot-fleet",
+  "name": "IoT / edge device fleet",
+  "class": "control-dominant",
+  "aliases": ["iot", "iot fleet", "edge fleet", "connected devices", "device fleet", "smart device", "embedded fleet", "sensor network", "gateway", "edge computing", "telematics", "connected product"],
+  "summary": "A large population of resource-constrained field devices (sensors/actuators) reporting through edge gateways to a cloud backend, provisioned and managed remotely over intermittent networks. Distributed, long-lived, physically exposed hardware with over-the-air lifecycle management.",
+  "matching_signals": ["device", "gateway", "edge", "firmware", "OTA", "over-the-air", "provisioning", "telemetry", "MQTT", "CoAP", "LoRaWAN", "sensor", "actuator", "fleet", "cellular", "NB-IoT", "sim", "digital twin", "shadow", "onboarding", "field device", "tamper"],
+  "salient_domains": ["security", "operational", "reliability", "compatibility", "performance", "data", "maintainability", "portability", "safety", "legal-privacy"],
+  "grounding": ["etsi-en-303-645", "nist-ir-8259a", "iso-25010:2023", "eu-cyber-resilience-act", "volere", "gdpr"],
+  "domains": {
+    "security": {
+      "emphasis": "critical",
+      "concerns": ["per-device unique identity and credentials (X.509 cert / hardware root of trust / secure element / TPM); no shared or default keys across the fleet", "zero-touch / secure provisioning and onboarding; attestation before a device joins the fleet", "secure boot, signed firmware, and rollback-protection so only authenticated images run", "physical / tamper resistance: debug-port (JTAG/UART) lockdown, anti-rollback fuses, key extraction resistance", "mutual TLS (or DTLS/PSK) for device-to-cloud transport; credential rotation and revocation of compromised devices", "compromise containment: per-device keys so one breached device cannot impersonate or decrypt the fleet"],
+      "typical_requirements": ["per-device identity & key provisioning", "secure/verified boot & signed firmware", "mTLS transport & credential rotation/revocation", "tamper resistance & debug-port lockdown", "device attestation & onboarding trust"],
+      "questions": ["Is each device given a unique, hardware-anchored identity and credentials (no shared/default secrets)?", "Are secure boot, firmware signing, and anti-rollback required, and is device attestation performed at onboarding?", "Are credential rotation, revocation of compromised devices, and physical/tamper protections (debug lockdown) specified?"]
+    },
+    "operational": {
+      "emphasis": "critical",
+      "concerns": ["fleet-scale OTA firmware/config updates: staged/canary rollout, cohort targeting, bandwidth throttling, and automatic rollback on failed update", "remote device management: reboot, factory reset, config push, quarantine, decommission at scale", "device lifecycle: onboarding, active, suspended, RMA/return, end-of-life and key wipe", "intermittent / offline connectivity as the normal case: store-and-forward, reconnection/backoff, cellular data-plan and roaming cost management", "fleet observability: device health/heartbeat, connectivity state, firmware-version distribution, and alerting on abnormal cohorts"],
+      "typical_requirements": ["staged OTA update & automatic rollback", "remote management & bulk operations", "device lifecycle & decommissioning", "store-and-forward for offline operation", "fleet health monitoring & version dashboards"],
+      "questions": ["Is fleet OTA specified with staged/canary rollout, cohort targeting, and automatic rollback on failure?", "Is normal-case intermittent/offline connectivity handled via store-and-forward and reconnection strategy?", "Are remote management, device lifecycle states, and end-of-life key-wipe/decommissioning defined?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["a failed OTA must never brick a device: A/B (dual-bank) images, watchdogs, and recovery/failsafe partition", "autonomous operation and graceful degradation during cloud/backend or network outage", "unattended long-duration uptime with self-recovery (watchdog resets) without a truck-roll", "data durability across power loss and disconnection so no telemetry is lost during outages"],
+      "typical_requirements": ["A/B firmware & failsafe recovery", "offline autonomous operation & degradation", "watchdog / self-recovery", "durable local buffering of telemetry"],
+      "questions": ["Is bricking prevented via A/B images, watchdog, and a recoverable failsafe partition?", "Is autonomous, degraded operation during backend/network outage specified?", "Is telemetry durably buffered across power loss and reconnection so nothing is lost?"]
+    },
+    "compatibility": {
+      "emphasis": "high",
+      "concerns": ["messaging/transport protocols and versions: MQTT (3.1.1/5.0), CoAP, HTTP, AMQP, LwM2M; QoS levels", "radio/link technologies: Wi-Fi, BLE, cellular (LTE-M/NB-IoT), LoRaWAN, Zigbee/Thread and their gateways", "heterogeneous device generations/hardware revisions coexisting under one backend (forward/backward compatibility of the message schema)", "gateway ↔ cloud and device ↔ gateway interoperability; payload encoding (CBOR/Protobuf/JSON)"],
+      "typical_requirements": ["protocol & QoS specification (MQTT/CoAP/LwM2M)", "radio/link technology support", "mixed hardware-generation compatibility", "payload encoding & schema versioning"],
+      "questions": ["Are the messaging protocols/versions and QoS levels (e.g. MQTT 5.0) specified?", "Are the radio/link technologies and gateway topology defined?", "Is coexistence of multiple hardware generations under one backend (schema back/forward compatibility) addressed?"]
+    },
+    "performance": {
+      "emphasis": "high",
+      "concerns": ["edge compute limits: constrained CPU/RAM/flash, on-device inference/filtering budgets", "telemetry ingestion at fleet scale: messages/sec, connection concurrency, and backend throughput/backpressure", "energy/power budget: battery life targets, duty-cycling, sleep modes, and transmit-power vs longevity trade-offs", "constrained-network efficiency: payload size, compression, and update-download size over metered links"],
+      "typical_requirements": ["edge resource/compute budgets", "telemetry ingest rate & concurrency targets", "power/battery-life budget & duty cycle", "payload/bandwidth efficiency"],
+      "questions": ["Are edge CPU/RAM/flash and on-device processing budgets specified?", "Are fleet-scale ingestion throughput and concurrent-connection targets quantified?", "Are power/battery-life and bandwidth/payload-efficiency budgets defined for constrained devices?"]
+    },
+    "data": {
+      "emphasis": "high",
+      "concerns": ["telemetry schema, units, timestamps, and time-series modelling; clock sync/skew across devices", "sampling/aggregation strategy, edge pre-processing, and downsampling/retention tiers", "buffering, deduplication, and out-of-order/late-arriving data reconciliation after reconnection", "device shadow / digital twin state consistency between device and cloud", "data provenance: which device/firmware/sensor produced each reading, and calibration metadata"],
+      "typical_requirements": ["telemetry schema & time-series model", "aggregation/retention tiers", "dedup & out-of-order reconciliation", "device shadow/twin consistency", "provenance & calibration metadata"],
+      "questions": ["Is the telemetry schema (units, timestamps, clock-sync) defined for time-series data?", "Are buffering, deduplication, and out-of-order/late-arrival handling specified after reconnection?", "Is device-shadow/twin state consistency and per-reading provenance addressed?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["remote diagnostics and log retrieval from field devices without physical access", "firmware/config versioning, traceability, and reproducible builds per hardware revision", "observability of the fleet: per-cohort health, error rates, and update-success telemetry", "field-debuggability: safe remote log-level control and crash/coredump capture"],
+      "typical_requirements": ["remote diagnostics & log retrieval", "firmware version traceability", "fleet observability & update-success metrics", "remote log-level / crash capture"],
+      "questions": ["Can devices be diagnosed and logs retrieved remotely without a field visit?", "Are firmware/config versioning and per-revision traceability specified?", "Are fleet observability and update-success metrics defined?"]
+    },
+    "portability": {
+      "emphasis": "medium",
+      "concerns": ["multiple hardware platforms/SoCs and RTOS/embedded-Linux targets under one codebase", "hardware-abstraction layer so the firmware ports across chip revisions and component substitutions (supply-chain part swaps)", "packaging/flashing at manufacturing and re-flash in the field"],
+      "typical_requirements": ["multi-SoC/RTOS target support", "HAL & component-substitution portability", "manufacturing flashing & field re-flash"],
+      "questions": ["Are the target SoCs/RTOS/OS platforms and a hardware-abstraction boundary specified?", "Is portability across chip revisions / component substitutions (supply-chain swaps) addressed?"]
+    },
+    "safety": {
+      "emphasis": "medium",
+      "concerns": ["actuating/physical devices must fail to a safe state on fault, power loss, or lost connectivity", "hazardous mis-actuation prevention when commands arrive stale, duplicated, or out of order", "environmental hazard tolerance (thermal, electrical) and safe operating limits"],
+      "typical_requirements": ["fail-safe state on fault/disconnect", "stale/duplicate command rejection", "safe operating limits"],
+      "questions": ["For actuating devices, is a fail-safe state on fault, power loss, or lost connectivity defined?", "Are stale/duplicated/out-of-order commands rejected to prevent hazardous actuation?"]
+    },
+    "legal-privacy": {
+      "emphasis": "medium",
+      "concerns": ["personal/behavioural data captured by field sensors (location, video, usage) and GDPR obligations", "data residency for telemetry routed across regions/cloud regions", "EU Cyber Resilience Act / consumer-IoT security-labelling and mandated support/patching lifetime obligations"],
+      "typical_requirements": ["PII/consent handling for sensor data", "data residency for telemetry", "CRA / security-labelling & support-lifetime compliance"],
+      "questions": ["Is PII captured by sensors (location/video/usage) identified with consent and GDPR handling?", "Are data-residency and regulatory security-labelling / mandated-patching-lifetime (e.g. CRA) obligations addressed?"]
+    }
+  }
+}

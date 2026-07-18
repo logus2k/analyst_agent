@@ -1,0 +1,30 @@
+{
+  "id": "volere",
+  "name": "Volere Requirements Specification Template (Robertson & Robertson, Ed. 16 / Mastering the Requirements Process 4e)",
+  "source": "Volere",
+  "summary": "The Volere requirement-type taxonomy: one functional type plus a rich set of non-functional types and project constraints, each with a fit criterion. Used here to map real-world requirement categories to coverage domains, especially the non-functional and constraint areas ISO models cover only loosely.",
+  "leaves": [
+    { "id":"volere/functional", "name":"Functional requirements", "domain":"functional",
+      "description":"The things the product must do — the fundamental subject matter, business rules and processing actions.", "signals":["the system shall","business rule","process","function","use case","the product must"] },
+    { "id":"volere/look-and-feel", "name":"Look and feel requirements", "domain":"usability",
+      "description":"The intended appearance and style — branding, mood, visual design constraints (Volere type 10).", "signals":["look and feel","branding","visual style","colour scheme","corporate identity","UI appearance"] },
+    { "id":"volere/usability-humanity", "name":"Usability and humanity requirements", "domain":"accessibility",
+      "description":"Ease of use, personalization, learning, understandability/politeness, and accessibility for special user groups (Volere type 11).", "signals":["ease of use","personalization","accessibility","special needs","understandability","learning by user"] },
+    { "id":"volere/performance", "name":"Performance requirements", "domain":"performance",
+      "description":"Speed, precision, capacity, throughput, reliability and safety-of-scale expectations (Volere type 12).", "signals":["speed","response time","throughput","capacity","precision","reliability of performance"] },
+    { "id":"volere/operational-environmental", "name":"Operational and environmental requirements", "domain":"operational",
+      "description":"The operating environment, expected physical/technological conditions, and partner/interfacing systems (Volere type 13).", "signals":["operating environment","offline","on-prem","field conditions","partner systems","environmental conditions"] },
+    { "id":"volere/maintainability-support", "name":"Maintainability and support requirements", "domain":"maintainability",
+      "description":"How easily the product can be maintained, supported and ported, and expected release/support conditions (Volere type 14).", "signals":["maintainability","support","release cadence","portability","serviceability","help desk"] },
+    { "id":"volere/security", "name":"Security requirements", "domain":"security",
+      "description":"Access, confidentiality/integrity, privacy, and audit expectations for the product (Volere type 15).", "signals":["access control","authentication","confidentiality","integrity","audit","privacy of data"] },
+    { "id":"volere/cultural-political", "name":"Cultural and political requirements", "domain":"cultural-political",
+      "description":"Human and social factors — organizational politics, cultural expectations, and localization sensitivities (Volere type 16).", "signals":["cultural","political","organizational policy","local customs","sensitivity","stakeholder buy-in"] },
+    { "id":"volere/legal", "name":"Legal / compliance requirements", "domain":"legal-privacy",
+      "description":"Laws, regulations and standards the product must comply with (Volere type 17).", "signals":["GDPR","regulation","compliance","law","standard conformance","legal obligation","licensing"] },
+    { "id":"volere/constraints", "name":"Project constraints", "domain":"constraints",
+      "description":"Global constraints on the solution — budget, schedule, mandated business rules and design limits (Volere project constraints).", "signals":["budget","schedule","deadline","constraint","must be delivered by","cost ceiling"] },
+    { "id":"volere/mandated-solutions", "name":"Mandated / off-the-shelf solutions", "domain":"constraints",
+      "description":"Mandated technologies, off-the-shelf products, or partner solutions the product must use or fit within.", "signals":["mandated technology","must use","off-the-shelf","COTS","prescribed framework","required platform"] }
+  ]
+}

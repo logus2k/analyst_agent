@@ -1,0 +1,16 @@
+# Analyst Agent — turns source documents into a validated INCOSE requirements set.
+# NOTE: no docling here. Document parsing is delegated over HTTP to the shared
+# ingestion-server (:8700); see documents/technical_architecture.md §9.2.
+
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+
+# LLM (agent_server), ingestion-server and reranker calls.
+httpx>=0.27
+
+# In-process Markdown ingestion path (line maps -> char-span provenance).
+markdown-it-py>=3.0
+
+# Streaming: job progress + live single-requirement assessment.
+python-socketio>=5.11

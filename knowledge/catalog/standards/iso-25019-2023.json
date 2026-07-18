@@ -1,0 +1,18 @@
+{
+  "id": "iso-25019:2023",
+  "name": "ISO/IEC 25019:2023 — Quality-in-use model (SQuaRE)",
+  "source": "ISO/IEC 25019:2023",
+  "summary": "The SQuaRE quality-in-use model: the outcomes of using a product in a specified context of use, decomposed into effectiveness, efficiency, satisfaction, freedom from risk and context coverage. Anchors the quality-in-use coverage domain — whether requirements state the user/stakeholder outcomes the system must achieve, not just its features.",
+  "leaves": [
+    { "id":"iso-25019:2023/effectiveness", "name":"Effectiveness", "domain":"quality-in-use",
+      "description":"Accuracy and completeness with which users achieve specified goals in the intended context of use.", "signals":["task success rate","goal completion","accuracy of outcome","completeness of task","user achieves goal"] },
+    { "id":"iso-25019:2023/efficiency", "name":"Efficiency", "domain":"quality-in-use",
+      "description":"Resources (time, effort, cost) expended in relation to the accuracy and completeness with which users achieve goals.", "signals":["time on task","effort to outcome","steps to complete","time-to-value","productivity"] },
+    { "id":"iso-25019:2023/satisfaction", "name":"Satisfaction", "domain":"quality-in-use",
+      "description":"Degree to which user needs are met (usefulness, trust, pleasure, comfort) when using the product.", "signals":["user satisfaction","trust","usefulness","comfort","NPS","CSAT","pleasure"] },
+    { "id":"iso-25019:2023/freedom-from-risk", "name":"Freedom from risk", "domain":"quality-in-use",
+      "description":"Mitigation of potential risks to the user or stakeholders — economic, health and safety, and environmental.", "signals":["economic risk","health and safety risk","environmental risk","risk mitigation","harm to user"] },
+    { "id":"iso-25019:2023/context-coverage", "name":"Context coverage", "domain":"quality-in-use",
+      "description":"Extent to which quality-in-use is achieved across the intended contexts (context completeness) and beyond them (flexibility).", "signals":["context of use","edge context","context completeness","flexibility of use","unforeseen use"] }
+  ]
+}

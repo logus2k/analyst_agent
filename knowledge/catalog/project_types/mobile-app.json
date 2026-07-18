@@ -1,0 +1,72 @@
+{
+  "id": "mobile-app",
+  "name": "Mobile application",
+  "class": "interaction-client",
+  "aliases": ["mobile app", "ios app", "android app", "native app", "cross-platform app", "react native", "flutter app", "smartphone app", "offline-first app"],
+  "summary": "A user-installed native or cross-platform application running on iOS/Android handsets and tablets, often offline-capable and sync-backed. Constrained by device resources, OS sandboxes, app-store gatekeeping, and highly variable networks.",
+  "matching_signals": ["mobile", "ios", "android", "app store", "play store", "offline", "push notification", "deep link", "on-device", "camera", "gps", "geolocation", "biometric", "background sync", "react native", "flutter", "swift", "kotlin"],
+  "salient_domains": ["usability", "reliability", "security", "performance", "operational", "compatibility", "legal-privacy", "accessibility", "data", "portability"],
+  "grounding": ["iso-25010:2023", "iso-25019:2023", "owasp-asvs", "owasp-masvs", "wcag-2.2", "gdpr", "volere"],
+  "domains": {
+    "usability": {
+      "emphasis": "critical",
+      "concerns": ["touch-first interaction: hit-target sizes, gestures, thumb reach, one-handed use", "offline-state affordances: clear indication of stale/unsynced data and queued actions", "interruption resilience (calls, backgrounding, low-memory kills) without losing user input", "first-run onboarding and permission priming before the OS permission prompt", "small-viewport information density; orientation and dynamic-type support"],
+      "typical_requirements": ["touch-target & gesture specs", "offline/sync status affordances", "state preservation on background/kill", "permission-priming flow", "onboarding & empty-state design"],
+      "questions": ["Is the offline/unsynced state made visible to the user and are queued actions recoverable?", "Is user input preserved across backgrounding, interruptions, and OS-initiated kills?", "Are OS permissions requested in context with prior priming rather than at launch?"]
+    },
+    "reliability": {
+      "emphasis": "critical",
+      "concerns": ["offline-first operation and background/foreground sync with conflict resolution (last-write-wins vs merge/CRDT)", "crash-free-session rate targets and ANR/watchdog-termination limits", "graceful behaviour on intermittent, flaky, or transitioning networks (Wi-Fi<->cellular)", "safe retry/queue of mutating requests with idempotency keys to avoid duplicates", "recovery of local state after force-quit, OS update, or low-storage eviction"],
+      "typical_requirements": ["offline sync & conflict-resolution policy", "crash-free / ANR-rate targets", "request queue with idempotency", "network-transition handling", "local-state recovery"],
+      "questions": ["Is the sync model and its conflict-resolution strategy specified for concurrent edits across devices?", "Are crash-free-session and ANR targets quantified?", "Are mutating operations idempotent so retries over flaky networks don't duplicate effects?"]
+    },
+    "security": {
+      "emphasis": "critical",
+      "concerns": ["secure local storage of secrets/tokens in Keychain/Keystore, not plist/SharedPrefs; encryption of app data at rest", "certificate pinning and TLS to defend against MITM on hostile networks", "biometric/device auth (Face ID / fingerprint) with secure-enclave-backed keys and fallback", "protection of deep links / URL schemes against interception and injection; universal-link validation", "resistance to reverse engineering, rooted/jailbroken devices, tampering, and screen-capture of sensitive views", "OAuth/token refresh with secure session handling and remote revocation"],
+      "typical_requirements": ["secure keystore/keychain storage", "cert pinning & TLS policy", "biometric auth & fallback", "deep-link validation", "root/jailbreak & tamper detection", "token lifecycle & revocation"],
+      "questions": ["Are tokens and secrets stored in the platform keystore/keychain rather than insecure app storage?", "Is transport secured with pinning against MITM, and are deep links validated against injection?", "Is behaviour on rooted/jailbroken or tampered devices specified (per OWASP MASVS)?"]
+    },
+    "performance": {
+      "emphasis": "high",
+      "concerns": ["cold/warm start time and time-to-interactive budgets", "battery drain: background activity, wake-locks, location polling frequency", "memory footprint to avoid OS low-memory termination on low-end devices", "network/data-usage efficiency (payload size, compression, cellular vs Wi-Fi, metered-connection awareness)", "scroll/animation smoothness (jank, dropped frames, 60/120fps targets)", "app binary/download size and its effect on install conversion"],
+      "typical_requirements": ["startup-time budget", "battery & background-usage limits", "memory ceiling on low-end devices", "data-usage/payload budgets", "frame-rate targets", "binary-size budget"],
+      "questions": ["Are cold-start, frame-rate, and memory budgets quantified for the low-end target device?", "Are battery and background-activity limits specified (location cadence, wake-locks)?", "Is cellular/metered data usage bounded, with graceful behaviour on slow networks?"]
+    },
+    "compatibility": {
+      "emphasis": "high",
+      "concerns": ["OS-version fragmentation and minimum-supported-version policy (iOS/Android range)", "device fragmentation: screen sizes/densities, notches/cutouts, foldables, tablets", "backward compatibility of the sync API with older app versions still in the field", "forced-vs-optional update strategy for shipping breaking changes", "hardware-capability variance (camera, NFC, sensors, biometrics) with graceful fallback"],
+      "typical_requirements": ["min OS-version & device support matrix", "API/back-end version compatibility", "forced-update policy", "hardware-capability fallbacks"],
+      "questions": ["Is the supported OS-version and device matrix specified, including foldables/tablets?", "Does the back-end remain compatible with older app versions still installed in the field?", "Is a forced-vs-optional update strategy defined for breaking changes?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["app-store review & release pipeline (Apple/Google review latency, staged/phased rollout, rollback via halt not recall)", "privacy nutrition labels / data-safety form accuracy as a release gate", "over-the-air config and feature flags to control shipped binaries (kill switches)", "crash/analytics telemetry (Crashlytics/Sentry) with symbolication and consented collection", "code-push/OTA-update constraints per store policy; certificate/provisioning-profile and signing-key management"],
+      "typical_requirements": ["phased-rollout & rollback strategy", "store privacy-label accuracy", "remote config / kill switch", "crash telemetry & symbolication", "signing/provisioning management"],
+      "questions": ["Is a phased-rollout with monitoring and a remote kill switch defined, given you cannot instantly recall a build?", "Are store privacy-label / data-safety declarations kept accurate as a release gate?", "Are signing keys and provisioning profiles managed and recoverable?"]
+    },
+    "legal-privacy": {
+      "emphasis": "high",
+      "concerns": ["App Tracking Transparency (ATT) consent before IDFA/advertising-identifier access; no tracking without opt-in", "accurate App Store privacy labels / Play data-safety disclosures matching actual SDK behaviour", "device-permission justification strings and least-privilege access (location, contacts, photos, mic)", "third-party SDK data collection (ads/analytics) disclosed and consented; children's privacy (COPPA/age gating) where relevant", "GDPR/CCPA consent, data-subject rights, and on-device PII handling"],
+      "typical_requirements": ["ATT / tracking-consent flow", "privacy-label & data-safety accuracy", "permission-purpose strings & least privilege", "third-party SDK disclosure", "GDPR/CCPA rights"],
+      "questions": ["Is tracking gated behind ATT consent and are advertising identifiers used only after opt-in?", "Do declared privacy labels match what the app and its SDKs actually collect?", "Are device permissions least-privilege with in-context purpose justification?"]
+    },
+    "accessibility": {
+      "emphasis": "high",
+      "concerns": ["platform screen-reader support (VoiceOver / TalkBack) with proper accessibility labels and traits", "Dynamic Type / font-scaling and reflow without truncation or clipping", "sufficient contrast, reduced-motion, and color-independent cues", "adequate touch-target sizes and focus order for switch control", "WCAG 2.2 AA / platform accessibility guideline conformance"],
+      "typical_requirements": ["VoiceOver/TalkBack support", "Dynamic Type / scaling", "contrast & reduced-motion", "touch-target & focus-order specs"],
+      "questions": ["Is VoiceOver/TalkBack support with correct labels required across the primary flows?", "Does the UI support Dynamic Type / font scaling without clipping?", "Is a WCAG 2.2 AA / platform accessibility conformance level required?"]
+    },
+    "data": {
+      "emphasis": "high",
+      "concerns": ["local datastore schema and migrations across app-version upgrades (Core Data / Room / SQLite)", "sync payload data model and delta/tombstone handling for deletes", "on-device data retention, cache eviction, and secure wipe on logout/uninstall", "data classification for what may be cached locally vs must stay server-side", "encryption of the local store and backup-exclusion of sensitive files"],
+      "typical_requirements": ["local schema & migration policy", "sync delta/tombstone model", "on-device retention & wipe", "cache eviction policy", "local encryption & backup exclusion"],
+      "questions": ["Are local-store schema migrations defined so app upgrades don't corrupt or lose data?", "Is on-device retention and secure wipe on logout/uninstall specified?", "Is it defined which data may be cached on-device versus kept server-only?"]
+    },
+    "portability": {
+      "emphasis": "medium",
+      "concerns": ["single-codebase vs per-platform parity for cross-platform frameworks (feature drift between iOS/Android)", "packaging & distribution channels (App Store, Play, TestFlight, enterprise/MDM, sideload)", "adaptation to new form factors (foldables, tablets, wearables, CarPlay/Android Auto)", "install/upgrade/rollback constraints imposed by the stores"],
+      "typical_requirements": ["cross-platform feature-parity policy", "distribution-channel support", "form-factor adaptation"],
+      "questions": ["Is feature parity across iOS and Android specified, or is drift acceptable?", "Are the distribution channels (stores, enterprise/MDM, TestFlight) defined?"]
+    }
+  }
+}

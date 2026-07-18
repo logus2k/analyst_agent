@@ -1,0 +1,3485 @@
+{
+ "run_id": "5755e967b29042b98d850de0352afca9",
+ "project_id": "4a5f2e16210a434fae615e3a5bcc7c3c",
+ "threshold": {
+  "mode": "avg_ge",
+  "value": 4.3
+ },
+ "updated_at": "2026-07-18T16:21:49+00:00",
+ "requirements": {
+  "REQ-0005": {
+   "status": "unreviewed",
+   "original_text": "Employer registration and company profile management",
+   "final_text": "Employer registration and company profile management",
+   "note": "",
+   "overall_before": 1.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0006": {
+   "status": "unreviewed",
+   "original_text": "User account enabling, disabling, deletion, and recovery",
+   "final_text": "User account enabling, disabling, deletion, and recovery",
+   "note": "",
+   "overall_before": 2,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0008": {
+   "status": "unreviewed",
+   "original_text": "Administrator and site management accounts",
+   "final_text": "Administrator and site management accounts",
+   "note": "",
+   "overall_before": 1.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0009": {
+   "status": "unreviewed",
+   "original_text": "Job creation and publishing",
+   "final_text": "Job creation and publishing",
+   "note": "",
+   "overall_before": 1.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0010": {
+   "status": "unreviewed",
+   "original_text": "Job classification and categorization",
+   "final_text": "Job classification and categorization",
+   "note": "",
+   "overall_before": 2.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0012": {
+   "status": "unreviewed",
+   "original_text": "Job status management (enable, disable functions)",
+   "final_text": "Job status management (enable, disable functions)",
+   "note": "",
+   "overall_before": 1.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0013": {
+   "status": "unreviewed",
+   "original_text": "A vector-based matching (skill-based, education, and behavior etc.) between job seekers and job postings",
+   "final_text": "A vector-based matching (skill-based, education, and behavior etc.) between job seekers and job postings",
+   "note": "",
+   "overall_before": 2.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0017": {
+   "status": "unreviewed",
+   "original_text": "Real-time job data synchronization with external job sites (when available)",
+   "final_text": "Real-time job data synchronization with external job sites (when available)",
+   "note": "",
+   "overall_before": 2.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0018": {
+   "status": "unreviewed",
+   "original_text": "API-based data exchange with governmental databases",
+   "final_text": "API-based data exchange with governmental databases",
+   "note": "",
+   "overall_before": 2.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0024": {
+   "status": "unreviewed",
+   "original_text": "System configuration and customization",
+   "final_text": "System configuration and customization",
+   "note": "",
+   "overall_before": 1.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0025": {
+   "status": "unreviewed",
+   "original_text": "Data management and backup",
+   "final_text": "Data management and backup",
+   "note": "",
+   "overall_before": 1.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0030": {
+   "status": "unreviewed",
+   "original_text": "A web-based application accessible via standard browsers",
+   "final_text": "A web-based application accessible via standard browsers",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0031": {
+   "status": "unreviewed",
+   "original_text": "Fully responsive web design for access via smartphones and tablets",
+   "final_text": "Fully responsive web design for access via smartphones and tablets",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0032": {
+   "status": "unreviewed",
+   "original_text": "Server infrastructure capable of supporting AI processing requirements",
+   "final_text": "Server infrastructure capable of supporting AI processing requirements",
+   "note": "",
+   "overall_before": 1.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0033": {
+   "status": "unreviewed",
+   "original_text": "Adequate storage for user data, job listings, and analytics",
+   "final_text": "Adequate storage for user data, job listings, and analytics",
+   "note": "",
+   "overall_before": 1.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0034": {
+   "status": "unreviewed",
+   "original_text": "Network infrastructure with sufficient bandwidth, high-availability, load balancing, auto scaling and reliability",
+   "final_text": "Network infrastructure with sufficient bandwidth, high-availability, load balancing, auto scaling and reliability",
+   "note": "",
+   "overall_before": 1.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0036": {
+   "status": "unreviewed",
+   "original_text": "Must be able to integrate with existing MoL and PEF systems and databases",
+   "final_text": "Must be able to integrate with existing MoL and PEF systems and databases",
+   "note": "",
+   "overall_before": 2.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0038": {
+   "status": "unreviewed",
+   "original_text": "Must be accessible via standard web browsers without special plugins or settings",
+   "final_text": "Must be accessible via standard web browsers without special plugins or settings",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0039": {
+   "status": "unreviewed",
+   "original_text": "Must function effectively in areas with limited internet connectivity",
+   "final_text": "Must function effectively in areas with limited internet connectivity",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0040": {
+   "status": "unreviewed",
+   "original_text": "Must be user-friendly especially with people with disability",
+   "final_text": "Must be user-friendly especially with people with disability",
+   "note": "",
+   "overall_before": 1.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0042": {
+   "status": "unreviewed",
+   "original_text": "Must adhere to international standards for data security (e.g., GDPR principles)",
+   "final_text": "Must adhere to international standards for data security (e.g., GDPR principles)",
+   "note": "",
+   "overall_before": 3,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0043": {
+   "status": "unreviewed",
+   "original_text": "Must support legal requirements for employment and recruitment",
+   "final_text": "Must support legal requirements for employment and recruitment",
+   "note": "",
+   "overall_before": 2.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0044": {
+   "status": "unreviewed",
+   "original_text": "Must be implemented in phases, with basic functionality prioritized",
+   "final_text": "Must be implemented in phases, with basic functionality prioritized",
+   "note": "",
+   "overall_before": 2.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0046": {
+   "status": "unreviewed",
+   "original_text": "Must be maintainable by MoL technical staff with appropriate training",
+   "final_text": "Must be maintainable by MoL technical staff with appropriate training",
+   "note": "",
+   "overall_before": 2.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0047": {
+   "status": "unreviewed",
+   "original_text": "Must accommodate users with varying levels of technical proficiency",
+   "final_text": "Must accommodate users with varying levels of technical proficiency",
+   "note": "",
+   "overall_before": 2.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0048": {
+   "status": "unreviewed",
+   "original_text": "Must support accessibility standards for users with disabilities",
+   "final_text": "Must support accessibility standards for users with disabilities",
+   "note": "",
+   "overall_before": 3,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0050": {
+   "status": "unreviewed",
+   "original_text": "Context-sensitive help for all system functions",
+   "final_text": "Context-sensitive help for all system functions",
+   "note": "",
+   "overall_before": 2.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0051": {
+   "status": "unreviewed",
+   "original_text": "Frequently Asked Questions (FAQs)",
+   "final_text": "Frequently Asked Questions (FAQs)",
+   "note": "",
+   "overall_before": 2.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0052": {
+   "status": "unreviewed",
+   "original_text": "Job Seeker User Guide",
+   "final_text": "Job Seeker User Guide",
+   "note": "",
+   "overall_before": 1.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0053": {
+   "status": "unreviewed",
+   "original_text": "Employer User Guide",
+   "final_text": "Employer User Guide",
+   "note": "",
+   "overall_before": 1.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0054": {
+   "status": "unreviewed",
+   "original_text": "Administrator User Guide",
+   "final_text": "Administrator User Guide",
+   "note": "",
+   "overall_before": 1.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0056": {
+   "status": "unreviewed",
+   "original_text": "Training Content",
+   "final_text": "Training Content",
+   "note": "",
+   "overall_before": 2.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0057": {
+   "status": "unreviewed",
+   "original_text": "Quick reference guides",
+   "final_text": "Quick reference guides",
+   "note": "",
+   "overall_before": 2.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0058": {
+   "status": "unreviewed",
+   "original_text": "System demonstration materials (videos, slides with screenshots and instructions.)",
+   "final_text": "System demonstration materials (videos, slides with screenshots and instructions.)",
+   "note": "",
+   "overall_before": 1.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0063": {
+   "status": "unreviewed",
+   "original_text": "MOL Life dashboard should include current logins, number of current logins and last sessions, with links to these users profiles",
+   "final_text": "MOL Life dashboard should include current logins, number of current logins and last sessions, with links to these users profiles",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0064": {
+   "status": "unreviewed",
+   "original_text": "The system shall provide user interfaces for the following user types:",
+   "final_text": "The system shall provide user interfaces for the following user types:",
+   "note": "",
+   "overall_before": 2.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0065": {
+   "status": "unreviewed",
+   "original_text": "Registration and profile management interface",
+   "final_text": "Registration and profile management interface",
+   "note": "",
+   "overall_before": 1.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0067": {
+   "status": "unreviewed",
+   "original_text": "Dashboard for tracking applications and recommendations",
+   "final_text": "Dashboard for tracking applications and recommendations",
+   "note": "",
+   "overall_before": 1.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0068": {
+   "status": "unreviewed",
+   "original_text": "Notification and messaging interface",
+   "final_text": "Notification and messaging interface",
+   "note": "",
+   "overall_before": 2.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0069": {
+   "status": "unreviewed",
+   "original_text": "Registration and company profile management interface",
+   "final_text": "Registration and company profile management interface",
+   "note": "",
+   "overall_before": 1.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0070": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow unregistered (guest) users to browse available job listings using basic filters such as location, sector, and date posted.",
+   "final_text": "The system SHALL allow unregistered (guest) users to browse available job listings using basic filters such as location, sector, and date posted.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0071": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL prompt guest users to register or log in when they attempt to apply for a job, save listings, or subscribe to notifications.",
+   "final_text": "The system SHALL prompt guest users to register or log in when they attempt to apply for a job, save listings, or subscribe to notifications.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0072": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL ensure that privacy policies and cookie consent banners are clear, guestfriendly, and fully compliant with GDPR and applicable local data protection laws, providing transparency in data collection and usage.",
+   "final_text": "The system SHALL ensure that privacy policies and cookie consent banners are clear, guestfriendly, and fully compliant with GDPR and applicable local data protection laws, providing transparency in data collection and usage.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0073": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL have a user-friendly UX/UI dynamic interface that showcases the latest job postings, featured opportunities, and relevant sector-based news or career advice, all presented in a visually engaging and user-friendly layout",
+   "final_text": "The system SHALL have a user-friendly UX/UI dynamic interface that showcases the latest job postings, featured opportunities, and relevant sector-based news or career advice, all presented in a visually engaging and user-friendly layout",
+   "note": "",
+   "overall_before": 2.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0075": {
+   "status": "unreviewed",
+   "original_text": "Multilingual support (Arabic and English) and different AI functions and techniques for both Arab and English to be utilized",
+   "final_text": "Multilingual support (Arabic and English) and different AI functions and techniques for both Arab and English to be utilized",
+   "note": "",
+   "overall_before": 2.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0076": {
+   "status": "unreviewed",
+   "original_text": "Implement Web Content Accessibility Guidelines (WCAG 2.1 or later) to ensure accessibility and inclusivity for users with disabilities, including support for screen readers, appropriate color contrast, and keyboard navigation.",
+   "final_text": "Implement Web Content Accessibility Guidelines (WCAG 2.1 or later) to ensure accessibility and inclusivity for users with disabilities, including support for screen readers, appropriate color contrast, and keyboard navigation.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0078": {
+   "status": "unreviewed",
+   "original_text": "Display dynamic homepage content, including the latest job postings, featured opportunities, and relevant sector-based news or career advice, presented in an engaging and easy-to-navigate layout.",
+   "final_text": "Display dynamic homepage content, including the latest job postings, featured opportunities, and relevant sector-based news or career advice, presented in an engaging and easy-to-navigate layout.",
+   "note": "",
+   "overall_before": 2.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0080": {
+   "status": "unreviewed",
+   "original_text": "All public pages must be SEO-optimized",
+   "final_text": "All public pages must be SEO-optimized",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0081": {
+   "status": "unreviewed",
+   "original_text": "The system shall interface with the following hardware components:",
+   "final_text": "The system shall interface with the following hardware components:",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0082": {
+   "status": "unreviewed",
+   "original_text": "The system shall be designed to minimize hardware dependencies and support a wide range of client devices and configurations.",
+   "final_text": "The system shall be designed to minimize hardware dependencies and support a wide range of client devices and configurations.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0084": {
+   "status": "unreviewed",
+   "original_text": "API integration with at least five (5) external job sites",
+   "final_text": "API integration with at least five (5) external job sites",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0087": {
+   "status": "unreviewed",
+   "original_text": "All software interfaces shall be documented with detailed specifications, including data formats, protocols, and security requirements.",
+   "final_text": "All software interfaces shall be documented with detailed specifications, including data formats, protocols, and security requirements.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0089": {
+   "status": "unreviewed",
+   "original_text": "HTTP/HTTPS for web access",
+   "final_text": "HTTP/HTTPS for web access",
+   "note": "",
+   "overall_before": 1.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0090": {
+   "status": "unreviewed",
+   "original_text": "WebSockets for real-time notifications",
+   "final_text": "WebSockets for real-time notifications",
+   "note": "",
+   "overall_before": 1.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0091": {
+   "status": "unreviewed",
+   "original_text": "SMTP for email communications",
+   "final_text": "SMTP for email communications",
+   "note": "",
+   "overall_before": 1.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0092": {
+   "status": "unreviewed",
+   "original_text": "SMS protocols for mobile notifications",
+   "final_text": "SMS protocols for mobile notifications",
+   "note": "",
+   "overall_before": 1.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0094": {
+   "status": "unreviewed",
+   "original_text": "JSON data format for data exchange",
+   "final_text": "JSON data format for data exchange",
+   "note": "",
+   "overall_before": 2.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0097": {
+   "status": "unreviewed",
+   "original_text": "XML for legacy system integration where required",
+   "final_text": "XML for legacy system integration where required",
+   "note": "",
+   "overall_before": 2.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0099": {
+   "status": "unreviewed",
+   "original_text": "All communications shall be secured using appropriate encryption and authentication mechanisms.",
+   "final_text": "All communications shall be secured using appropriate encryption and authentication mechanisms.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0100": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain separate environments for development, testing, and production with appropriate data isolation.",
+   "final_text": "The system SHALL maintain separate environments for development, testing, and production with appropriate data isolation.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-131": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL define escalation procedures for SLA violations.",
+   "final_text": "The system SHALL define escalation procedures for SLA violations.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0101": {
+   "status": "unreviewed",
+   "original_text": "The system shall support the migration of existing data from MoL and PEF systems into the new platform.",
+   "final_text": "The system shall support the migration of existing data from MoL and PEF systems into the new platform.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0107": {
+   "status": "unreviewed",
+   "original_text": "The system shall support internationalization beyond basic multilingual support, including:",
+   "final_text": "The system shall support internationalization beyond basic multilingual support, including:",
+   "note": "",
+   "overall_before": 2.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0108": {
+   "status": "unreviewed",
+   "original_text": "Support for adding additional languages in the future",
+   "final_text": "Support for adding additional languages in the future",
+   "note": "",
+   "overall_before": 2.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0109": {
+   "status": "unreviewed",
+   "original_text": "Separation of UI text from code for easy translation",
+   "final_text": "Separation of UI text from code for easy translation",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0110": {
+   "status": "unreviewed",
+   "original_text": "Localization of images and media where appropriate",
+   "final_text": "Localization of images and media where appropriate",
+   "note": "",
+   "overall_before": 2.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0112": {
+   "status": "unreviewed",
+   "original_text": "Adaptation of content for cultural appropriateness",
+   "final_text": "Adaptation of content for cultural appropriateness",
+   "note": "",
+   "overall_before": 2.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0114": {
+   "status": "unreviewed",
+   "original_text": "Support for regional variations in language (e.g., different Arabic dialects)",
+   "final_text": "Support for regional variations in language (e.g., different Arabic dialects)",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0115": {
+   "status": "unreviewed",
+   "original_text": "Region-specific content and features",
+   "final_text": "Region-specific content and features",
+   "note": "",
+   "overall_before": 1.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0116": {
+   "status": "unreviewed",
+   "original_text": "Compliance with regional regulations",
+   "final_text": "Compliance with regional regulations",
+   "note": "",
+   "overall_before": 1.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "REQ-0117": {
+   "status": "unreviewed",
+   "original_text": "The system shall include provisions for training different user groups:",
+   "final_text": "The system shall include provisions for training different user groups:",
+   "note": "",
+   "overall_before": 2.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-01": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a self-registration process for job seekers.",
+   "final_text": "The system SHALL provide a self-registration process for job seekers.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-02": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support account activation by user mobile number",
+   "final_text": "The system SHALL support account activation by user mobile number",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-03": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL collect the following information from job seekers through a multi-level onboarding process (via mobile/email): • Level 1 : First and last name, email, mobile number, password, gender • Level 2 : Education, work experience, skills, training, certificates, recent salary (optional), current address, permanent address/residence • Level 3 (optional) : Social media links (e.g., LinkedIn, IEEE, X), personal statement, bio",
+   "final_text": "The system SHALL collect the following information from job seekers through a multi-level onboarding process (via mobile/email): • Level 1 : First and last name, email, mobile number, password, gender • Level 2 : Education, work experience, skills, training, certificates, recent salary (optional), current address, permanent address/residence • Level 3 (optional) : Social media links (e.g., LinkedIn, IEEE, X), personal statement, bio",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-04": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support resume/CV upload in common formats (PDF, DOCX, TXT).",
+   "final_text": "The system SHALL support resume/CV upload in common formats (PDF, DOCX, TXT).",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-05": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL offer the CV to AI engine to automatically extract information from uploaded resumes/CVs using AI parsing technology and add the extracted information to the profile.",
+   "final_text": "The system SHALL offer the CV to AI engine to automatically extract information from uploaded resumes/CVs using AI parsing technology and add the extracted information to the profile.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-06": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow job seekers to build their profiles using a staged, stepwise form with popup prompts for the following sections: • Education : Degree, institution • Experience : Company, role, duration • Skills : Primary/secondary; soft/hard • Preferences : Job type, desired salary, preferred location",
+   "final_text": "The system SHALL allow job seekers to build their profiles using a staged, stepwise form with popup prompts for the following sections: • Education : Degree, institution • Experience : Company, role, duration • Skills : Primary/secondary; soft/hard • Preferences : Job type, desired salary, preferred location",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-07": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow job seekers to edit and update their profiles at any time.",
+   "final_text": "The system SHALL allow job seekers to edit and update their profiles at any time.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-08": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a recommendation to encourage job seekers to complete their profiles and to explore opportunities aligned with their broader skills, interests, and experiences beyond formal education and training.",
+   "final_text": "The system SHALL provide a recommendation to encourage job seekers to complete their profiles and to explore opportunities aligned with their broader skills, interests, and experiences beyond formal education and training.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-09": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow job seekers to set job preferences including job type, industry, location, salary expectations, and work arrangements.",
+   "final_text": "The system SHALL allow job seekers to set job preferences including job type, industry, location, salary expectations, and work arrangements.",
+   "note": "",
+   "overall_before": 4.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-10": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide privacy controls that allow job seekers to set visibility preferences for their profile (public or private), and request account deactivation or deletion.",
+   "final_text": "The system SHALL provide privacy controls that allow job seekers to set visibility preferences for their profile (public or private), and request account deactivation or deletion.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-11": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL generate a shareable public profile URL/QR Code for each job seeker, if activated by the user.",
+   "final_text": "The system SHALL generate a shareable public profile URL/QR Code for each job seeker, if activated by the user.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-12": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow the job seeker to upload supplementary documents (i.e. certificate )",
+   "final_text": "The system SHALL allow the job seeker to upload supplementary documents (i.e. certificate )",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-29": {
+   "status": "unreviewed",
+   "original_text": "The system return a unique job ID as a confirmation response after a job is successfully pushed via the API, enabling accurate record-keeping and integration synchronization for external systems.",
+   "final_text": "The system return a unique job ID as a confirmation response after a job is successfully pushed via the API, enabling accurate record-keeping and integration synchronization for external systems.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-30": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL automatically tag each job post with the name of the source platform (e.g., 'Source: samplejobsite.ps') and include a backlink to the original job advertisement.",
+   "final_text": "The system SHALL automatically tag each job post with the name of the source platform (e.g., 'Source: samplejobsite.ps') and include a backlink to the original job advertisement.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-31": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD support job synchronization of updates via the API, enabling external job sites to modify job details-such as deadline extensions, description edits, or early closure/deletion/deactivation-using the assigned job ID.",
+   "final_text": "The system SHOULD support job synchronization of updates via the API, enabling external job sites to modify job details-such as deadline extensions, description edits, or early closure/deletion/deactivation-using the assigned job ID.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-32": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide an optional sync dashboard-a lightweight web interface or endpoint-that allows partners to review the status of jobs posted via the API, including indicators for synced, failed, pending, and archived records.",
+   "final_text": "The system SHOULD provide an optional sync dashboard-a lightweight web interface or endpoint-that allows partners to review the status of jobs posted via the API, including indicators for synced, failed, pending, and archived records.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-33": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD also offer periodic or real-time access to integration usage statistics-such as the number of jobs submitted, matched, and viewed-for transparency, performance tracking, and reporting purposes.",
+   "final_text": "The system SHOULD also offer periodic or real-time access to integration usage statistics-such as the number of jobs submitted, matched, and viewed-for transparency, performance tracking, and reporting purposes.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-34": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide access to the up-to-date API schema (e.g., via Swagger) and detailed field validation rules to ensure proper formatting and structure of job postings submitted through the API.",
+   "final_text": "The system SHOULD provide access to the up-to-date API schema (e.g., via Swagger) and detailed field validation rules to ensure proper formatting and structure of job postings submitted through the API.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-35": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide an option for source platforms to configure whether their attribution (e.g., source platform name) appears publicly on job postings or is only visible within the admin panel and system logs.",
+   "final_text": "The system SHOULD provide an option for source platforms to configure whether their attribution (e.g., source platform name) appears publicly on job postings or is only visible within the admin panel and system logs.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-36": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD maintain an audit trail at the job level, recording which external job site created or modified each posting, and display this information within the MoL admin dashboard for traceability and accountability.",
+   "final_text": "The system SHOULD maintain an audit trail at the job level, recording which external job site created or modified each posting, and display this information within the MoL admin dashboard for traceability and accountability.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-37": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a comprehensive user management interface for administrators.",
+   "final_text": "The system SHALL provide a comprehensive user management interface for administrators.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-38": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow authorized administrators to add and manage core entities on the platform, including job seekers, employers, and job offerings (opportunities).",
+   "final_text": "The system SHALL allow authorized administrators to add and manage core entities on the platform, including job seekers, employers, and job offerings (opportunities).",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-39": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide user management capabilities for administrators, including the ability to view, approve, ban, or deactivate user accounts, reset account credentials, and monitor account statuses.",
+   "final_text": "The system SHALL provide user management capabilities for administrators, including the ability to view, approve, ban, or deactivate user accounts, reset account credentials, and monitor account statuses.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-40": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide tools for administrators to assist users with account recovery and technical issues, view pending employer registrations and approve them based on submitted profile information.",
+   "final_text": "The system SHALL provide tools for administrators to assist users with account recovery and technical issues, view pending employer registrations and approve them based on submitted profile information.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-41": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain an audit log of all administrative actions for security and accountability.",
+   "final_text": "The system SHALL maintain an audit log of all administrative actions for security and accountability.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-42": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow authorized administrators to define and update system settings if needed.",
+   "final_text": "The system SHALL allow authorized administrators to define and update system settings if needed.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-43": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow authorized administrators to view and manage static reference files, including skills, jobs, trainings, and other related datasets.",
+   "final_text": "The system SHALL allow authorized administrators to view and manage static reference files, including skills, jobs, trainings, and other related datasets.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-44": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow authorized administrators to manage system taxonomies such as the skills list, occupations catalog, training programs, and other platform constants or reference values.",
+   "final_text": "The system SHALL allow authorized administrators to manage system taxonomies such as the skills list, occupations catalog, training programs, and other platform constants or reference values.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-45": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow administrators to oversee job offerings by viewing active and inactive postings, changes in posts , and to suspend or remove job offerings that are deemed inappropriate or violate platform policies.",
+   "final_text": "The system SHALL allow administrators to oversee job offerings by viewing active and inactive postings, changes in posts , and to suspend or remove job offerings that are deemed inappropriate or violate platform policies.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-46": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide comprehensive statistics and reporting features, allowing administrators to download reports on job postings by sector, region, or industry; user registrations; top searches from both job seekers and employers; user interactions with job offers; and overall system metrics.",
+   "final_text": "The system SHALL provide comprehensive statistics and reporting features, allowing administrators to download reports on job postings by sector, region, or industry; user registrations; top searches from both job seekers and employers; user interactions with job offers; and overall system metrics.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-49": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement secure authentication mechanisms including username/password, email verification, and multi-factor authentication options.",
+   "final_text": "The system SHALL implement secure authentication mechanisms including username/password, email verification, and multi-factor authentication options.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-50": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL enforce strong password policies with configurable parameters.",
+   "final_text": "The system SHALL enforce strong password policies with configurable parameters.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-51": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement role-based access control to restrict access to features and data based on user roles.",
+   "final_text": "The system SHALL implement role-based access control to restrict access to features and data based on user roles.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-52": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide session management with configurable timeout settings.",
+   "final_text": "The system SHALL provide session management with configurable timeout settings.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-53": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain detailed access logs for security monitoring and auditing.",
+   "final_text": "The system SHALL maintain detailed access logs for security monitoring and auditing.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-54": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a structured job posting form for employers to create job listings.",
+   "final_text": "The system SHALL provide a structured job posting form for employers to create job listings.",
+   "note": "",
+   "overall_before": 4.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-55": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a structured job posting form that allows employers to add new job opportunities with the following fields: • Job title, summary, and required skills (with support for file upload or copy/paste input) • Contract type (e.g., full-time, part-time, training, project-based) • Required education level • Application deadline with an optional auto-close feature • Work format selection (Physical with employment location, Online, or Hybrid) • Gender, number of employees, etc • Required languages and proficiency levels • Link to the job if available. • More detailed features on the job post to be provided.",
+   "final_text": "The system SHALL provide a structured job posting form that allows employers to add new job opportunities with the following fields: • Job title, summary, and required skills (with support for file upload or copy/paste input) • Contract type (e.g., full-time, part-time, training, project-based) • Required education level • Application deadline with an optional auto-close feature • Work format selection (Physical with employment location, Online, or Hybrid) • Gender, number of employees, etc • Required languages and proficiency levels • Link to the job if available. • More detailed features on the job post to be provided.",
+   "note": "",
+   "overall_before": 2.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-56": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support standardized job categories, skills, and qualifications to facilitate accurate matching. For this requirement, the system SHALL ensure that all input data complies with the Schema.org JobPosting standard for semantic compatibility and structured data integrity.",
+   "final_text": "The system SHALL support standardized job categories, skills, and qualifications to facilitate accurate matching. For this requirement, the system SHALL ensure that all input data complies with the Schema.org JobPosting standard for semantic compatibility and structured data integrity.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-57": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow employers to manage their job postings by editing job details, extending application deadlines, and set job posting visibility (public, private, or targeted) posts when necessary.",
+   "final_text": "The system SHALL allow employers to manage their job postings by editing job details, extending application deadlines, and set job posting visibility (public, private, or targeted) posts when necessary.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-58": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support job posting expiration and renewal processes.",
+   "final_text": "The system SHALL support job posting expiration and renewal processes.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-59": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a comprehensive search interface for job seekers to find relevant opportunities.",
+   "final_text": "The system SHALL provide a comprehensive search interface for job seekers to find relevant opportunities.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-60": {
+   "status": "unreviewed",
+   "original_text": "The search interface SHALL support both basic (search by single keyword) and advanced search modes based on employer-defined attributes.",
+   "final_text": "The search interface SHALL support both basic (search by single keyword) and advanced search modes based on employer-defined attributes.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-61": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide semantic search capabilities that understand the intent behind search queries.",
+   "final_text": "The system SHALL provide semantic search capabilities that understand the intent behind search queries.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-62": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a search engine with advanced filtering capabilities, allowing job seekers to search for jobs using the following criteria: • Keywords (text) • Location • Salary range • Employment type • Date posted • Application deadline • Job-specific requirements (e.g., skills, education, training, years of experience) • Company sector/industry (e.g., IT, Health, NGO, Construction)",
+   "final_text": "The system SHALL provide a search engine with advanced filtering capabilities, allowing job seekers to search for jobs using the following criteria: • Keywords (text) • Location • Salary range • Employment type • Date posted • Application deadline • Job-specific requirements (e.g., skills, education, training, years of experience) • Company sector/industry (e.g., IT, Health, NGO, Construction)",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-63": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL display search results with relevance/skills-matching ranking and sorting options. In addition, when user login the system SHALL display recommended jobs based on results generated by AI matching engine.",
+   "final_text": "The system SHALL display search results with relevance/skills-matching ranking and sorting options. In addition, when user login the system SHALL display recommended jobs based on results generated by AI matching engine.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-64": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL also include a favorites feature (e.g., heart button ) for users to save jobs of interest.",
+   "final_text": "The system SHALL also include a favorites feature (e.g., heart button ) for users to save jobs of interest.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-65": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support saved searches with notification options for new matching jobs.",
+   "final_text": "The system SHALL support saved searches with notification options for new matching jobs.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-66": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow job seekers to bookmark and save jobs by adding them to an ' Interested List ' , and to save custom search filters for future use.",
+   "final_text": "The system SHALL allow job seekers to bookmark and save jobs by adding them to an ' Interested List ' , and to save custom search filters for future use.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-67": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide employers with tools to manage the status of job postings.",
+   "final_text": "The system SHALL provide employers with tools to manage the status of job postings.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-68": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support the following job posting statuses: draft, active, paused, expired, and archived.",
+   "final_text": "The system SHALL support the following job posting statuses: draft, active, paused, expired, and archived.",
+   "note": "",
+   "overall_before": 4.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-69": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain a history of status changes for audit and reporting purposes.",
+   "final_text": "The system SHALL maintain a history of status changes for audit and reporting purposes.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-70": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement AI-driven matching algorithms to connect job seekers with relevant job opportunities.",
+   "final_text": "The system SHALL implement AI-driven matching algorithms to connect job seekers with relevant job opportunities.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-71": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL use a scoring algorithm to calculate a match score between job seekers and job postings minimally based on the following criteria: • Skill overlap • Education match • Training match • Location match • Experience range • Salary expectation range",
+   "final_text": "The system SHALL use a scoring algorithm to calculate a match score between job seekers and job postings minimally based on the following criteria: • Skill overlap • Education match • Training match • Location match • Experience range • Salary expectation range",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-72": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL generate shortlists of top-matching candidates (e.g., top 100) for each job posting to assist employers in the selection process.",
+   "final_text": "The system SHALL generate shortlists of top-matching candidates (e.g., top 100) for each job posting to assist employers in the selection process.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-73": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL use natural language processing (NLP) to understand the semantic meaning of job descriptions and resumes beyond keyword matching.",
+   "final_text": "The system SHALL use natural language processing (NLP) to understand the semantic meaning of job descriptions and resumes beyond keyword matching.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-74": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL perform keyword and semantic analysis on posted job descriptions to identify key attributes such as required skills, experience levels, and job categories.",
+   "final_text": "The system SHALL perform keyword and semantic analysis on posted job descriptions to identify key attributes such as required skills, experience levels, and job categories.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-75": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow administrators to define and adjust a minimum match threshold (e.g., 60%) that determines which job matches are displayed to users.",
+   "final_text": "The system SHALL allow administrators to define and adjust a minimum match threshold (e.g., 60%) that determines which job matches are displayed to users.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-76": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL rank/order job postings for each job seeker based on their individual match percentage, displaying the most relevant opportunities first.",
+   "final_text": "The system SHALL rank/order job postings for each job seeker based on their individual match percentage, displaying the most relevant opportunities first.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-77": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support two-way matching, where job seekers receive ranked job opportunities based on match percentage, and employers receive reverse matches with ranked lists of suitable job seekers for their postings.",
+   "final_text": "The system SHALL support two-way matching, where job seekers receive ranked job opportunities based on match percentage, and employers receive reverse matches with ranked lists of suitable job seekers for their postings.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-78": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow configuration of matching parameters to adjust the importance of different factors.",
+   "final_text": "The system SHALL allow configuration of matching parameters to adjust the importance of different factors.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-79": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement AI-powered resume parsing to extract structured information from uploaded documents.",
+   "final_text": "The system SHALL implement AI-powered resume parsing to extract structured information from uploaded documents.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-80": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL extract the following information from resumes: personal details, contact information, education history, work experience, skills, certifications, and achievements.",
+   "final_text": "The system SHALL extract the following information from resumes: personal details, contact information, education history, work experience, skills, certifications, and achievements.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-81": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support multiple languages in resume parsing, with primary focus on Arabic and English.",
+   "final_text": "The system SHALL support multiple languages in resume parsing, with primary focus on Arabic and English.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-82": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL identify and standardize skills mentioned in resumes to facilitate matching.",
+   "final_text": "The system SHALL identify and standardize skills mentioned in resumes to facilitate matching.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-83": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide confidence scores for extracted information and highlight areas that may need manual verification.",
+   "final_text": "The system SHALL provide confidence scores for extracted information and highlight areas that may need manual verification.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-84": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow job seekers to review and correct parsed information.",
+   "final_text": "The system SHALL allow job seekers to review and correct parsed information.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-85": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide personalized job recommendations for job seekers based on their profile, preferences, and platform activity.",
+   "final_text": "The system SHALL provide personalized job recommendations for job seekers based on their profile, preferences, and platform activity.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-86": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL recommend suitable job seekers to employers based on job requirements and matching criteria.",
+   "final_text": "The system SHALL recommend suitable job seekers to employers based on job requirements and matching criteria.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-87": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL use collaborative filtering to recommend jobs based on similar user behaviors and preferences.",
+   "final_text": "The system SHALL use collaborative filtering to recommend jobs based on similar user behaviors and preferences.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-88": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL incorporate content-based filtering to recommend jobs similar to those the user has shown interest in.",
+   "final_text": "The system SHALL incorporate content-based filtering to recommend jobs similar to those the user has shown interest in.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-89": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL consider location, salary expectations, and work arrangement preferences in recommendations.",
+   "final_text": "The system SHALL consider location, salary expectations, and work arrangement preferences in recommendations.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-90": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide employers with candidate recommendations for their job postings.",
+   "final_text": "The system SHALL provide employers with candidate recommendations for their job postings.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-91": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL rank candidates based on match quality, highlighting the strengths and potential gaps of each candidate.",
+   "final_text": "The system SHALL rank candidates based on match quality, highlighting the strengths and potential gaps of each candidate.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-92": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow employers to set minimum qualification thresholds for automatic candidate filtering.",
+   "final_text": "The system SHALL allow employers to set minimum qualification thresholds for automatic candidate filtering.",
+   "note": "",
+   "overall_before": 4.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-93": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow employers to search the candidate database using advanced filtering options.",
+   "final_text": "The system SHALL allow employers to search the candidate database using advanced filtering options.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-94": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL respect candidate privacy settings when making recommendations to employers.",
+   "final_text": "The system SHALL respect candidate privacy settings when making recommendations to employers.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-95": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide insights on candidate availability, salary expectations, and potential fit.",
+   "final_text": "The system SHALL provide insights on candidate availability, salary expectations, and potential fit.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-96": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow employers to save promising candidates to talent pools for future opportunities (add to shortlist).",
+   "final_text": "The system SHALL allow employers to save promising candidates to talent pools for future opportunities (add to shortlist).",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-97": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support integration with external job sites based on recommendations by MoL and PEF.",
+   "final_text": "The system SHALL support integration with external job sites based on recommendations by MoL and PEF.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-98": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide APIs for real-time job data synchronization with external job sites.",
+   "final_text": "The system SHOULD provide APIs for real-time job data synchronization with external job sites.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-99": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD implement data mapping and transformation to standardize job postings from different sources.",
+   "final_text": "The system SHOULD implement data mapping and transformation to standardize job postings from different sources.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-100": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD support both pull (importing jobs from external sites) and push (exporting jobs to external sites) integration models.",
+   "final_text": "The system SHOULD support both pull (importing jobs from external sites) and push (exporting jobs to external sites) integration models.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-101": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD maintain synchronization logs and provide error handling for failed integrations.",
+   "final_text": "The system SHOULD maintain synchronization logs and provide error handling for failed integrations.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-102": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD support scheduled and on-demand synchronization options.",
+   "final_text": "The system SHOULD support scheduled and on-demand synchronization options.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-103": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide a dashboard to monitor integration status and data flow with external job sites.",
+   "final_text": "The system SHOULD provide a dashboard to monitor integration status and data flow with external job sites.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-104": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD integrate with relevant government databases for data verification and enrichment.",
+   "final_text": "The system SHOULD integrate with relevant government databases for data verification and enrichment.",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-105": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD support integration with the MoL and PEF existing databases and systems.",
+   "final_text": "The system SHOULD support integration with the MoL and PEF existing databases and systems.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-106": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD support verification of educational credentials through integration with educational institution databases.",
+   "final_text": "The system SHOULD support verification of educational credentials through integration with educational institution databases.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-107": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide options for identity verification through government ID systems.",
+   "final_text": "The system SHOULD provide options for identity verification through government ID systems.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-108": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD maintain audit trails of all data exchanges with government systems.",
+   "final_text": "The system SHOULD maintain audit trails of all data exchanges with government systems.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-109": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD respect data privacy regulations when accessing and using government data.",
+   "final_text": "The system SHOULD respect data privacy regulations when accessing and using government data.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-110": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide a comprehensive API framework for integration with external systems.",
+   "final_text": "The system SHOULD provide a comprehensive API framework for integration with external systems.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-111": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD implement RESTful APIs with JSON data format as the primary integration method.",
+   "final_text": "The system SHOULD implement RESTful APIs with JSON data format as the primary integration method.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-112": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide detailed API documentation with examples and testing tools.",
+   "final_text": "The system SHOULD provide detailed API documentation with examples and testing tools.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-113": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD implement OAuth 2.0 for API authentication and authorization.",
+   "final_text": "The system SHOULD implement OAuth 2.0 for API authentication and authorization.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-114": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD support API versioning to ensure backward compatibility.",
+   "final_text": "The system SHOULD support API versioning to ensure backward compatibility.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-115": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL track and record user activities for analysis and reporting.",
+   "final_text": "The system SHALL track and record user activities for analysis and reporting.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-116": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL monitor job seeker activities including profile views, job searches, applications, and interactions.",
+   "final_text": "The system SHALL monitor job seeker activities including profile views, job searches, applications, and interactions.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-117": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL TRACK employer activities including job postings, candidate searches.",
+   "final_text": "The system SHALL TRACK employer activities including job postings, candidate searches.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-118": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement data retention policies for activity logs in compliance with regulations.",
+   "final_text": "The system SHALL implement data retention policies for activity logs in compliance with regulations.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-120": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD generate employment statistics and labor market insights from platform data.",
+   "final_text": "The system SHOULD generate employment statistics and labor market insights from platform data.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-121": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD track key metrics including job posting trends, application rates, hiring rates, and time-to-fill.",
+   "final_text": "The system SHOULD track key metrics including job posting trends, application rates, hiring rates, and time-to-fill.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-122": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide industry-specific analytics on job market demand and supply.",
+   "final_text": "The system SHOULD provide industry-specific analytics on job market demand and supply.",
+   "note": "",
+   "overall_before": 3,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-123": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD analyze skill demand trends to identify emerging requirements and skill gaps.",
+   "final_text": "The system SHOULD analyze skill demand trends to identify emerging requirements and skill gaps.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-124": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD generate geographic distribution reports for jobs and candidates.",
+   "final_text": "The system SHOULD generate geographic distribution reports for jobs and candidates.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-125": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide salary range analytics by industry, position, and location.",
+   "final_text": "The system SHOULD provide salary range analytics by industry, position, and location.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-126": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD track employment outcomes and career progression where data is available.",
+   "final_text": "The system SHOULD track employment outcomes and career progression where data is available.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-127": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD generate periodic labor market reports for government stakeholders.",
+   "final_text": "The system SHOULD generate periodic labor market reports for government stakeholders.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-128": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD monitor and report on system performance metrics.",
+   "final_text": "The system SHOULD monitor and report on system performance metrics.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-129": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD track matching algorithm performance including accuracy, precision, recall, and user satisfaction.",
+   "final_text": "The system SHOULD track matching algorithm performance including accuracy, precision, recall, and user satisfaction.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-130": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD monitor system usage patterns including peak times, popular features, and user engagement.",
+   "final_text": "The system SHOULD monitor system usage patterns including peak times, popular features, and user engagement.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-131": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD track technical performance metrics including response times, resource utilization, and error rates.",
+   "final_text": "The system SHOULD track technical performance metrics including response times, resource utilization, and error rates.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-132": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide dashboards for administrators to monitor system health and performance.",
+   "final_text": "The system SHOULD provide dashboards for administrators to monitor system health and performance.",
+   "note": "",
+   "overall_before": 3,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-133": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD generate alerts for performance issues or anomalies.",
+   "final_text": "The system SHOULD generate alerts for performance issues or anomalies.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-134": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD maintain historical performance data for trend analysis and capacity planning.",
+   "final_text": "The system SHOULD maintain historical performance data for trend analysis and capacity planning.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-135": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide a flexible reporting framework for generating custom reports through seamless integration with existing and available reporting tools such as Microsoft Power BI.",
+   "final_text": "The system SHOULD provide a flexible reporting framework for generating custom reports through seamless integration with existing and available reporting tools such as Microsoft Power BI.",
+   "note": "",
+   "overall_before": 2.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-136": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD allow administrators to define report templates with configurable parameters.",
+   "final_text": "The system SHOULD allow administrators to define report templates with configurable parameters.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-137": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD support various report formats including tabular data, charts, and visualizations.",
+   "final_text": "The system SHOULD support various report formats including tabular data, charts, and visualizations.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-138": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD allow scheduling of recurring reports with automated distribution.",
+   "final_text": "The system SHOULD allow scheduling of recurring reports with automated distribution.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-139": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD support export of reports in common formats (PDF, Excel, CSV).",
+   "final_text": "The system SHOULD support export of reports in common formats (PDF, Excel, CSV).",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-140": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD provide a report builder interface for users with appropriate permissions.",
+   "final_text": "The system SHOULD provide a report builder interface for users with appropriate permissions.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-141": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD maintain a library of saved reports for quick access.",
+   "final_text": "The system SHOULD maintain a library of saved reports for quick access.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-142": {
+   "status": "unreviewed",
+   "original_text": "The system SHOULD implement access controls to ensure users can only view reports appropriate to their role.",
+   "final_text": "The system SHOULD implement access controls to ensure users can only view reports appropriate to their role.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-143": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL send email notifications for important events and updates.",
+   "final_text": "The system SHALL send email notifications for important events and updates.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-144": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support customizable email templates with dynamic content.",
+   "final_text": "The system SHALL support customizable email templates with dynamic content.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-145": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow users to configure their email notification preferences.",
+   "final_text": "The system SHALL allow users to configure their email notification preferences.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-146": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support both immediate and digest email notifications.",
+   "final_text": "The system SHALL support both immediate and digest email notifications.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-147": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL log all emails notifications.",
+   "final_text": "The system SHALL log all emails notifications.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-148": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL comply with anti-spam regulations and best practices.",
+   "final_text": "The system SHALL comply with anti-spam regulations and best practices.",
+   "note": "",
+   "overall_before": 3,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-149": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide an in-app notification center for users.",
+   "final_text": "The system SHALL provide an in-app notification center for users.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-150": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL display real-time notifications for important events and updates.",
+   "final_text": "The system SHALL display real-time notifications for important events and updates.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-151": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide weekly job recommendations to job seekers based on their search history and profile information.",
+   "final_text": "The system SHALL provide weekly job recommendations to job seekers based on their search history and profile information.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-152": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain a notification history for users to review past notifications.",
+   "final_text": "The system SHALL maintain a notification history for users to review past notifications.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-153": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow users to configure their in-app notification preferences.",
+   "final_text": "The system SHALL allow users to configure their in-app notification preferences.",
+   "note": "",
+   "overall_before": 4.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-154": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support different notification types with appropriate visual indicators.",
+   "final_text": "The system SHALL support different notification types with appropriate visual indicators.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-155": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide notification management tools for users to mark as read, delete, or take action on notifications.",
+   "final_text": "The system SHALL provide notification management tools for users to mark as read, delete, or take action on notifications.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-156": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide SMS notifications for critical updates and time- sensitive information (byt the integration with SMS service providers (gateway)). Such as welcoming SMS with a code for user registration, employer registration, and SMS for resetting the password.",
+   "final_text": "The system SHALL provide SMS notifications for critical updates and time- sensitive information (byt the integration with SMS service providers (gateway)). Such as welcoming SMS with a code for user registration, employer registration, and SMS for resetting the password.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-157": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow users to opt-in to SMS notifications and provide their mobile number.",
+   "final_text": "The system SHALL allow users to opt-in to SMS notifications and provide their mobile number.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-158": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL limit SMS notifications to essential communications to avoid overwhelming users.",
+   "final_text": "The system SHALL limit SMS notifications to essential communications to avoid overwhelming users.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-159": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL track SMS delivery status for monitoring and troubleshooting. + loging as sms messages",
+   "final_text": "The system SHALL track SMS delivery status for monitoring and troubleshooting. + loging as sms messages",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-160": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL comply with telecommunications regulations regarding SMS messaging.",
+   "final_text": "The system SHALL comply with telecommunications regulations regarding SMS messaging.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-161": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a content management system (CMS) for publishing news and updates.",
+   "final_text": "The system SHALL provide a content management system (CMS) for publishing news and updates.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-162": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow administrators to create, edit, and publish articles and announcements.",
+   "final_text": "The system SHALL allow administrators to create, edit, and publish articles and announcements.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-163": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support rich text formatting, images, and embedded media in content.",
+   "final_text": "The system SHALL support rich text formatting, images, and embedded media in content.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-164": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide content categorization and tagging for organization.",
+   "final_text": "The system SHALL provide content categorization and tagging for organization.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-165": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL display relevant news and updates on user dashboards based on their profile.",
+   "final_text": "The system SHALL display relevant news and updates on user dashboards based on their profile.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-166": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain an archive of past news and updates with search functionality.",
+   "final_text": "The system SHALL maintain an archive of past news and updates with search functionality.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-167": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a comprehensive FAQ and help center. In addition, list of laws, regulations and contract types regulations.",
+   "final_text": "The system SHALL provide a comprehensive FAQ and help center. In addition, list of laws, regulations and contract types regulations.",
+   "note": "",
+   "overall_before": 2.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-168": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL organize help content by topic and user role for easy navigation.",
+   "final_text": "The system SHALL organize help content by topic and user role for easy navigation.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-169": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement a search function for help content.",
+   "final_text": "The system SHALL implement a search function for help content.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-170": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide context-sensitive help throughout the platform.",
+   "final_text": "The system SHALL provide context-sensitive help throughout the platform.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-171": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow administrators to update help content as the system evolves.",
+   "final_text": "The system SHALL allow administrators to update help content as the system evolves.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-172": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL collect user feedback on help content effectiveness.",
+   "final_text": "The system SHALL collect user feedback on help content effectiveness.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-173": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide guided tours and tutorials for new users.",
+   "final_text": "The system SHALL provide guided tours and tutorials for new users.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "FR-174": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support multimedia help content including videos and interactive guides.",
+   "final_text": "The system SHALL support multimedia help content including videos and interactive guides.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-01": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide page load times of less than 3 seconds for standard operations under normal load conditions.",
+   "final_text": "The system SHALL provide page load times of less than 3 seconds for standard operations under normal load conditions.",
+   "note": "",
+   "overall_before": 4.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-02": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide search results within 2 seconds for standard search queries.",
+   "final_text": "The system SHALL provide search results within 2 seconds for standard search queries.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-03": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL complete AI matching operations within 5 seconds for individual job-candidate matches.",
+   "final_text": "The system SHALL complete AI matching operations within 5 seconds for individual job-candidate matches.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-04": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL process batch operations (e.g., bulk candidate matching) within a timeframe proportional to the batch size, not exceeding 2 minutes for standard operations.",
+   "final_text": "The system SHALL process batch operations (e.g., bulk candidate matching) within a timeframe proportional to the batch size, not exceeding 2 minutes for standard operations.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-05": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain response time degradation of no more than 50% during peak load periods.",
+   "final_text": "The system SHALL maintain response time degradation of no more than 50% during peak load periods.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-06": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support at least 1,000 concurrent users during normal operations.",
+   "final_text": "The system SHALL support at least 1,000 concurrent users during normal operations.",
+   "note": "",
+   "overall_before": 4.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-07": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support at least 5,000 concurrent users during peak periods.",
+   "final_text": "The system SHALL support at least 5,000 concurrent users during peak periods.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-08": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL process at least 100 job applications per minute during peak periods.",
+   "final_text": "The system SHALL process at least 100 job applications per minute during peak periods.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-09": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support at least 500 new job postings per day.",
+   "final_text": "The system SHALL support at least 500 new job postings per day.",
+   "note": "",
+   "overall_before": 5,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-10": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support at least 1,000 new user registrations per day.",
+   "final_text": "The system SHALL support at least 1,000 new user registrations per day.",
+   "note": "",
+   "overall_before": 5,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-11": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL operate within the allocated server resources, utilizing no more than 80%of CPU capacity during normal operations.",
+   "final_text": "The system SHALL operate within the allocated server resources, utilizing no more than 80%of CPU capacity during normal operations.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-12": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL utilize no more than 80%of available memory during normal operations.",
+   "final_text": "The system SHALL utilize no more than 80%of available memory during normal operations.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-13": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL require no more than 5TB of storage for the first year of operation, with a growth plan for subsequent years.",
+   "final_text": "The system SHALL require no more than 5TB of storage for the first year of operation, with a growth plan for subsequent years.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-14": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL optimize database queries to minimize I/O operations and response times.",
+   "final_text": "The system SHALL optimize database queries to minimize I/O operations and response times.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-15": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement caching mechanisms to reduce resource utilization for frequently accessed data.",
+   "final_text": "The system SHALL implement caching mechanisms to reduce resource utilization for frequently accessed data.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-16": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL be designed to scale horizontally by adding more server instances to handle increased load.",
+   "final_text": "The system SHALL be designed to scale horizontally by adding more server instances to handle increased load.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-17": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL be designed to scale vertically by utilizing additional resources on existing servers.",
+   "final_text": "The system SHALL be designed to scale vertically by utilizing additional resources on existing servers.",
+   "note": "",
+   "overall_before": 3.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-18": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support a minimum of 100,000 registered job seekers without performance degradation.",
+   "final_text": "The system SHALL support a minimum of 100,000 registered job seekers without performance degradation.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-19": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support a minimum of 10,000 registered employers without performance degradation.",
+   "final_text": "The system SHALL support a minimum of 10,000 registered employers without performance degradation.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-20": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support a minimum of 50,000 active job postings without performance degradation.",
+   "final_text": "The system SHALL support a minimum of 50,000 active job postings without performance degradation.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-21": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL be designed to accommodate a 100% annual growth in user base and transaction volume for at least the first three years of operation.",
+   "final_text": "The system SHALL be designed to accommodate a 100% annual growth in user base and transaction volume for at least the first three years of operation.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-22": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement multi-factor authentication for administrative accounts and as an option for all users.",
+   "final_text": "The system SHALL implement multi-factor authentication for administrative accounts and as an option for all users.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-23": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL enforce strong password policies, including minimum length, complexity, and regular password changes.",
+   "final_text": "The system SHALL enforce strong password policies, including minimum length, complexity, and regular password changes.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-24": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement role-based access control (RBAC) to restrict access to features and data based on user roles.",
+   "final_text": "The system SHALL implement role-based access control (RBAC) to restrict access to features and data based on user roles.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-25": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain detailed access logs for all authentication and authorization events.",
+   "final_text": "The system SHALL maintain detailed access logs for all authentication and authorization events.",
+   "note": "",
+   "overall_before": 4.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-26": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL automatically lock accounts after a specified number of failed login attempts.",
+   "final_text": "The system SHALL automatically lock accounts after a specified number of failed login attempts.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-27": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement secure session management with appropriate timeout settings.",
+   "final_text": "The system SHALL implement secure session management with appropriate timeout settings.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-28": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support OAuth 2.0 and OpenID Connect for third-party authentication where applicable.",
+   "final_text": "The system SHALL support OAuth 2.0 and OpenID Connect for third-party authentication where applicable.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-29": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL encrypt all sensitive data at rest using industry-standard encryption algorithms (AES-256 or equivalent).",
+   "final_text": "The system SHALL encrypt all sensitive data at rest using industry-standard encryption algorithms (AES-256 or equivalent).",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-30": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL encrypt all data in transit using TLS 1.3 or higher.",
+   "final_text": "The system SHALL encrypt all data in transit using TLS 1.3 or higher.",
+   "note": "",
+   "overall_before": 5,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-31": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement data masking for sensitive information displayed in the user interface.",
+   "final_text": "The system SHALL implement data masking for sensitive information displayed in the user interface.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-32": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement secure key management practices for encryption keys.",
+   "final_text": "The system SHALL implement secure key management practices for encryption keys.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-33": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide mechanisms for secure data deletion when required.",
+   "final_text": "The system SHALL provide mechanisms for secure data deletion when required.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-34": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement database-level encryption for sensitive tables and columns.",
+   "final_text": "The system SHALL implement database-level encryption for sensitive tables and columns.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-36": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL comply with Palestinian data protection regulations and incorporate GDPR principles as best practice.",
+   "final_text": "The system SHALL comply with Palestinian data protection regulations and incorporate GDPR principles as best practice.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-37": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide mechanisms for users to view, export, and delete their personal data in accordance with data protection regulations.",
+   "final_text": "The system SHALL provide mechanisms for users to view, export, and delete their personal data in accordance with data protection regulations.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-38": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain audit trails of all data access and modifications for compliance purposes.",
+   "final_text": "The system SHALL maintain audit trails of all data access and modifications for compliance purposes.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-39": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement data minimization principles, collecting only necessary information for system functionality.",
+   "final_text": "The system SHALL implement data minimization principles, collecting only necessary information for system functionality.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-40": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide clear privacy notices and obtain appropriate consent for data collection and processing.",
+   "final_text": "The system SHALL provide clear privacy notices and obtain appropriate consent for data collection and processing.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-41": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement data retention policies in compliance with legal requirements.",
+   "final_text": "The system SHALL implement data retention policies in compliance with legal requirements.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-42": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support data protection impact assessments (DPIA) for high-risk processing activities.",
+   "final_text": "The system SHALL support data protection impact assessments (DPIA) for high-risk processing activities.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-43": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement comprehensive logging of security-relevant events.",
+   "final_text": "The system SHALL implement comprehensive logging of security-relevant events.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-44": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide real-time monitoring and alerting for security incidents.",
+   "final_text": "The system SHALL provide real-time monitoring and alerting for security incidents.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-45": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement intrusion detection and prevention mechanisms.",
+   "final_text": "The system SHALL implement intrusion detection and prevention mechanisms.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-46": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL conduct regular security scans and vulnerability assessments.",
+   "final_text": "The system SHALL conduct regular security scans and vulnerability assessments.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-47": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL have a documented incident response plan for security breaches.",
+   "final_text": "The system SHALL have a documented incident response plan for security breaches.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-48": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement rate limiting and other protections against denial-of-service attacks.",
+   "final_text": "The system SHALL implement rate limiting and other protections against denial-of-service attacks.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-49": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide mechanisms for security patch management and updates.",
+   "final_text": "The system SHALL provide mechanisms for security patch management and updates.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-50": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain 99.5% availability during standard operating hours (8:00 AMto 8:00 PMPalestine time, Sunday through Thursday).",
+   "final_text": "The system SHALL maintain 99.5% availability during standard operating hours (8:00 AMto 8:00 PMPalestine time, Sunday through Thursday).",
+   "note": "",
+   "overall_before": 5,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-51": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain 99.0% availability during non-standard hours.",
+   "final_text": "The system SHALL maintain 99.0% availability during non-standard hours.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-52": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL schedule maintenance windows during periods of lowest expected usage.",
+   "final_text": "The system SHALL schedule maintenance windows during periods of lowest expected usage.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-53": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide advance notice of scheduled maintenance to all users.",
+   "final_text": "The system SHALL provide advance notice of scheduled maintenance to all users.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-54": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement high availability architecture to minimize single points of failure.",
+   "final_text": "The system SHALL implement high availability architecture to minimize single points of failure.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-55": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL continue to function with degraded performance in the event of component failures.",
+   "final_text": "The system SHALL continue to function with degraded performance in the event of component failures.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-56": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement database replication to prevent data loss in case of database failures.",
+   "final_text": "The system SHALL implement database replication to prevent data loss in case of database failures.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-57": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement load balancing across multiple servers to distribute traffic and prevent overload.",
+   "final_text": "The system SHALL implement load balancing across multiple servers to distribute traffic and prevent overload.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-58": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL automatically recover from common failure scenarios without manual intervention.",
+   "final_text": "The system SHALL automatically recover from common failure scenarios without manual intervention.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-59": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement circuit breaker patterns for external service dependencies to prevent cascading failures.",
+   "final_text": "The system SHALL implement circuit breaker patterns for external service dependencies to prevent cascading failures.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-60": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain regular backups of all data, with full backups at least weekly and incremental backups daily.",
+   "final_text": "The system SHALL maintain regular backups of all data, with full backups at least weekly and incremental backups daily.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-61": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL store backups in geographically separate locations from the primary system.",
+   "final_text": "The system SHALL store backups in geographically separate locations from the primary system.",
+   "note": "",
+   "overall_before": 4.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-62": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL define and document Recovery Time Objective (RTO) of 4 hours for critical functions and 24 hours for non-critical functions.",
+   "final_text": "The system SHALL define and document Recovery Time Objective (RTO) of 4 hours for critical functions and 24 hours for non-critical functions.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-63": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL define and document Recovery Point Objective (RPO) of 1 hour, meaning no more than 1 hour of data loss in a disaster scenario.",
+   "final_text": "The system SHALL define and document Recovery Point Objective (RPO) of 1 hour, meaning no more than 1 hour of data loss in a disaster scenario.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-64": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL have a documented and tested disaster recovery plan.",
+   "final_text": "The system SHALL have a documented and tested disaster recovery plan.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-65": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL conduct disaster recovery drills at least twice per year.",
+   "final_text": "The system SHALL conduct disaster recovery drills at least twice per year.",
+   "note": "",
+   "overall_before": 4.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-66": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide meaningful error messages to users without exposing sensitive system information.",
+   "final_text": "The system SHALL provide meaningful error messages to users without exposing sensitive system information.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-67": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL log detailed error information for troubleshooting and monitoring.",
+   "final_text": "The system SHALL log detailed error information for troubleshooting and monitoring.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-68": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL handle input validation errors gracefully, providing clear feedback to users.",
+   "final_text": "The system SHALL handle input validation errors gracefully, providing clear feedback to users.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-69": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement appropriate retry mechanisms for transient errors.",
+   "final_text": "The system SHALL implement appropriate retry mechanisms for transient errors.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-70": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain system stability when encountering unexpected inputs or conditions.",
+   "final_text": "The system SHALL maintain system stability when encountering unexpected inputs or conditions.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-71": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a consistent and intuitive user interface across all functions.",
+   "final_text": "The system SHALL provide a consistent and intuitive user interface across all functions.",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-72": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement responsive design to support various screen sizes and devices.",
+   "final_text": "The system SHALL implement responsive design to support various screen sizes and devices.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-73": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide clear navigation and information architecture.",
+   "final_text": "The system SHALL provide clear navigation and information architecture.",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-74": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL use consistent terminology and design patterns throughout the interface.",
+   "final_text": "The system SHALL use consistent terminology and design patterns throughout the interface.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-75": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide appropriate feedback for user actions.",
+   "final_text": "The system SHALL provide appropriate feedback for user actions.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-76": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL minimize the number of steps required to complete common tasks.",
+   "final_text": "The system SHALL minimize the number of steps required to complete common tasks.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-77": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide context-sensitive help and guidance.",
+   "final_text": "The system SHALL provide context-sensitive help and guidance.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-78": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL comply with WebContent Accessibility Guidelines (WCAG) 2.1 Level AA standards.",
+   "final_text": "The system SHALL comply with WebContent Accessibility Guidelines (WCAG) 2.1 Level AA standards.",
+   "note": "",
+   "overall_before": 5,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-79": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support screen readers and other assistive technologies.",
+   "final_text": "The system SHALL support screen readers and other assistive technologies.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-80": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide keyboard navigation for all functions.",
+   "final_text": "The system SHALL provide keyboard navigation for all functions.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-81": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL ensure sufficient color contrast for text and interactive elements.",
+   "final_text": "The system SHALL ensure sufficient color contrast for text and interactive elements.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-82": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide text alternatives for non-text content.",
+   "final_text": "The system SHALL provide text alternatives for non-text content.",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-83": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL ensure that form elements have associated labels.",
+   "final_text": "The system SHALL ensure that form elements have associated labels.",
+   "note": "",
+   "overall_before": 4.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-84": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide mechanisms to pause, stop, or hide moving content.",
+   "final_text": "The system SHALL provide mechanisms to pause, stop, or hide moving content.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-85": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide full functionality in both Arabic and English languages.",
+   "final_text": "The system SHALL provide full functionality in both Arabic and English languages.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-86": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL allow users to switch between languages at any point in the application.",
+   "final_text": "The system SHALL allow users to switch between languages at any point in the application.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-87": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support right-to-left (RTL) text direction for Arabic content.",
+   "final_text": "The system SHALL support right-to-left (RTL) text direction for Arabic content.",
+   "note": "",
+   "overall_before": 5,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-88": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL ensure that date, time, and number formats are appropriate for the selected language and locale.",
+   "final_text": "The system SHALL ensure that date, time, and number formats are appropriate for the selected language and locale.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-89": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a consistent translation quality across all interface elements.",
+   "final_text": "The system SHALL provide a consistent translation quality across all interface elements.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-90": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support multilingual content for job postings and user profiles.",
+   "final_text": "The system SHALL support multilingual content for job postings and user profiles.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-91": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement language detection to suggest the appropriate language based on user settings and location.",
+   "final_text": "The system SHALL implement language detection to suggest the appropriate language based on user settings and location.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-92": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide a personalized user experience based on user preferences and behavior.",
+   "final_text": "The system SHALL provide a personalized user experience based on user preferences and behavior.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-93": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement progressive disclosure of complex features to avoid overwhelming users.",
+   "final_text": "The system SHALL implement progressive disclosure of complex features to avoid overwhelming users.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-94": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide clear onboarding processes for new users.",
+   "final_text": "The system SHALL provide clear onboarding processes for new users.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-95": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL collect and incorporate user feedback for continuous improvement.",
+   "final_text": "The system SHALL collect and incorporate user feedback for continuous improvement.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-96": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support different user skill levels, from novice to expert.",
+   "final_text": "The system SHALL support different user skill levels, from novice to expert.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-97": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL minimize user cognitive load by presenting information in manageable chunks.",
+   "final_text": "The system SHALL minimize user cognitive load by presenting information in manageable chunks.",
+   "note": "",
+   "overall_before": 3.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-98": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide appropriate defaults to reduce the need for user configuration.",
+   "final_text": "The system SHALL provide appropriate defaults to reduce the need for user configuration.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-99": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL be designed with a modular architecture to facilitate maintenance and updates.",
+   "final_text": "The system SHALL be designed with a modular architecture to facilitate maintenance and updates.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-100": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL follow consistent coding standards and best practices.",
+   "final_text": "The system SHALL follow consistent coding standards and best practices.",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-101": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL include comprehensive technical documentation for all components.",
+   "final_text": "The system SHALL include comprehensive technical documentation for all components.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-102": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement logging and monitoring to facilitate troubleshooting.",
+   "final_text": "The system SHALL implement logging and monitoring to facilitate troubleshooting.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-103": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support configuration changes without requiring code modifications.",
+   "final_text": "The system SHALL support configuration changes without requiring code modifications.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-104": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement automated testing with a minimum of80% code coverage.",
+   "final_text": "The system SHALL implement automated testing with a minimum of80% code coverage.",
+   "note": "",
+   "overall_before": 4.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-105": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support version control for all system artifacts.",
+   "final_text": "The system SHALL support version control for all system artifacts.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-106": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL be designed to operate in different hosting environments (on-premises, cloud, or hybrid).",
+   "final_text": "The system SHALL be designed to operate in different hosting environments (on-premises, cloud, or hybrid).",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-107": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL use containerization technologies to ensure consistent deployment across environments.",
+   "final_text": "The system SHALL use containerization technologies to ensure consistent deployment across environments.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-108": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL minimize dependencies on specific hardware or operating system features.",
+   "final_text": "The system SHALL minimize dependencies on specific hardware or operating system features.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-109": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support database portability through abstraction layers.",
+   "final_text": "The system SHALL support database portability through abstraction layers.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-110": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide documented deployment procedures for different environments.",
+   "final_text": "The system SHALL provide documented deployment procedures for different environments.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-111": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support automated deployment and configuration.",
+   "final_text": "The system SHALL support automated deployment and configuration.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-112": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL be compatible with the latest versions of major web browsers (Chrome, Firefox, Safari, Edge).",
+   "final_text": "The system SHALL be compatible with the latest versions of major web browsers (Chrome, Firefox, Safari, Edge).",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-113": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL be compatible with the previous two major versions of supported browsers.",
+   "final_text": "The system SHALL be compatible with the previous two major versions of supported browsers.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-114": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL be compatible with mobile browsers on iOS and Android platforms.",
+   "final_text": "The system SHALL be compatible with mobile browsers on iOS and Android platforms.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-115": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL be compatible with standard email clients for notification delivery.",
+   "final_text": "The system SHALL be compatible with standard email clients for notification delivery.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-116": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support standard file formats for data import and export (CSV, JSON, XML).",
+   "final_text": "The system SHALL support standard file formats for data import and export (CSV, JSON, XML).",
+   "note": "",
+   "overall_before": 4.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-117": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement standard protocols for integration with external systems.",
+   "final_text": "The system SHALL implement standard protocols for integration with external systems.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-118": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL comply with all applicable Palestinian labor laws and regulations.",
+   "final_text": "The system SHALL comply with all applicable Palestinian labor laws and regulations.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-119": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL incorporate GDPR principles as best practice for data protection.",
+   "final_text": "The system SHALL incorporate GDPR principles as best practice for data protection.",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-120": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL comply with accessibility regulations and standards.",
+   "final_text": "The system SHALL comply with accessibility regulations and standards.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-121": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain appropriate records for regulatory compliance and auditing.",
+   "final_text": "The system SHALL maintain appropriate records for regulatory compliance and auditing.",
+   "note": "",
+   "overall_before": 3.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-122": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement mechanisms to stay current with changing regulatory requirements.",
+   "final_text": "The system SHALL implement mechanisms to stay current with changing regulatory requirements.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-123": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL respect intellectual property rights in all content and functionality.",
+   "final_text": "The system SHALL respect intellectual property rights in all content and functionality.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-124": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL properly license all third-party components and libraries.",
+   "final_text": "The system SHALL properly license all third-party components and libraries.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-125": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide appropriate attribution for third-party content.",
+   "final_text": "The system SHALL provide appropriate attribution for third-party content.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-126": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement mechanisms to prevent copyright infringement by users.",
+   "final_text": "The system SHALL implement mechanisms to prevent copyright infringement by users.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-127": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL define and document service level agreements (SLAs) for system availability.",
+   "final_text": "The system SHALL define and document service level agreements (SLAs) for system availability.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-128": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL define and document SLAs for incident response and resolution times.",
+   "final_text": "The system SHALL define and document SLAs for incident response and resolution times.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-129": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL define and document SLAs for support services.",
+   "final_text": "The system SHALL define and document SLAs for support services.",
+   "note": "",
+   "overall_before": 4,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-130": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement monitoring and reporting mechanisms to track SLA compliance.",
+   "final_text": "The system SHALL implement monitoring and reporting mechanisms to track SLA compliance.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-132": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement comprehensive logging for all system components.",
+   "final_text": "The system SHALL implement comprehensive logging for all system components.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-133": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide real-time monitoring of system health and performance.",
+   "final_text": "The system SHALL provide real-time monitoring of system health and performance.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-134": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL generate alerts for critical system events and performance thresholds.",
+   "final_text": "The system SHALL generate alerts for critical system events and performance thresholds.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-135": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain log retention policies in compliance with legal requirements.",
+   "final_text": "The system SHALL maintain log retention policies in compliance with legal requirements.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-136": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide dashboards for monitoring system status and performance metrics.",
+   "final_text": "The system SHALL provide dashboards for monitoring system status and performance metrics.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-137": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement log aggregation and analysis tools.",
+   "final_text": "The system SHALL implement log aggregation and analysis tools.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-138": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL perform automated backups according to defined schedules.",
+   "final_text": "The system SHALL perform automated backups according to defined schedules.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-139": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL verify backup integrity through automated testing.",
+   "final_text": "The system SHALL verify backup integrity through automated testing.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-140": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide mechanisms for point-in-time recovery.",
+   "final_text": "The system SHALL provide mechanisms for point-in-time recovery.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-141": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL document and test restoration procedures.",
+   "final_text": "The system SHALL document and test restoration procedures.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-142": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain backup history and audit trails.",
+   "final_text": "The system SHALL maintain backup history and audit trails.",
+   "note": "",
+   "overall_before": 3.67,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-143": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide administrative interfaces for system configuration and management.",
+   "final_text": "The system SHALL provide administrative interfaces for system configuration and management.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-144": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support role-based access for administrative functions.",
+   "final_text": "The system SHALL support role-based access for administrative functions.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-145": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide tools for user management and support.",
+   "final_text": "The system SHALL provide tools for user management and support.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-146": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement change management procedures for system modifications.",
+   "final_text": "The system SHALL implement change management procedures for system modifications.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-147": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide mechanisms for content moderation and management.",
+   "final_text": "The system SHALL provide mechanisms for content moderation and management.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-148": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support system health checks and diagnostics.",
+   "final_text": "The system SHALL support system health checks and diagnostics.",
+   "note": "",
+   "overall_before": 3.78,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-149": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide comprehensive user documentation for all user roles.",
+   "final_text": "The system SHALL provide comprehensive user documentation for all user roles.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-150": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide technical documentation for system administrators and developers.",
+   "final_text": "The system SHALL provide technical documentation for system administrators and developers.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-151": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL maintain up-to-date system architecture and design documentation.",
+   "final_text": "The system SHALL maintain up-to-date system architecture and design documentation.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-152": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide API documentation for integration partners.",
+   "final_text": "The system SHALL provide API documentation for integration partners.",
+   "note": "",
+   "overall_before": 4.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-153": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL document all configuration parameters and their effects.",
+   "final_text": "The system SHALL document all configuration parameters and their effects.",
+   "note": "",
+   "overall_before": 4.33,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-154": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL provide troubleshooting guides and known issue documentation.",
+   "final_text": "The system SHALL provide troubleshooting guides and known issue documentation.",
+   "note": "",
+   "overall_before": 4.22,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-155": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL respect cultural norms and sensitivities in the Palestinian context.",
+   "final_text": "The system SHALL respect cultural norms and sensitivities in the Palestinian context.",
+   "note": "",
+   "overall_before": 2.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-156": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL use appropriate terminology and language for the local context.",
+   "final_text": "The system SHALL use appropriate terminology and language for the local context.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-157": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL support local date and time formats, including Hijri calendar references where appropriate.",
+   "final_text": "The system SHALL support local date and time formats, including Hijri calendar references where appropriate.",
+   "note": "",
+   "overall_before": 4.11,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-158": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL consider gender sensitivities in user interfaces and communications.",
+   "final_text": "The system SHALL consider gender sensitivities in user interfaces and communications.",
+   "note": "",
+   "overall_before": 3.56,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-159": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL use politically neutral terminology in system interfaces and documentation.",
+   "final_text": "The system SHALL use politically neutral terminology in system interfaces and documentation.",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-160": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL respect the political sensitivities of the region in geographic references and maps.",
+   "final_text": "The system SHALL respect the political sensitivities of the region in geographic references and maps.",
+   "note": "",
+   "overall_before": 3,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-161": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL implement appropriate content moderation policies for politically sensitive content.",
+   "final_text": "The system SHALL implement appropriate content moderation policies for politically sensitive content.",
+   "note": "",
+   "overall_before": 3.44,
+   "overall_after": null,
+   "reviewed_at": null
+  },
+  "NFR-162": {
+   "status": "unreviewed",
+   "original_text": "The system SHALL ensure equitable access for users across all Palestinian territories, including Gaza and the West Bank (including East Jerusalem).",
+   "final_text": "The system SHALL ensure equitable access for users across all Palestinian territories, including Gaza and the West Bank (including East Jerusalem).",
+   "note": "",
+   "overall_before": 3.89,
+   "overall_after": null,
+   "reviewed_at": null
+  }
+ }
+}

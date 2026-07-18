@@ -1,0 +1,42 @@
+{
+ "id": "9498c61312cd4039a08c4522914b0d0f",
+ "name": "NIST SRS to Distribute Manufacturing Data",
+ "created_at": "2026-07-10T12:19:28+00:00",
+ "documents": [
+  {
+   "id": "fe3049968a3646cdb8ab7dd7962e343d",
+   "project_id": "9498c61312cd4039a08c4522914b0d0f",
+   "filename": "NIST SRS to Distribute Manufacturing Data.pdf",
+   "ext": ".pdf",
+   "ingested_at": "2026-07-10T12:19:39+00:00",
+   "size": 927928
+  }
+ ],
+ "quality_runs": [
+  {
+   "run_id": "7d0e36860c014d8f9915ba2ecd80b640",
+   "project_id": "9498c61312cd4039a08c4522914b0d0f",
+   "kind": "quality",
+   "finished_at": "2026-07-10T12:27:39+00:00",
+   "source_file": "NIST SRS to Distribute Manufacturing Data",
+   "total": 85,
+   "produced_in_s": 439,
+   "documents": [
+    {
+     "document_id": "fe3049968a3646cdb8ab7dd7962e343d",
+     "filename": "NIST SRS to Distribute Manufacturing Data.pdf"
+    }
+   ]
+  }
+ ],
+ "coverage_runs": [
+  {
+   "run_id": "87c4511bb959447b8081436ef1b1b38e",
+   "project_id": "9498c61312cd4039a08c4522914b0d0f",
+   "kind": "coverage",
+   "finished_at": "2026-07-10T12:28:37+00:00",
+   "requirement_count": 85,
+   "gap_count": 78
+  }
+ ]
+}

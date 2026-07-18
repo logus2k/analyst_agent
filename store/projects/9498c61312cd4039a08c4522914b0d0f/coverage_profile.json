@@ -1,0 +1,71 @@
+{
+ "version": 1,
+ "updated_at": "2026-07-10T12:20:19+00:00",
+ "profile": {
+  "archetypes": [
+   {
+    "id": "api-microservice",
+    "confidence": "high",
+    "why": "The core functionality relies on exposing capabilities (VDS, QDR) via versioned, RESTful APIs."
+   },
+   {
+    "id": "data-pipeline",
+    "confidence": "high",
+    "why": "It involves ingesting (VDS/QDR Capture), transforming (data curation), and delivering data into a repository."
+   },
+   {
+    "id": "web-saas",
+    "confidence": "high",
+    "why": "It is a multi-tenant, browser-delivered transactional application with server-side business logic and a persistent datastore."
+   },
+   {
+    "id": "datastore-engine",
+    "confidence": "medium",
+    "why": "The QDR relies heavily on a database engine for persistence and indexing."
+   }
+  ],
+  "salient_domains": [
+   {
+    "id": "data",
+    "confidence": "high",
+    "why": "The entire system revolves around the ingestion, storage, and retrieval of manufacturing data."
+   },
+   {
+    "id": "functional",
+    "confidence": "high",
+    "why": "The system must fulfill specific functions: streaming, querying, and administration."
+   },
+   {
+    "id": "performance",
+    "confidence": "high",
+    "why": "Specific requirements exist for VDS streaming rate (1 Hz) and minimized QDR response time."
+   },
+   {
+    "id": "security",
+    "confidence": "high",
+    "why": "Mandates HTTPS, least privilege, and passing automated security testing."
+   },
+   {
+    "id": "reliability",
+    "confidence": "medium",
+    "why": "Requires 95% uptime, though formal MTBF/MTTF are not specified."
+   },
+   {
+    "id": "maintainability",
+    "confidence": "medium",
+    "why": "Defines constraints on fixing security defects (max two person days)."
+   },
+   {
+    "id": "compatibility",
+    "confidence": "high",
+    "why": "Must adhere to MTConnect standards and support specific browser versions."
+   },
+   {
+    "id": "legal-privacy",
+    "confidence": "medium",
+    "why": "Implied by security requirements and the handling of potentially sensitive manufacturing data."
+   }
+  ],
+  "domain_overrides": {}
+ }
+}

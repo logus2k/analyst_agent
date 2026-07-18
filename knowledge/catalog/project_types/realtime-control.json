@@ -1,0 +1,60 @@
+{
+  "id": "realtime-control",
+  "name": "Real-time / safety-critical control system",
+  "class": "control-dominant",
+  "aliases": ["real-time control", "hard real-time", "safety-critical", "control system", "avionics", "flight control", "automotive ecu", "industrial control", "plc", "motion control", "fly-by-wire", "functional safety", "safety instrumented system", "closed-loop control"],
+  "summary": "A hard real-time system that closes a control loop over physical actuators under strict timing, where a missed deadline or wrong output can cause harm. Value and acceptance are governed by functional-safety standards (SIL/ASIL/DAL), provable worst-case timing, and certified fail-safe behaviour.",
+  "matching_signals": ["hard real-time", "deadline", "WCET", "control loop", "safety-critical", "SIL", "ASIL", "DAL", "fail-safe", "safe state", "redundancy", "watchdog", "deterministic", "RTOS", "avionics", "ECU", "PLC", "actuator", "closed-loop", "certification", "IEC 61508", "ISO 26262", "DO-178C"],
+  "salient_domains": ["safety", "performance", "reliability", "functional", "maintainability", "operational", "constraints", "compatibility"],
+  "grounding": ["iec-61508", "iso-26262", "do-178c", "iec-62304", "do-254", "misra-c", "29148:2018"],
+  "domains": {
+    "safety": {
+      "emphasis": "critical",
+      "concerns": ["hazard analysis and risk assessment (HARA/PHA/FMEA/FTA) deriving safety goals and integrity levels", "assigned safety integrity level (SIL per IEC 61508, ASIL per ISO 26262, DAL per DO-178C) and the process rigour it mandates", "fail-safe / safe-state definition and the fault-reaction / fault-tolerant time interval to reach it", "degraded / limp-home operating modes and controlled transitions between them", "diagnostic coverage, single-point-fault and latent-fault metrics for detecting dangerous failures", "freedom from interference between mixed-criticality functions (partitioning)"],
+      "typical_requirements": ["hazard analysis (HARA/FMEA/FTA)", "SIL/ASIL/DAL assignment & safety goals", "safe-state & fault-reaction time", "degraded-mode behaviour", "diagnostic coverage / fault metrics", "mixed-criticality partitioning"],
+      "questions": ["Has a hazard analysis derived safety goals with an assigned SIL/ASIL/DAL?", "Is a safe state defined, with a fault-reaction/fault-tolerant time interval to reach it?", "Are degraded modes, diagnostic-coverage targets, and freedom-from-interference specified?"]
+    },
+    "performance": {
+      "emphasis": "critical",
+      "concerns": ["hard deadlines: worst-case execution time (WCET) bounded and proven, not measured-typical", "deterministic timing with bounded jitter on control-loop period and end-to-end sensor-to-actuator latency", "schedulability analysis (RMA/response-time analysis) proving all tasks meet deadlines under worst case", "bounded interrupt latency and elimination of unbounded blocking (priority inversion control)", "avoidance of nondeterministic constructs (dynamic allocation, unbounded loops, cache-induced variance)"],
+      "typical_requirements": ["proven WCET bounds", "control-loop period & jitter limits", "schedulability / response-time analysis", "bounded interrupt latency & priority-inversion control", "determinism constraints (no dynamic alloc)"],
+      "questions": ["Is worst-case execution time bounded and proven for all real-time tasks (not just measured typical)?", "Is a schedulability analysis required proving every deadline is met under worst-case conditions?", "Are control-loop period, jitter, and sensor-to-actuator latency limits specified deterministically?"]
+    },
+    "reliability": {
+      "emphasis": "critical",
+      "concerns": ["redundancy architecture (dual/triple modular redundancy, hot/cold standby) and voting", "fault detection, isolation, and recovery (FDIR) and failover timing within the fault-tolerant interval", "target failure measures: PFH/PFD per SIL, hardware-fault-tolerance, and MTBF/MTTF budgets", "common-cause failure analysis and independence/diversity of redundant channels", "graceful, deterministic degradation rather than abrupt failure"],
+      "typical_requirements": ["redundancy & voting architecture", "FDIR & failover timing", "PFH/PFD & hardware-fault-tolerance targets", "common-cause-failure analysis", "deterministic degradation"],
+      "questions": ["Is a redundancy/voting architecture with defined failover timing specified?", "Are quantitative failure targets (PFH/PFD per SIL, HFT, MTBF) stated?", "Is common-cause failure between redundant channels analysed and mitigated?"]
+    },
+    "functional": {
+      "emphasis": "high",
+      "concerns": ["correctness of the control law / state machine and its stability margins under all operating conditions", "complete specification of exception, boundary, and fault conditions (no undefined behaviour)", "formal verification / model checking of safety-critical logic where mandated by the integrity level", "deterministic, repeatable behaviour for identical inputs and state", "range/plausibility checking of sensor inputs and actuator command limits"],
+      "typical_requirements": ["control-law correctness & stability", "complete exception/fault specification", "formal verification of critical logic", "deterministic behaviour", "input plausibility & command limiting"],
+      "questions": ["Is the control law's correctness and stability specified across the full operating envelope?", "Are all exception and fault conditions fully specified with no undefined behaviour?", "Is formal verification of safety-critical logic required at the assigned integrity level?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["bidirectional requirements traceability from hazard to requirement to design to code to test (as certification evidence)", "structural test coverage mandated by integrity level (e.g. MC/DC for DAL A / ASIL D)", "coding-standard conformance (MISRA C/C++) and defensive-coding rules; qualified static analysis", "verification of timing and safety properties, not only functional behaviour", "change impact analysis and configuration management to preserve certification on change"],
+      "typical_requirements": ["end-to-end traceability matrix", "MC/DC / structural coverage", "MISRA conformance & static analysis", "timing & safety-property verification", "change-impact & configuration management"],
+      "questions": ["Is full bidirectional traceability (hazard-requirement-design-code-test) required as certification evidence?", "Is the mandated structural coverage (e.g. MC/DC) and coding-standard conformance specified?", "Is change-impact analysis required to preserve certification when code changes?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["deterministic scheduling policy (fixed-priority preemptive, time-triggered / TT architecture) and its configuration", "operation and safe transitions across power-up, run, degraded, maintenance, and shutdown modes", "startup self-tests / built-in test (POST/BIT) and periodic online diagnostics", "safe update/maintenance procedures without compromising the safety function in the field", "operator warnings, alarms, and manual-override / emergency-stop handling"],
+      "typical_requirements": ["deterministic scheduling configuration", "operating-mode & transition management", "built-in test (POST/BIT) & online diagnostics", "safe field-maintenance procedure", "operator alarms & emergency-stop"],
+      "questions": ["Is a deterministic scheduling policy specified with its task priorities/time-triggered schedule?", "Are startup and periodic self-tests (BIT) and safe mode transitions defined?", "Are operator warnings, manual override, and emergency-stop behaviour specified?"]
+    },
+    "constraints": {
+      "emphasis": "high",
+      "concerns": ["mandated certification standard and independent assessment (IEC 61508 / ISO 26262 / DO-178C / IEC 62304) as a hard deliverable", "qualified/certified toolchain, compiler, and RTOS (tool qualification, pre-certified components / SEooC)", "prohibition of nondeterministic language features and mandated safe language subset", "certification timeline, assessor sign-off, and evidence/artifact obligations", "target hardware and its safety-qualified components (lockstep cores, ECC memory)"],
+      "typical_requirements": ["mandated certification standard & assessment", "qualified toolchain / RTOS / SEooC", "safe-language-subset mandate", "certification evidence & timeline", "safety-qualified target hardware"],
+      "questions": ["Is the mandated functional-safety certification standard and independent assessment captured as a constraint?", "Are a qualified/certified toolchain, RTOS, and pre-certified components required?", "Are the safety-qualified target hardware and the certification-evidence obligations specified?"]
+    },
+    "compatibility": {
+      "emphasis": "medium",
+      "concerns": ["deterministic communication buses and their timing (CAN/CAN-FD, FlexRay, ARINC 429/664, TSN, EtherCAT, PROFINET)", "safety communication protocols with end-to-end protection (e.g. black-channel, CRC, sequence counters)", "time synchronisation across distributed nodes (PTP/IEEE 1588, TTEthernet)", "interface versioning and compatibility across mixed-criticality integrated systems"],
+      "typical_requirements": ["deterministic fieldbus interface & timing", "safety-protocol end-to-end protection", "time synchronisation", "interface versioning"],
+      "questions": ["Are the deterministic communication buses and their timing/protection specified?", "Is time synchronisation across distributed nodes defined for the control loop?"]
+    }
+  }
+}

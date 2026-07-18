@@ -1,0 +1,2309 @@
+{
+ "problem_statement_version": 2,
+ "requirement_count": 85,
+ "domains": [
+  {
+   "coverage": "partial",
+   "addressed": [
+    "VDS supports real-time monitoring (VDS)",
+    "QDR supports object-of-interest observation (QDR)",
+    "Data distribution supports research, practitioner, and solution-provider needs",
+    "Data distribution conforms to MTConnect standard (VDS)",
+    "QDR supports querying via web form, endpoint, and REST API",
+    "Administrative functions for CRUD managing users, groups, permissions, and templates are specified",
+    "Data curation and storage according to templates is specified",
+    "Data is served over RESTful API",
+    "UI exists for administration and querying",
+    "System constraints (Linux, HTTPS/TLS 128-bit, stateless) are specified"
+   ],
+   "gaps": [
+    {
+     "title": "Error/Exception Contract for Operations",
+     "severity": "high",
+     "detail": "The requirements specify happy paths (e.g., CRUD operations, successful queries) but do not define the expected error codes, failure modes, or exception handling contracts for any of the exposed RESTful API operations (VDS or QDR). This is critical for client integration.",
+     "question": "For every defined API endpoint (CRUD, Query), what are the specific HTTP status codes and error body structures to be returned upon failure (e.g., validation error, permission denied, resource not found)?",
+     "grounding": [
+      "API / backend microservice concerns: error/exception contract per operation"
+     ]
+    },
+    {
+     "title": "Concurrency and State Management in QDR",
+     "severity": "high",
+     "detail": "The QDR deals with curated, historical data, and while it mentions batch processing, there is no specification regarding concurrent read/write access patterns, transaction isolation levels, or mechanisms to handle conflicting updates to the curated data set, which is vital for data integrity.",
+     "question": "What is the required transaction isolation level for the QDR database, and how will the system handle concurrent updates or conflicting writes to the curated data records?",
+     "grounding": [
+      "Data store / database / storage engine concerns: transaction model (ACID vs BASE) and the exact guarantees of each supported isolation level"
+     ]
+    },
+    {
+     "title": "Data Transformation/Logic Correctness for QDR",
+     "severity": "high",
+     "detail": "The QDR curates data from the Industrial-Equipment Network. The requirements state *that* it curates data, but not *how* the business logic (transformations, aggregations, joins) from raw sensor data into the structured, queryable format is guaranteed to be correct or testable against known inputs.",
+     "question": "What are the specific transformation rules, aggregation logic, or join semantics applied when raw data is curated into the structured QDR format, and are there defined input/output fixtures for testing this logic?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: transformation/business-logic correctness and its testability against known input/output fixtures"
+     ]
+    },
+    {
+     "title": "VDS Concurrency Semantics",
+     "severity": "medium",
+     "detail": "The VDS streams data. If multiple clients or internal processes attempt to read/write/subscribe to the same data item concurrently, there is no specification on how conflicts (e.g., race conditions on the 'most current value') are managed.",
+     "question": "What concurrency control mechanism (e.g., optimistic locking, versioning) is required for the VDS to ensure data consistency when multiple consumers access the same data item simultaneously?",
+     "grounding": [
+      "API / backend microservice concerns: concurrency semantics: optimistic concurrency (ETags/If-Match) and conflict handling"
+     ]
+    },
+    {
+     "title": "Data Integrity Constraints on Templates",
+     "severity": "medium",
+     "detail": "Templates are defined using XSD. While the system must manage these, there is no explicit requirement defining the constraints (e.g., uniqueness, referential integrity, cardinality) that the XSD must enforce on the data being curated against that template.",
+     "question": "Beyond basic schema definition, what specific data integrity constraints (e.g., uniqueness constraints on key fields, foreign key relationships between template elements) must the system enforce when curating data against a template?",
+     "grounding": [
+      "Data store / database / storage engine concerns: deterministic constraint enforcement (uniqueness, foreign keys, checks, NOT NULL)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Define the exact semantics for 'near-real-time' (Requirement 7) in terms of maximum acceptable latency (e.g., P95 latency must be < 500ms).",
+    "Specify the data retention policy for both VDS (buffer size/time) and QDR (how long curated data is kept before archival/deletion).",
+    "Clarify the mechanism for handling data corrections or restatements in the QDR, ensuring downstream consumers are notified or data is correctly overwritten/merged."
+   ],
+   "confidence": "high",
+   "id": "functional",
+   "name": "Functional suitability & capability completeness"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Data ingestion via templates and batch processing",
+    "Data storage and retrieval via RESTful API",
+    "Data structure definition (templates/schemas)",
+    "Data format support (XML, JSON, CSV)",
+    "User/Group/Permission management",
+    "Basic data querying capabilities (time range, element selection)"
+   ],
+   "gaps": [
+    {
+     "title": "Data Quality Thresholds",
+     "severity": "high",
+     "detail": "The requirements specify data curation and storage but lack any explicit definition or enforcement of data quality dimensions (accuracy, completeness, consistency, uniqueness, validity, timeliness) beyond basic structural validation. This is critical for manufacturing data.",
+     "question": "What are the specific thresholds or rules for data quality (e.g., acceptable null rates, expected value ranges, consistency checks between related data points) that must be enforced during ingestion or curation?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: data-quality dimensions with enforced thresholds"
+     ]
+    },
+    {
+     "title": "Data Lineage and Provenance",
+     "severity": "high",
+     "detail": "The system handles data from various sources (sensors, batch uploads) and transforms it into structured templates, but there is no requirement to track where the data came from, how it was transformed, or which template/process generated it, which is essential for auditing and trust in manufacturing data.",
+     "question": "Must the system capture and store lineage information, detailing the original source, the transformation applied, and the specific data template used for every piece of curated data?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: data lineage and provenance: source-to-target traceability, transformation documentation"
+     ]
+    },
+    {
+     "title": "Data Retention, Archival, and Deletion Policies",
+     "severity": "critical",
+     "detail": "The requirements define data storage but omit any policies regarding how long data must be kept, when it should be archived (e.g., moving from hot storage to cold storage), or how it must be securely deleted (especially concerning PII, if applicable).",
+     "question": "Are there defined retention periods, archival triggers, or data deletion policies that the system must enforce based on data type or regulatory needs?",
+     "grounding": [
+      "Web / SaaS application concerns: retention, export, and deletion (incl. tenant offboarding)",
+      "Data & information domain concerns: retention, archival, deletion"
+     ]
+    },
+    {
+     "title": "Schema Evolution and Data Contracts",
+     "severity": "high",
+     "detail": "While templates/schemas are managed (Req 10, 65), there is no specification for how the system handles changes to these schemas over time (e.g., if a sensor adds a new field, or an old field is deprecated). This is crucial for long-term data usability.",
+     "question": "What is the policy for schema evolution? Must the system support backward and forward compatibility when data is ingested using older or newer versions of a data template?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: schema evolution and data contracts: backward/forward compatibility, additive-only vs breaking changes"
+     ]
+    },
+    {
+     "title": "Data Consistency Model",
+     "severity": "medium",
+     "detail": "The system handles both real-time streaming (VDS) and batch curation (QDR). The consistency guarantees (e.g., strong vs. eventual) for data retrieved from the QDR, especially after batch processing, are not specified.",
+     "question": "What consistency model must the QDR guarantee for data retrieved via API/Query (e.g., strong consistency, bounded staleness)?",
+     "grounding": [
+      "API / backend microservice concerns: data consistency model (strong vs eventual) and transaction boundaries across service calls",
+      "Data store / database / storage engine concerns: consistency model across replicas"
+     ]
+    },
+    {
+     "title": "Handling Late/Out-of-Order Data",
+     "severity": "medium",
+     "detail": "Manufacturing data streams can suffer from network latency, causing data points to arrive out of sequence or significantly late. The requirements do not specify how the QDR should handle these events.",
+     "question": "How must the QDR handle data points that arrive significantly late or out of sequence relative to the time-series data already stored?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: late-arriving, out-of-order, and corrected/restated data handling"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining a canonical data model that abstracts the MTConnect specifics, allowing the QDR to query based on business concepts rather than raw sensor fields.",
+    "Specify the required durability contract for the underlying data store (e.g., what does a successful write acknowledgment guarantee against hardware failure?).",
+    "Since data is distributed to researchers, consider requirements for data masking, anonymization, or differential privacy if the data contains sensitive operational metrics."
+   ],
+   "confidence": "high",
+   "id": "data",
+   "name": "Data & information"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "VDS supports real-time monitoring (near-real-time stream)",
+    "QDR supports object-of-interest observation",
+    "Data distribution supports research/practitioner/solution-provider needs",
+    "Data is available via RESTful API",
+    "Administrative functions (CRUD for users, groups, templates) are specified",
+    "Data querying allows time range and record limits",
+    "Data output formats (CSV, JSON, XML) are specified"
+   ],
+   "gaps": [
+    {
+     "title": "Quantified Latency/Throughput SLOs for VDS",
+     "severity": "critical",
+     "detail": "The requirements state VDS provides a 'near-real-time stream' (Req 7) and a rate of 'no less than 1 Hz' (Req 69), but lack specific Service Level Objectives (SLOs) for latency (e.g., p95, p99) or throughput (e.g., max sustained req/s or data points/sec) for the streaming operations, which is critical for performance domain coverage.",
+     "question": "What are the required latency (e.g., p95) and throughput (e.g., data points/second) targets for the VDS streaming operations?",
+     "grounding": [
+      "API / backend microservice concerns: latency SLOs (p95/p99) and throughput (req/s) targets per endpoint",
+      "Time behaviour (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Quantified Latency/Throughput SLOs for QDR API",
+     "severity": "high",
+     "detail": "The QDR supports querying via API (Req 11, 19, 46), but there are no specified performance targets (latency or throughput) for these query operations, especially under load.",
+     "question": "What are the required latency (e.g., p95) and throughput (e.g., queries/second) targets for the QDR RESTful API endpoints?",
+     "grounding": [
+      "API / backend microservice concerns: latency SLOs (p95/p99) and throughput (req/s) targets per endpoint",
+      "Time behaviour (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Resource Utilization Ceilings",
+     "severity": "high",
+     "detail": "The requirements specify hardware classes (server-class, workstation-class) (Req 33, 34) but do not specify resource utilization ceilings (CPU, Memory, Network I/O, Storage throughput) that the system must adhere to under defined load conditions.",
+     "question": "What are the maximum acceptable resource utilization ceilings (CPU %, Memory usage, Network bandwidth, Storage IOPS/throughput) for the VDS and QDR components?",
+     "grounding": [
+      "Resource utilisation (iso-25010:2023)",
+      "API / backend microservice concerns: resource ceilings & pooling"
+     ]
+    },
+    {
+     "title": "Scalability and Load Handling Strategy",
+     "severity": "high",
+     "detail": "The system must handle data growth and concurrent users, but there is no definition of its scaling strategy (e.g., horizontal scaling, elasticity) or how it behaves under peak load or overload conditions (e.g., rate limiting, load shedding).",
+     "question": "What is the defined horizontal scaling strategy, and what mechanisms (e.g., rate limiting, load shedding) are in place to manage overload conditions?",
+     "grounding": [
+      "Scalability (iso-25010:2023)",
+      "API / backend microservice concerns: horizontal scalability and statelessness for autoscaling; rate limiting / throttling and quota enforcement"
+     ]
+    },
+    {
+     "title": "Data Repository Capacity Limits",
+     "severity": "medium",
+     "detail": "The QDR must process data daily (Req 21), but there are no specified capacity limits regarding the volume of data it must store, the maximum number of data elements, or the maximum number of concurrent queries it must support.",
+     "question": "What are the expected maximum capacity limits for the QDR, including total data volume, number of data elements, and maximum concurrent user/query load?",
+     "grounding": [
+      "Capacity (iso-25010:2023)",
+      "Data store / database / storage engine concerns: concurrency and connection-concurrency limits"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Define specific throughput targets for the data ingestion/curation process (Req 20, 56) to ensure the system can handle the expected rate of data from the Industrial-Equipment Network.",
+    "Specify the expected data retention policy and associated performance implications (e.g., query performance degradation over time) for the QDR.",
+    "Given the stateless communication requirement (Req 41), explicitly define the expected session management or state persistence mechanism for administrative functions, if any, to ensure performance consistency."
+   ],
+   "confidence": "high",
+   "id": "performance",
+   "name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Data distribution via RESTful API",
+    "Data template management (CRUD)",
+    "User/Group/Permission management (CRUD)",
+    "Query definition and execution (template-driven, time-limited)",
+    "Data streaming (VDS) compliance with MTConnect",
+    "Data storage and retrieval (QDR)"
+   ],
+   "gaps": [
+    {
+     "title": "Availability SLO/SLA Definition",
+     "severity": "critical",
+     "detail": "No explicit Service Level Objective (SLO) or Service Level Agreement (SLA) is defined for the system's availability (e.g., 99.9% uptime). This is a core concern for reliability.",
+     "question": "What is the required availability target (e.g., 99.9%, 99.99%) and the measurement window for the VDS and QDR services?",
+     "grounding": [
+      "iso-25010:2023 (Availability)",
+      "SRS: reliability & availability (29148:2018)"
+     ]
+    },
+    {
+     "title": "Fault Tolerance and Graceful Degradation",
+     "severity": "high",
+     "detail": "The requirements do not specify how the system behaves when a dependency (e.g., database, external service, or the data acquisition network) fails or becomes slow. Resilience patterns (timeouts, circuit breakers, fallbacks) are missing.",
+     "question": "What are the required failure behaviors (e.g., circuit breaking, timeouts, fallback mechanisms) when downstream dependencies (like the database or data acquisition network) become unavailable or unresponsive?",
+     "grounding": [
+      "iso-25010:2023 (Fault tolerance)",
+      "API / backend microservice concerns"
+     ]
+    },
+    {
+     "title": "Recovery Time Objective (RTO) and Recovery Point Objective (RPO)",
+     "severity": "critical",
+     "detail": "There are no defined targets for how quickly the system must recover (RTO) or how much data loss is acceptable (RPO) following a failure.",
+     "question": "What are the required Recovery Time Objective (RTO) and Recovery Point Objective (RPO) for the QDR and VDS components?",
+     "grounding": [
+      "iso-25010:2023 (Recoverability)",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "State Restoration and Backup Strategy",
+     "severity": "high",
+     "detail": "The requirements lack specifications for backup frequency, retention, and the process/guarantee of state restoration (e.g., PITR capability for the data store).",
+     "question": "What are the requirements for data backup frequency, retention policy, and the mechanism/guarantee for point-in-time recovery (PITR) for the stored data?",
+     "grounding": [
+      "iso-25010:2023 (Recoverability)",
+      "Data store / database / storage engine concerns"
+     ]
+    },
+    {
+     "title": "Idempotency for Data Ingestion/Updates",
+     "severity": "high",
+     "detail": "Since data is being uploaded/curated (Req 56) and potentially retried, there is no explicit requirement for operations to be idempotent, which is crucial for safe retries in distributed systems.",
+     "question": "Are mutating operations (data uploads, template edits) required to be idempotent, and if so, how will idempotency keys be managed?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "Data Pipeline Determinism/Replayability",
+     "severity": "medium",
+     "detail": "The QDR processes data daily (Req 21). If reprocessing or backfilling is required, there is no guarantee that re-running the process will yield identical, non-duplicated results.",
+     "question": "What are the requirements for data transformation determinism, and how must the system handle re-processing or backfilling historical data to ensure exactly-once semantics?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific failure modes for the MTConnect Agent communication (Req 23/45) to ensure the VDS maintains its required availability even if the agent connection is intermittent.",
+    "Given the batch curation (Req 20) and daily processing (Req 21), explicitly define the expected latency/throughput for the daily data processing job to meet operational needs."
+   ],
+   "confidence": "high",
+   "id": "reliability",
+   "name": "Reliability & resilience"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Encryption in transit (TLS/HTTPS)",
+    "Authentication (Login page, User/Admin roles)",
+    "Authorization (Permissions, Roles, Group management)",
+    "Input Validation (Implicit via template/schema enforcement)",
+    "Accountability (Audit logging is mentioned as a general practice, but not specified)",
+    "Secrets/Key Management (Implicit via TLS/HTTPS, but not detailed)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Authentication Mechanisms",
+     "severity": "high",
+     "detail": "The requirements mention a login page (Req 27) and roles (Req 77), but do not specify *how* authentication is performed (e.g., OAuth 2.0, OIDC, username/password storage/hashing standards, MFA support).",
+     "question": "What specific authentication protocols (e.g., OAuth 2.0, OIDC) and credential management standards (e.g., password hashing algorithms, MFA requirements) must be used for user login?",
+     "grounding": [
+      "API / backend microservice concerns: OAuth 2.0 / OIDC, JWT validation",
+      "Web / SaaS application concerns: Authentication (MFA, SSO/OIDC/SAML)"
+     ]
+    },
+    {
+     "title": "Object-Level Authorization (BOLA/IDOR)",
+     "severity": "critical",
+     "detail": "The system manages users, groups, and permissions (Req 63), but there is no explicit requirement ensuring that a user can only access or modify data/resources they are explicitly authorized for (e.g., preventing User A from querying Data Item belonging to User B).",
+     "question": "Are there explicit requirements to prevent Broken Object Level Authorization (BOLA) or Insecure Direct Object Reference (IDOR) when querying or managing data/templates?",
+     "grounding": [
+      "API / backend microservice concerns: no broken object-level authorization (BOLA/IDOR) — OWASP API Security Top 10"
+     ]
+    },
+    {
+     "title": "Data Integrity and Tamper Protection",
+     "severity": "high",
+     "detail": "While input validation is implied by schema/template usage (Req 54, 65), there is no explicit requirement for data integrity checks on the data itself (e.g., digital signatures, checksums) to ensure it hasn't been tampered with between collection and storage/retrieval.",
+     "question": "What mechanisms are required to ensure the integrity and authenticity of the manufacturing data once it is ingested and stored (e.g., cryptographic hashing, digital signatures)?",
+     "grounding": [
+      "Integrity (iso-25010:2023)",
+      "Data pipeline / analytics / ETL concerns: integrity/authenticity of ingested data"
+     ]
+    },
+    {
+     "title": "Comprehensive Audit Logging",
+     "severity": "high",
+     "detail": "Accountability requires logging security-relevant events. While general security practices are mentioned (Req 70), there is no specification for *what* must be logged (e.g., successful/failed logins, permission changes, data access attempts, template modifications) or how long logs must be retained.",
+     "question": "What specific security events (e.g., login attempts, permission changes, data retrieval by role) must be logged, and what are the retention and immutability requirements for these audit logs?",
+     "grounding": [
+      "Accountability (iso-25010:2023)",
+      "API / backend microservice concerns: audit logging of security-relevant calls and abuse/anomaly detection"
+     ]
+    },
+    {
+     "title": "Secrets and Key Management Specifics",
+     "severity": "medium",
+     "detail": "TLS (Req 16) covers transit encryption, but there is no requirement detailing how secrets (e.g., database credentials, API keys for external services) are managed, rotated, or protected at rest within the system components.",
+     "question": "What standards or mechanisms must be used for managing, rotating, and protecting secrets and cryptographic keys used by the backend services (e.g., using a dedicated vault)?",
+     "grounding": [
+      "secrets, key management, dependency/supply-chain security",
+      "API / backend microservice concerns: secrets/token management, key rotation, and short-lived credentials"
+     ]
+    }
+   ],
+   "enrichments": [
+    "The problem statement should specify requirements for rate limiting and abuse detection on the RESTful API endpoints to prevent denial-of-service attacks.",
+    "Given the industrial context, requirements for data provenance (tracking the origin and transformation history of a data point) should be considered to support regulatory compliance and trust.",
+    "Consider specifying requirements for dependency scanning (Software Composition Analysis) to address supply-chain security risks inherent in modern microservices."
+   ],
+   "confidence": "high",
+   "id": "security",
+   "name": "Security"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Data distribution and querying capabilities",
+    "Administrative functions (CRUD for users, groups, templates)",
+    "Data format support (XML, JSON, CSV)",
+    "Basic security/access control (Login, Roles, Permissions)"
+   ],
+   "gaps": [
+    {
+     "title": "Hazard Identification and Risk Analysis",
+     "severity": "critical",
+     "detail": "The requirements focus heavily on data flow, functionality, and performance, but there is no explicit requirement or process defined for identifying potential hazards (e.g., data corruption leading to incorrect operational decisions, system overload causing data loss, security breaches impacting safety-critical data).",
+     "question": "What is the defined process for conducting Hazard Identification and Risk Analysis (HIRA) for this data distribution system, especially concerning data integrity and availability?",
+     "grounding": [
+      "Risk identification (iso-25010:2023)",
+      "SRS: safety requirements (29148:2018)"
+     ]
+    },
+    {
+     "title": "Fail-Safe / Safe-State Behavior",
+     "severity": "critical",
+     "detail": "The system must define what constitutes a 'safe state' if a critical component fails (e.g., database connection loss, VDS stream interruption, API service crash). The requirements do not specify automatic recovery or graceful degradation mechanisms.",
+     "question": "What is the defined safe state for the VDS and QDR components upon detection of a major system failure (e.g., database unavailability, network partition)?",
+     "grounding": [
+      "Fail safe (iso-25010:2023)",
+      "SRS: safety requirements (29148:2018)"
+     ]
+    },
+    {
+     "title": "Operational Constraints and Hazard Warnings",
+     "severity": "high",
+     "detail": "While there are limits on query results (Req 13, 48), there is no specification for warnings related to hazardous operational states, such as data quality degradation, exceeding defined data thresholds, or approaching system capacity limits that could impact data integrity or availability.",
+     "question": "Are there requirements specifying when the system must issue a warning to the operator/user regarding data quality issues, exceeding defined operational thresholds, or approaching resource exhaustion?",
+     "grounding": [
+      "Hazard warning (iso-25010:2023)",
+      "Operational constraint (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Safe Integration with Other Systems",
+     "severity": "high",
+     "detail": "The system integrates with an 'Industrial-Equipment Network' and is part of a 'larger manufacturing-monitoring system'. The requirements do not specify how the system maintains safety or integrity when interacting with these external, potentially unreliable, systems.",
+     "question": "What mechanisms are in place to ensure the safety and integrity of the data when integrating with the external Industrial-Equipment Network, especially concerning data source failures or malformed inputs?",
+     "grounding": [
+      "Safe integration (iso-25010:2023)",
+      "Operational constraint (iso-25010:2023)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "The problem statement should explicitly define the criticality level of the data being distributed (e.g., safety-critical vs. informational) to properly scope safety requirements.",
+    "Consider adding requirements for data provenance tracking (who/what generated the data, when it was curated, and which templates it adheres to) to support auditing and risk tracing."
+   ],
+   "confidence": "high",
+   "id": "safety",
+   "name": "Safety"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "API contract definition (RESTful API, data formats)",
+    "Versioning strategy (implied via template/schema management)",
+    "Backward compatibility (implied via template/schema management)",
+    "Standardized error format (implied via RESTful API)",
+    "Data exchange formats (XML, JSON, CSV)",
+    "Coexistence (Linux OS constraint)",
+    "Interoperability (MTConnect standard compliance)"
+   ],
+   "gaps": [
+    {
+     "title": "API Versioning Strategy",
+     "severity": "high",
+     "detail": "The requirements specify RESTful APIs (11, 19, 40) but lack any explicit strategy for versioning these APIs (e.g., URI versioning, header versioning). This is critical for backward compatibility.",
+     "question": "What is the defined API versioning strategy (e.g., /v1/, header acceptance) and what is the policy for deprecating older versions?",
+     "grounding": [
+      "API / backend microservice concerns: versioning strategy (URI/header/media-type) and deprecation/sunset policy with timelines"
+     ]
+    },
+    {
+     "title": "Backward Compatibility Rules for Data Templates/Schemas",
+     "severity": "high",
+     "detail": "While data templates and schemas are managed (10, 65), there are no explicit rules ensuring that changes to these templates/schemas do not break existing consumers (backward compatibility).",
+     "question": "What are the rules governing schema evolution (e.g., additive-only changes, required field deprecation) to ensure backward compatibility for existing data consumers?",
+     "grounding": [
+      "API / backend microservice concerns: backward compatibility: additive-only evolution, no breaking changes to existing consumers"
+     ]
+    },
+    {
+     "title": "Consumer-Driven Contract Testing",
+     "severity": "medium",
+     "detail": "The requirements mandate data distribution and API provision but do not specify any mechanism (like contract testing) to verify that the implemented interfaces meet the expectations of consumers.",
+     "question": "Are consumer-driven contract tests required in the CI/CD pipeline to validate that changes to the API or data templates do not violate consumer expectations?",
+     "grounding": [
+      "API / backend microservice concerns: consumer-driven contract testing and schema-compatibility checks in CI (breaking-change gate)"
+     ]
+    },
+    {
+     "title": "Coexistence/Resource Contention Management",
+     "severity": "medium",
+     "detail": "The system operates in a larger manufacturing-monitoring system context. While Linux is specified (15), there is no requirement addressing how the system coexists with other processes or services on the same host/network regarding resource contention (CPU, I/O, network bandwidth).",
+     "question": "Are there requirements defining how the system manages resource contention (e.g., throttling, priority setting) when sharing a host or network with other components of the manufacturing-monitoring system?",
+     "grounding": [
+      "Co-existence (iso-25010:2023): Performs required functions while sharing an environment and resources with other products without detrimental impact."
+     ]
+    },
+    {
+     "title": "Data Format Schema Registry Compatibility",
+     "severity": "medium",
+     "detail": "Data is exchanged in various formats (XML, JSON, CSV) and uses MTConnect schemas. There is no mention of a centralized schema registry or rules to ensure producers and consumers agree on the exact structure of the data being exchanged.",
+     "question": "Is there a defined schema registry or mechanism to ensure that producers (data sources) and consumers (QDR/API) are using compatible versions of the MTConnect data schemas?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: serialization formats and their schema-registry compatibility (Avro/Protobuf/JSON) across producers and consumers"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific data retention policies for the QDR, especially concerning the time-series data (VDS buffer) to manage storage costs and compliance.",
+    "Given the industrial context, consider requirements for data provenance tracking (who collected it, when, from which specific sensor/device) beyond just the UUID."
+   ],
+   "confidence": "high",
+   "id": "compatibility",
+   "name": "Compatibility & interoperability"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Basic UI structure and navigation (24, 25, 26)",
+    "Consistent visual theme (31, 32)",
+    "Basic user authentication (27)",
+    "Administrative CRUD capabilities (29, 60, 61, 63, 64, 65)",
+    "Querying functionality (13, 46, 47, 48, 50, 51)",
+    "Data format support (44, 52, 53)",
+    "General usability documentation availability (22)"
+   ],
+   "gaps": [
+    {
+     "title": "Learnability/Onboarding",
+     "severity": "high",
+     "detail": "The requirements specify documentation (22) but lack explicit requirements for a guided onboarding flow for new tenants or users, which is critical for a complex data distribution system.",
+     "question": "What specific requirements govern the initial onboarding experience for a new user or tenant, including guided tours or setup wizards?",
+     "grounding": [
+      "Learnability (iso-25010:2023)",
+      "Web / SaaS application concerns: onboarding/learnability for new tenants and users"
+     ]
+    },
+    {
+     "title": "User Error Protection (Destructive Actions)",
+     "severity": "critical",
+     "detail": "While administrative functions exist, there is no explicit requirement detailing safeguards against destructive actions (e.g., accidental deletion of data templates, user accounts, or large-scale data deletion/modification).",
+     "question": "Are there specific requirements for confirmation dialogs, soft deletes, or multi-step verification before executing any destructive administrative or data modification action?",
+     "grounding": [
+      "User error protection (iso-25010:2023)",
+      "Web / SaaS application concerns: error prevention on destructive actions"
+     ]
+    },
+    {
+     "title": "Operability/Workflow Complexity Targets",
+     "severity": "medium",
+     "detail": "The requirements define *what* can be done (e.g., CRUD operations, querying), but not *how easily* it can be done. There are no stated targets for workflow efficiency or complexity.",
+     "question": "Are there measurable targets for task completion time or workflow complexity (e.g., 'User must be able to define a complex query in under X steps')?",
+     "grounding": [
+      "Operability (iso-25010:2023)",
+      "DOMAIN QUESTIONS: Are acceptable learning time / workflow-complexity targets stated?"
+     ]
+    },
+    {
+     "title": "UI Aesthetics / Look-and-Feel Specificity",
+     "severity": "low",
+     "detail": "Requirements 31 and 32 mandate a 'consistent visual theme,' but this is too abstract. Specific expectations regarding branding, visual hierarchy, or interaction patterns are missing.",
+     "question": "Are there specific design guidelines or style guides (e.g., color palettes, component libraries) that must be adhered to for the UI?",
+     "grounding": [
+      "Look and feel requirements (volere)",
+      "DOMAIN CONCERNS: UI aesthetics / look-and-feel expectations"
+     ]
+    },
+    {
+     "title": "Discoverability and Guidance",
+     "severity": "medium",
+     "detail": "While navigation is mentioned (24, 26), there is no explicit requirement for proactive guidance, tooltips, or contextual help to ensure users can discover all available features.",
+     "question": "Are there requirements for contextual help, tooltips, or feature discovery mechanisms to ensure users are aware of all available functionalities?",
+     "grounding": [
+      "Helpfulness (guidance, feedback, discoverability)",
+      "DOMAIN CONCERNS: helpfulness (guidance, feedback, discoverability)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific performance targets for the UI responsiveness (e.g., page load time, API response time) to meet operability expectations.",
+    "Given the complexity of manufacturing data, consider adding requirements for data visualization capabilities beyond simple tabular/CSV output to aid researcher/practitioner analysis.",
+    "Explicitly define requirements for handling data schema evolution (versioning) when data templates are updated, ensuring backward compatibility for historical queries."
+   ],
+   "confidence": "high",
+   "id": "usability",
+   "name": "Usability & interaction"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "UI for administration and querying",
+    "RESTful API for data distribution",
+    "Data format support (XML, JSON, CSV)",
+    "User/Group/Permission management",
+    "Data template management"
+   ],
+   "gaps": [
+    {
+     "title": "WCAG Conformance Level",
+     "severity": "critical",
+     "detail": "The requirements mention a UI (Req 12, 28) but fail to specify any required level of accessibility conformance (e.g., WCAG 2.2 AA), which is a core domain concern.",
+     "question": "What specific WCAG conformance level (A, AA, or AAA) must the User Interface (UI) meet?",
+     "grounding": [
+      "Conformance level (wcag-2.2)"
+     ]
+    },
+    {
+     "title": "Assistive Technology Support",
+     "severity": "high",
+     "detail": "While WCAG addresses this, there is no explicit requirement ensuring compatibility with specific assistive technologies (like screen readers) beyond general UI structure (Req 24, 25).",
+     "question": "Are there specific requirements to ensure compatibility with common assistive technologies (e.g., ARIA roles, proper semantic HTML) for screen reader users?",
+     "grounding": [
+      "Assistive-technology support",
+      "Robust (wcag-2.2)"
+     ]
+    },
+    {
+     "title": "Localization and Internationalization (i18n)",
+     "severity": "high",
+     "detail": "The requirements do not mention support for multiple languages, locales, or Right-to-Left (RTL) text directionality, which is a key part of the domain.",
+     "question": "Does the system need to support multiple languages or locales, and if so, what is the required scope (e.g., language switching, locale-specific formatting)?",
+     "grounding": [
+      "localization / internationalization (languages, locales, RTL)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific requirements for keyboard-only navigation across all UI components (Operable principle).",
+    "If the target user base is global, explicitly define requirements for date, time, and number formatting based on locale.",
+    "Specify requirements for color contrast ratios for all UI elements to meet WCAG standards."
+   ],
+   "confidence": "high",
+   "id": "accessibility",
+   "name": "Accessibility & internationalization"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "API/RESTful service provision",
+    "User/Group/Permission management",
+    "Data template CRUD",
+    "UI for administration and querying",
+    "Data streaming (VDS) and querying (QDR) capabilities",
+    "Basic security (HTTPS, least privilege)",
+    "Basic maintainability goals (time limits)"
+   ],
+   "gaps": [
+    {
+     "title": "Lack of explicit modularity/bounded context definition",
+     "severity": "high",
+     "detail": "The requirements describe functional components (VDS, QDR, Admin), but do not specify the architectural boundaries, interfaces, or separation of concerns necessary to ensure components can change independently (Modularity/Bounded Context).",
+     "question": "How are the architectural boundaries defined between the VDS, QDR, and administrative services to ensure independent evolution and minimal impact from changes?",
+     "grounding": [
+      "Modularity (iso-25010:2023)",
+      "API / backend microservice"
+     ]
+    },
+    {
+     "title": "Missing automated test strategy requirements",
+     "severity": "critical",
+     "detail": "While testability is a domain concern, the requirements only imply functionality (e.g., QDR must query data) but do not mandate specific automated testing levels (unit, integration, contract) or CI/CD gates required for high maintainability.",
+     "question": "What are the required levels of automated test coverage (unit, integration, contract) and how must these tests be integrated into the CI/CD pipeline?",
+     "grounding": [
+      "Testability (iso-25010:2023)",
+      "API / backend microservice"
+     ]
+    },
+    {
+     "title": "Insufficient observability requirements",
+     "severity": "high",
+     "detail": "The requirements mention RESTful APIs and data streaming, but lack specific mandates for operational observability, such as structured logging, metrics (RED/USE), or distributed tracing (OpenTelemetry) needed to diagnose production issues.",
+     "question": "Are structured logging, RED/USE metrics, and distributed tracing (e.g., OpenTelemetry) required for all critical services (VDS, QDR, API) to support operational diagnostics?",
+     "grounding": [
+      "Observability (logging, metrics, tracing, diagnostics)",
+      "API / backend microservice"
+     ]
+    },
+    {
+     "title": "Missing data pipeline/transform testability",
+     "severity": "medium",
+     "detail": "The QDR curates and processes data daily (Req 21). This transformation logic needs specific data validation and assertion tests (like dbt tests or Great Expectations) to ensure data integrity across transformations, which is not specified.",
+     "question": "What data validation and assertion tests must be applied to the data transformations performed by the QDR during the daily processing cycle?",
+     "grounding": [
+      "Data pipeline / analytics / ETL"
+     ]
+    },
+    {
+     "title": "Lack of explicit dependency/impact analysis",
+     "severity": "medium",
+     "detail": "When data templates or schemas change, the impact on downstream consumers (queries, reports) is not specified, hindering analysability.",
+     "question": "What mechanism must be in place to analyze the impact of a change to a data template or schema on existing QDR queries and downstream consumers?",
+     "grounding": [
+      "Analysability (iso-25010:2023)",
+      "Data pipeline / analytics / ETL"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider specifying requirements for data cataloging and semantic documentation for the curated datasets to improve discoverability and maintainability.",
+    "Given the manufacturing context, consider requirements for data lineage tracking to trace data from the source (MTConnect) through curation to the final query result."
+   ],
+   "confidence": "high",
+   "id": "maintainability",
+   "name": "Maintainability, testability & observability"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Server operates on Linux",
+    "Client uses HTTPS/TLS",
+    "Data formats include XML, JSON, CSV, ASCII",
+    "RESTful API is used for distribution/management",
+    "Data templates and schemas are managed"
+   ],
+   "gaps": [
+    {
+     "title": "Target Platform/Environment Matrix",
+     "severity": "high",
+     "detail": "While the constraint specifies Linux for server-side components (Req 15), there is no explicit matrix defining supported OS versions, specific Linux distributions, or hardware architectures (e.g., x86_64, ARM) for both server and client environments, which is crucial for portability.",
+     "question": "What is the specific matrix of supported operating systems, versions, and hardware architectures for the server-side components?",
+     "grounding": [
+      "SRS portability (29148:2018)",
+      "Adaptability (iso-25010:2023)",
+      "Archetype: supported OS/filesystem/architecture matrix"
+     ]
+    },
+    {
+     "title": "Deployment Model Specification",
+     "severity": "high",
+     "detail": "The requirements mention server-side components but do not specify the deployment model (e.g., Docker/Kubernetes, VM image, bare metal installation). This is critical for portability and operationalizing the system.",
+     "question": "What is the required deployment model (e.g., containerization standard, orchestration platform, VM image specification) for the system components?",
+     "grounding": [
+      "Archetype: deployment model (containers, orchestration, targets)",
+      "SRS portability (29148:2018)"
+     ]
+    },
+    {
+     "title": "Installation/Upgrade/Rollback Procedures",
+     "severity": "high",
+     "detail": "There are no requirements detailing how the system should be installed, upgraded, or rolled back in a target environment, which is a core aspect of Installability.",
+     "question": "Are there defined procedures or requirements for initial installation, in-place upgrades, and rollback mechanisms for the system?",
+     "grounding": [
+      "Installability (iso-25010:2023)",
+      "SRS portability (29148:2018)"
+     ]
+    },
+    {
+     "title": "Storage Backend and Durability Assumptions",
+     "severity": "high",
+     "detail": "The system interacts with a database (Req 36, 54), but there are no requirements specifying the expected storage backend (e.g., local disk, network volume, cloud storage) or any durability assumptions (like fsync guarantees) for the underlying data store, which impacts data integrity and portability.",
+     "question": "What are the required storage backend targets (e.g., local NVMe, network volume, object storage) and what are the durability assumptions (e.g., fsync guarantees) for the data repository?",
+     "grounding": [
+      "Archetype: storage-backend targets",
+      "Archetype: fsync assumptions"
+     ]
+    },
+    {
+     "title": "Data File Portability (Endianness/Page Size)",
+     "severity": "medium",
+     "detail": "Since the system handles data streams and databases, there is no explicit requirement addressing data-file portability across different system architectures regarding endianness or memory page size, which is critical for data integrity when moving data between different hardware platforms.",
+     "question": "Are there requirements ensuring data-file portability across different system architectures regarding endianness and page size?",
+     "grounding": [
+      "Archetype: data-file portability (endianness/page size)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Specify the required level of backward compatibility for data templates and schemas when new versions of the system are deployed.",
+    "Define the expected resource footprint (CPU, Memory, Disk I/O) for the deployed components to aid in environment selection and capacity planning."
+   ],
+   "confidence": "high",
+   "id": "portability",
+   "name": "Portability & deployment"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Basic operational environment (Linux OS)",
+    "Communication security (HTTPS/TLS)",
+    "Data streaming (VDS) and querying (QDR) capabilities",
+    "User/Group/Permission management",
+    "Configuration/Template management (Data Templates)"
+   ],
+   "gaps": [
+    {
+     "title": "Runtime Monitoring and Alerting",
+     "severity": "high",
+     "detail": "The requirements specify functionality but lack any explicit requirements for monitoring the system's health, performance, or operational status (e.g., CPU usage, memory, API latency, error rates). This is critical for an operational system.",
+     "question": "What specific metrics must be monitored for both VDS and QDR components, and what alerting thresholds (SLOs/SLIs) must be defined for these metrics?",
+     "grounding": [
+      "API / backend microservice concerns: SLO monitoring, alerting on error budget burn",
+      "Web / SaaS application concerns: monitoring, alerting, on-call and runbooks"
+     ]
+    },
+    {
+     "title": "Graceful Shutdown and Health Checks",
+     "severity": "high",
+     "detail": "As a backend microservice handling real-time data streams (VDS) and API requests (QDR), the system must support zero-downtime deployments. Requirements for liveness and readiness probes, and graceful connection draining are missing.",
+     "question": "Are there requirements defining health/readiness probes and graceful shutdown procedures for the VDS and QDR services to support zero-downtime deployments?",
+     "grounding": [
+      "API / backend microservice concerns: health/readiness/liveness probes and graceful shutdown (connection draining) for zero-downtime deploys"
+     ]
+    },
+    {
+     "title": "Configuration and Secret Management",
+     "severity": "high",
+     "detail": "While templates are managed, there is no explicit requirement addressing how runtime configuration parameters (e.g., database connection strings, external service endpoints, API keys/secrets) are injected or managed, especially in a 12-factor manner.",
+     "question": "How must configuration and secrets be externalized and injected into the running services (e.g., via environment variables or dedicated secret stores) to avoid hardcoding?",
+     "grounding": [
+      "API / backend microservice concerns: configuration and secret injection via environment (12-factor), no hardcoded config"
+     ]
+    },
+    {
+     "title": "Operational Runbooks and Incident Response",
+     "severity": "medium",
+     "detail": "The system needs operational procedures for common failures (e.g., data ingestion failure, database connection loss, high latency). Runbooks are not specified.",
+     "question": "Are there requirements defining operational runbooks for common failure scenarios, such as data ingestion backlogs, database connection failures, or high query latency?",
+     "grounding": [
+      "API / backend microservice concerns: SLO monitoring, alerting on error budget burn, and runbooks",
+      "Data pipeline / analytics / ETL concerns: operational runbooks for backfills, replays, and stuck/failed jobs"
+     ]
+    },
+    {
+     "title": "Capacity and Load Management",
+     "severity": "medium",
+     "detail": "The system handles real-time streams and batch curation. Requirements for capacity planning, load shedding, or per-consumer usage metering are absent.",
+     "question": "Are there requirements defining capacity limits, load shedding mechanisms, or usage metering for different consumers (researchers vs. solution providers)?",
+     "grounding": [
+      "API / backend microservice concerns: capacity/cost management and per-consumer usage metering",
+      "Web / SaaS application concerns: cost/capacity operations"
+     ]
+    },
+    {
+     "title": "Data Freshness and Lag Monitoring (VDS)",
+     "severity": "medium",
+     "detail": "Requirement 69 specifies a minimum rate (1 Hz), but there is no requirement to monitor the *actual* lag or freshness of the data stream relative to the source or the system's internal buffer, which is crucial for VDS.",
+     "question": "Must the system monitor and alert if the actual data stream latency or buffer lag exceeds predefined thresholds?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: data-freshness/SLA monitoring, pipeline health, and lag/backpressure alerting"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining Service Level Objectives (SLOs) for query response times (QDR) and data availability (VDS) to drive monitoring requirements.",
+    "Since the system interacts with an Industrial-Equipment Network, consider requirements for handling network partitioning or intermittent connectivity gracefully (e.g., local buffering/store-and-forward mechanisms)."
+   ],
+   "confidence": "high",
+   "id": "operational",
+   "name": "Operational & environmental"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Data distribution for research/practitioner/solution provider use",
+    "Real-time and historical data streaming (VDS)",
+    "Querying and data retrieval (QDR)",
+    "User/Group/Permission/Template management (Admin)",
+    "API and UI provision",
+    "Data format support (XML, JSON, CSV)"
+   ],
+   "gaps": [
+    {
+     "title": "PII Identification and Classification",
+     "severity": "critical",
+     "detail": "The problem statement deals with 'manufacturing data' from industrial equipment. It is not specified if this data contains any Personally Identifiable Information (PII) or sensitive data (e.g., related to personnel, specific locations that could identify individuals). If it does, PII governance is mandatory.",
+     "question": "Is the manufacturing data expected to contain any PII, and if so, what is the classification level (e.g., public, internal, restricted)?",
+     "grounding": [
+      "V14 Data Protection (owasp-asvs)",
+      "GDPR/HIPAA"
+     ]
+    },
+    {
+     "title": "Data Subject Rights (DSAR/Erasure)",
+     "severity": "high",
+     "detail": "If PII is present, the system must support Data Subject Access Requests (DSAR) and the Right to Erasure ('Right to be Forgotten'). The requirements do not specify how data subjects can request data deletion from the repository or streams.",
+     "question": "If PII is present, what is the defined process and technical mechanism for handling data subject requests for access or erasure across the VDS and QDR?",
+     "grounding": [
+      "GDPR/CCPA",
+      "Archetype Priors for this Domain (Data pipeline / analytics / ETL)"
+     ]
+    },
+    {
+     "title": "Consent Management and Purpose Limitation",
+     "severity": "high",
+     "detail": "The system enables data distribution for various purposes (research, practitioner optimization, solution provider development). If the data is subject to privacy regulations, the system must enforce purpose limitation based on user consent or defined lawful basis.",
+     "question": "How will the system enforce purpose limitation? Is there a mechanism to track and enforce the specific consent scope under which data is being used for downstream analytics or research?",
+     "grounding": [
+      "GDPR/CCPA",
+      "Archetype Priors for this Domain (Data pipeline / analytics / ETL)"
+     ]
+    },
+    {
+     "title": "Data Residency and Sovereignty",
+     "severity": "high",
+     "detail": "The system handles data from a manufacturing facility. If this facility or its users are subject to data sovereignty laws (e.g., data must remain within a specific geographic boundary), this constraint is entirely missing.",
+     "question": "Are there any geographic or jurisdictional constraints on where the data must be stored, processed, or accessed (data residency/sovereignty)?",
+     "grounding": [
+      "Domain Concerns: data sovereignty / residency",
+      "Archetype Priors for this Domain (Web / SaaS application)"
+     ]
+    },
+    {
+     "title": "Data Retention and Defensible Deletion",
+     "severity": "medium",
+     "detail": "The requirements specify data curation and storage but lack any explicit policies on how long data must be kept (retention period) or how it must be securely and defensibly deleted after that period.",
+     "question": "What are the defined retention periods for raw, curated, and derived manufacturing data, and what is the process for defensible deletion?",
+     "grounding": [
+      "Archetype Priors for this Domain (Data pipeline / analytics / ETL)"
+     ]
+    },
+    {
+     "title": "PII Handling Mechanisms (Masking/Tokenization)",
+     "severity": "medium",
+     "detail": "If PII is present, the requirements do not specify any technical controls for protecting it during storage or transit, such as masking, tokenization, or pseudonymization, especially in the QDR where data is queried and shared.",
+     "question": "If PII is present, what specific privacy-preserving techniques (e.g., masking, tokenization, pseudonymization) must be applied to the data before it is stored or exposed via the API?",
+     "grounding": [
+      "V14 Data Protection (owasp-asvs)",
+      "Archetype Priors for this Domain (Data pipeline / analytics / ETL)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific roles/permissions based on data sensitivity (e.g., 'PII Viewer' vs. 'Aggregated Data Viewer') rather than just general 'User' and 'Super-User' roles.",
+    "The problem statement should explicitly define the scope of 'manufacturing data' to determine if it falls under regulated data types (e.g., if it relates to employee performance or health monitoring, HIPAA/GDPR implications increase)."
+   ],
+   "confidence": "high",
+   "id": "legal-privacy",
+   "name": "Legal, compliance & privacy"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Mandated OS environment (Linux)",
+    "Mandated communication security (HTTPS/SSL/TLS 128-bit)",
+    "Stateless communication requirement",
+    "Batch processing for QDR",
+    "Daily processing window for QDR",
+    "RESTful API usage",
+    "Budget/Cost constraints (implied via maintenance/feasibility, but not explicitly quantified)",
+    "Schedule constraints (implied via maintenance time limits)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Technology Stack Mandates",
+     "severity": "high",
+     "detail": "The requirements mandate Linux and HTTPS, but do not specify the required programming languages, frameworks, databases, or cloud/server platforms, which are critical constraints for this domain.",
+     "question": "Are there mandated languages, frameworks (e.g., specific ORMs, web frameworks), or database technologies that must be used for the VDS and QDR components?",
+     "grounding": [
+      "SRS: design constraints (29148:2018)",
+      "Mandated / off-the-shelf solutions (volere)"
+     ]
+    },
+    {
+     "title": "Cost/Budget Ceiling Definition",
+     "severity": "high",
+     "detail": "While maintenance time limits (74, 76) imply cost constraints, there is no explicit requirement defining the overall budget ceiling or operational cost limits (e.g., cloud compute/storage credits) for the data pipeline/repository.",
+     "question": "What are the defined budget ceilings or maximum allowable operational costs (e.g., cloud resource limits) for running the VDS and QDR components?",
+     "grounding": [
+      "Project constraints (volere)",
+      "Data pipeline / analytics / ETL concerns"
+     ]
+    },
+    {
+     "title": "Licensing Constraints",
+     "severity": "medium",
+     "detail": "The requirements do not specify any constraints regarding the open-source licenses of third-party libraries or components used in the stack, which is a key concern for data pipeline systems.",
+     "question": "Are there restrictions on the open-source licenses (e.g., must be permissive, must avoid copyleft) for any third-party dependencies used in the system?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns",
+      "Standard Expectations for this Domain"
+     ]
+    },
+    {
+     "title": "Processing Window/SLA for VDS",
+     "severity": "medium",
+     "detail": "Requirement 69 specifies a minimum rate (1 Hz) for VDS data availability, but this is a performance metric, not a formal SLA constraint on the *processing* window or data freshness guarantee relative to the source event time.",
+     "question": "What is the required end-to-end latency or Service Level Agreement (SLA) for data ingestion and availability from the industrial equipment network to the VDS buffer?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns",
+      "Standard Expectations for this Domain"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Define the specific cloud provider or on-premise infrastructure target to properly constrain compute/storage costs.",
+    "Specify the required data retention policies (how long must data be kept in the QDR/database) to constrain storage costs and architecture.",
+    "Explicitly define the acceptable tolerance for data loss or corruption during batch curation/processing."
+   ],
+   "confidence": "high",
+   "id": "constraints",
+   "name": "Constraints & mandated solutions"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Organizational policies/governance (User/Group/Permission management)",
+    "Human workflows (UI/API interaction, roles)",
+    "Geopolitical restrictions (None explicitly addressed)"
+   ],
+   "gaps": [
+    {
+     "title": "Organizational Policy Enforcement (Compliance)",
+     "severity": "high",
+     "detail": "The requirements specify *how* to manage users, groups, and permissions (CRUD), but they do not specify *what* organizational policies or governance rules the system must enforce (e.g., data retention policies, data access policies based on organizational role/affiliation, compliance with specific industry regulations beyond general security).",
+     "question": "What specific organizational policies, compliance mandates (e.g., GDPR, internal data governance rules), or data retention/lifecycle policies must the system adhere to?",
+     "grounding": [
+      "organizational policies & governance",
+      "Volere type 16"
+     ]
+    },
+    {
+     "title": "Geopolitical Data Routing/Sanctions",
+     "severity": "critical",
+     "detail": "The problem statement involves distributing manufacturing data, which can be subject to international trade restrictions, sanctions, or data sovereignty laws. There are no requirements addressing where data can be stored, processed, or routed geographically.",
+     "question": "Are there any geopolitical restrictions, data sovereignty requirements, or sanctions that dictate where the data must be stored, processed, or routed?",
+     "grounding": [
+      "geopolitical restrictions (data routing, sanctions)"
+     ]
+    },
+    {
+     "title": "Workflow Integration/Stakeholder Buy-in",
+     "severity": "medium",
+     "detail": "The requirements focus heavily on technical functionality (CRUD, API, UI). They lack explicit requirements detailing how the system must integrate into existing, complex human workflows or how it must facilitate stakeholder buy-in/change management (e.g., notification mechanisms for policy changes, audit trails for governance decisions).",
+     "question": "What specific organizational workflows must the system support, and what mechanisms are required to track stakeholder approval or manage organizational change related to data usage?",
+     "grounding": [
+      "human workflows the system must fit",
+      "change-management & stakeholder buy-in"
+     ]
+    }
+   ],
+   "enrichments": [
+    "The problem statement should specify the required audit logging capabilities for all administrative actions (CRUD operations on users, permissions, templates) to satisfy governance requirements.",
+    "Consider adding requirements for data provenance tracking to ensure that the origin, transformations, and lineage of the distributed manufacturing data are traceable, which is critical for research and compliance."
+   ],
+   "confidence": "high",
+   "id": "cultural-political",
+   "name": "Cultural, political & organizational"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Data distribution for research/practitioner/solution provider use",
+    "Real-time (VDS) and object-of-interest (QDR) data access",
+    "Data curation and storage based on templates",
+    "RESTful API and UI for interaction",
+    "User/Group/Permission/Template management",
+    "Data format support (XML, JSON, CSV)",
+    "Security basics (HTTPS, least privilege, testing)",
+    "System architecture constraints (Linux, MVC)"
+   ],
+   "gaps": [
+    {
+     "title": "User Success Metrics/Effectiveness",
+     "severity": "high",
+     "detail": "The requirements define *what* the system does (distributes data) but fail to define *how well* it achieves the intended user goals (Effectiveness). We lack metrics for task success, data accuracy, or completeness relative to user needs.",
+     "question": "What are the measurable success metrics (e.g., task completion rate, data accuracy percentage, time to first meaningful insight) that define whether a researcher/practitioner has successfully achieved their goal using the distributed data?",
+     "grounding": [
+      "iso-25019:2023 (Effectiveness)",
+      "Web / SaaS application concerns: task-success metrics"
+     ]
+    },
+    {
+     "title": "Efficiency Metrics (Time/Effort)",
+     "severity": "high",
+     "detail": "While time-to-value is mentioned in archetypes, there are no specified acceptable limits on the effort or time required for key user workflows (e.g., time-to-value for a new tenant/researcher, time taken to run a complex query, or time to onboard a new data source).",
+     "question": "What are the acceptable time-to-value targets for new users/tenants, and what are the maximum acceptable latency/effort for critical operations like data retrieval or template creation?",
+     "grounding": [
+      "iso-25019:2023 (Efficiency)",
+      "Web / SaaS application concerns: time-to-value"
+     ]
+    },
+    {
+     "title": "User Satisfaction/Trust Metrics",
+     "severity": "medium",
+     "detail": "Satisfaction is a key domain concern, but the requirements only address basic UI consistency (31, 32, 25). There is no specification regarding user trust, perceived usefulness, or comfort beyond basic usability features.",
+     "question": "How will user satisfaction (trust, comfort, usefulness) be measured or ensured? Are there requirements for feedback mechanisms or trust indicators?",
+     "grounding": [
+      "iso-25019:2023 (Satisfaction)",
+      "Web / SaaS application concerns: user trust and satisfaction"
+     ]
+    },
+    {
+     "title": "Risk Mitigation (Economic/Health/Environmental)",
+     "severity": "critical",
+     "detail": "The domain explicitly requires consideration of risks (economic, health, environmental). The requirements only touch on data security (HTTPS, least privilege) but do not address data integrity risks, data availability risks, or risks associated with the *use* of the data (e.g., misuse leading to economic loss for the facility).",
+     "question": "What specific risks (economic, health, environmental) are associated with the data being distributed, and what controls must the system enforce to mitigate these risks?",
+     "grounding": [
+      "iso-25019:2023 (Freedom from risk)"
+     ]
+    },
+    {
+     "title": "Context Completeness/Flexibility",
+     "severity": "medium",
+     "detail": "The scope is defined, but the requirements do not specify how the system handles contexts *beyond* the defined scope (Context Coverage). For example, what happens if a new, unmodeled data source is introduced, or if a user needs to analyze data outside the predefined daily batch processing window?",
+     "question": "How must the system handle data sources or use cases that fall outside the explicitly defined scope (e.g., ad-hoc data ingestion, non-standard data formats)?",
+     "grounding": [
+      "iso-25019:2023 (Context coverage)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Define Service Level Objectives (SLOs) for data availability and query response times, especially for VDS (beyond 1Hz) and QDR.",
+    "Specify data lineage requirements: The system should track where data originated, how it was curated, and which templates/processes modified it, to support auditability and trust.",
+    "Define data retention and archival policies, especially concerning the lifecycle of historical manufacturing data."
+   ],
+   "confidence": "high",
+   "id": "quality-in-use",
+   "name": "Quality-in-use & stakeholder outcomes"
+  }
+ ],
+ "gaps": [
+  {
+   "title": "Data Retention, Archival, and Deletion Policies",
+   "severity": "critical",
+   "detail": "The requirements define data storage but omit any policies regarding how long data must be kept, when it should be archived (e.g., moving from hot storage to cold storage), or how it must be securely deleted (especially concerning PII, if applicable).",
+   "question": "Are there defined retention periods, archival triggers, or data deletion policies that the system must enforce based on data type or regulatory needs?",
+   "grounding": [
+    "Web / SaaS application concerns: retention, export, and deletion (incl. tenant offboarding)",
+    "Data & information domain concerns: retention, archival, deletion"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Quantified Latency/Throughput SLOs for VDS",
+   "severity": "critical",
+   "detail": "The requirements state VDS provides a 'near-real-time stream' (Req 7) and a rate of 'no less than 1 Hz' (Req 69), but lack specific Service Level Objectives (SLOs) for latency (e.g., p95, p99) or throughput (e.g., max sustained req/s or data points/sec) for the streaming operations, which is critical for performance domain coverage.",
+   "question": "What are the required latency (e.g., p95) and throughput (e.g., data points/second) targets for the VDS streaming operations?",
+   "grounding": [
+    "API / backend microservice concerns: latency SLOs (p95/p99) and throughput (req/s) targets per endpoint",
+    "Time behaviour (iso-25010:2023)"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Availability SLO/SLA Definition",
+   "severity": "critical",
+   "detail": "No explicit Service Level Objective (SLO) or Service Level Agreement (SLA) is defined for the system's availability (e.g., 99.9% uptime). This is a core concern for reliability.",
+   "question": "What is the required availability target (e.g., 99.9%, 99.99%) and the measurement window for the VDS and QDR services?",
+   "grounding": [
+    "iso-25010:2023 (Availability)",
+    "SRS: reliability & availability (29148:2018)"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Recovery Time Objective (RTO) and Recovery Point Objective (RPO)",
+   "severity": "critical",
+   "detail": "There are no defined targets for how quickly the system must recover (RTO) or how much data loss is acceptable (RPO) following a failure.",
+   "question": "What are the required Recovery Time Objective (RTO) and Recovery Point Objective (RPO) for the QDR and VDS components?",
+   "grounding": [
+    "iso-25010:2023 (Recoverability)",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Object-Level Authorization (BOLA/IDOR)",
+   "severity": "critical",
+   "detail": "The system manages users, groups, and permissions (Req 63), but there is no explicit requirement ensuring that a user can only access or modify data/resources they are explicitly authorized for (e.g., preventing User A from querying Data Item belonging to User B).",
+   "question": "Are there explicit requirements to prevent Broken Object Level Authorization (BOLA) or Insecure Direct Object Reference (IDOR) when querying or managing data/templates?",
+   "grounding": [
+    "API / backend microservice concerns: no broken object-level authorization (BOLA/IDOR) — OWASP API Security Top 10"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Hazard Identification and Risk Analysis",
+   "severity": "critical",
+   "detail": "The requirements focus heavily on data flow, functionality, and performance, but there is no explicit requirement or process defined for identifying potential hazards (e.g., data corruption leading to incorrect operational decisions, system overload causing data loss, security breaches impacting safety-critical data).",
+   "question": "What is the defined process for conducting Hazard Identification and Risk Analysis (HIRA) for this data distribution system, especially concerning data integrity and availability?",
+   "grounding": [
+    "Risk identification (iso-25010:2023)",
+    "SRS: safety requirements (29148:2018)"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Fail-Safe / Safe-State Behavior",
+   "severity": "critical",
+   "detail": "The system must define what constitutes a 'safe state' if a critical component fails (e.g., database connection loss, VDS stream interruption, API service crash). The requirements do not specify automatic recovery or graceful degradation mechanisms.",
+   "question": "What is the defined safe state for the VDS and QDR components upon detection of a major system failure (e.g., database unavailability, network partition)?",
+   "grounding": [
+    "Fail safe (iso-25010:2023)",
+    "SRS: safety requirements (29148:2018)"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "User Error Protection (Destructive Actions)",
+   "severity": "critical",
+   "detail": "While administrative functions exist, there is no explicit requirement detailing safeguards against destructive actions (e.g., accidental deletion of data templates, user accounts, or large-scale data deletion/modification).",
+   "question": "Are there specific requirements for confirmation dialogs, soft deletes, or multi-step verification before executing any destructive administrative or data modification action?",
+   "grounding": [
+    "User error protection (iso-25010:2023)",
+    "Web / SaaS application concerns: error prevention on destructive actions"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "WCAG Conformance Level",
+   "severity": "critical",
+   "detail": "The requirements mention a UI (Req 12, 28) but fail to specify any required level of accessibility conformance (e.g., WCAG 2.2 AA), which is a core domain concern.",
+   "question": "What specific WCAG conformance level (A, AA, or AAA) must the User Interface (UI) meet?",
+   "grounding": [
+    "Conformance level (wcag-2.2)"
+   ],
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization"
+  },
+  {
+   "title": "Missing automated test strategy requirements",
+   "severity": "critical",
+   "detail": "While testability is a domain concern, the requirements only imply functionality (e.g., QDR must query data) but do not mandate specific automated testing levels (unit, integration, contract) or CI/CD gates required for high maintainability.",
+   "question": "What are the required levels of automated test coverage (unit, integration, contract) and how must these tests be integrated into the CI/CD pipeline?",
+   "grounding": [
+    "Testability (iso-25010:2023)",
+    "API / backend microservice"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "PII Identification and Classification",
+   "severity": "critical",
+   "detail": "The problem statement deals with 'manufacturing data' from industrial equipment. It is not specified if this data contains any Personally Identifiable Information (PII) or sensitive data (e.g., related to personnel, specific locations that could identify individuals). If it does, PII governance is mandatory.",
+   "question": "Is the manufacturing data expected to contain any PII, and if so, what is the classification level (e.g., public, internal, restricted)?",
+   "grounding": [
+    "V14 Data Protection (owasp-asvs)",
+    "GDPR/HIPAA"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Geopolitical Data Routing/Sanctions",
+   "severity": "critical",
+   "detail": "The problem statement involves distributing manufacturing data, which can be subject to international trade restrictions, sanctions, or data sovereignty laws. There are no requirements addressing where data can be stored, processed, or routed geographically.",
+   "question": "Are there any geopolitical restrictions, data sovereignty requirements, or sanctions that dictate where the data must be stored, processed, or routed?",
+   "grounding": [
+    "geopolitical restrictions (data routing, sanctions)"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "Risk Mitigation (Economic/Health/Environmental)",
+   "severity": "critical",
+   "detail": "The domain explicitly requires consideration of risks (economic, health, environmental). The requirements only touch on data security (HTTPS, least privilege) but do not address data integrity risks, data availability risks, or risks associated with the *use* of the data (e.g., misuse leading to economic loss for the facility).",
+   "question": "What specific risks (economic, health, environmental) are associated with the data being distributed, and what controls must the system enforce to mitigate these risks?",
+   "grounding": [
+    "iso-25019:2023 (Freedom from risk)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Error/Exception Contract for Operations",
+   "severity": "high",
+   "detail": "The requirements specify happy paths (e.g., CRUD operations, successful queries) but do not define the expected error codes, failure modes, or exception handling contracts for any of the exposed RESTful API operations (VDS or QDR). This is critical for client integration.",
+   "question": "For every defined API endpoint (CRUD, Query), what are the specific HTTP status codes and error body structures to be returned upon failure (e.g., validation error, permission denied, resource not found)?",
+   "grounding": [
+    "API / backend microservice concerns: error/exception contract per operation"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Concurrency and State Management in QDR",
+   "severity": "high",
+   "detail": "The QDR deals with curated, historical data, and while it mentions batch processing, there is no specification regarding concurrent read/write access patterns, transaction isolation levels, or mechanisms to handle conflicting updates to the curated data set, which is vital for data integrity.",
+   "question": "What is the required transaction isolation level for the QDR database, and how will the system handle concurrent updates or conflicting writes to the curated data records?",
+   "grounding": [
+    "Data store / database / storage engine concerns: transaction model (ACID vs BASE) and the exact guarantees of each supported isolation level"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Data Transformation/Logic Correctness for QDR",
+   "severity": "high",
+   "detail": "The QDR curates data from the Industrial-Equipment Network. The requirements state *that* it curates data, but not *how* the business logic (transformations, aggregations, joins) from raw sensor data into the structured, queryable format is guaranteed to be correct or testable against known inputs.",
+   "question": "What are the specific transformation rules, aggregation logic, or join semantics applied when raw data is curated into the structured QDR format, and are there defined input/output fixtures for testing this logic?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: transformation/business-logic correctness and its testability against known input/output fixtures"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Data Quality Thresholds",
+   "severity": "high",
+   "detail": "The requirements specify data curation and storage but lack any explicit definition or enforcement of data quality dimensions (accuracy, completeness, consistency, uniqueness, validity, timeliness) beyond basic structural validation. This is critical for manufacturing data.",
+   "question": "What are the specific thresholds or rules for data quality (e.g., acceptable null rates, expected value ranges, consistency checks between related data points) that must be enforced during ingestion or curation?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: data-quality dimensions with enforced thresholds"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Data Lineage and Provenance",
+   "severity": "high",
+   "detail": "The system handles data from various sources (sensors, batch uploads) and transforms it into structured templates, but there is no requirement to track where the data came from, how it was transformed, or which template/process generated it, which is essential for auditing and trust in manufacturing data.",
+   "question": "Must the system capture and store lineage information, detailing the original source, the transformation applied, and the specific data template used for every piece of curated data?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: data lineage and provenance: source-to-target traceability, transformation documentation"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Schema Evolution and Data Contracts",
+   "severity": "high",
+   "detail": "While templates/schemas are managed (Req 10, 65), there is no specification for how the system handles changes to these schemas over time (e.g., if a sensor adds a new field, or an old field is deprecated). This is crucial for long-term data usability.",
+   "question": "What is the policy for schema evolution? Must the system support backward and forward compatibility when data is ingested using older or newer versions of a data template?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: schema evolution and data contracts: backward/forward compatibility, additive-only vs breaking changes"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Quantified Latency/Throughput SLOs for QDR API",
+   "severity": "high",
+   "detail": "The QDR supports querying via API (Req 11, 19, 46), but there are no specified performance targets (latency or throughput) for these query operations, especially under load.",
+   "question": "What are the required latency (e.g., p95) and throughput (e.g., queries/second) targets for the QDR RESTful API endpoints?",
+   "grounding": [
+    "API / backend microservice concerns: latency SLOs (p95/p99) and throughput (req/s) targets per endpoint",
+    "Time behaviour (iso-25010:2023)"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Resource Utilization Ceilings",
+   "severity": "high",
+   "detail": "The requirements specify hardware classes (server-class, workstation-class) (Req 33, 34) but do not specify resource utilization ceilings (CPU, Memory, Network I/O, Storage throughput) that the system must adhere to under defined load conditions.",
+   "question": "What are the maximum acceptable resource utilization ceilings (CPU %, Memory usage, Network bandwidth, Storage IOPS/throughput) for the VDS and QDR components?",
+   "grounding": [
+    "Resource utilisation (iso-25010:2023)",
+    "API / backend microservice concerns: resource ceilings & pooling"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Scalability and Load Handling Strategy",
+   "severity": "high",
+   "detail": "The system must handle data growth and concurrent users, but there is no definition of its scaling strategy (e.g., horizontal scaling, elasticity) or how it behaves under peak load or overload conditions (e.g., rate limiting, load shedding).",
+   "question": "What is the defined horizontal scaling strategy, and what mechanisms (e.g., rate limiting, load shedding) are in place to manage overload conditions?",
+   "grounding": [
+    "Scalability (iso-25010:2023)",
+    "API / backend microservice concerns: horizontal scalability and statelessness for autoscaling; rate limiting / throttling and quota enforcement"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Fault Tolerance and Graceful Degradation",
+   "severity": "high",
+   "detail": "The requirements do not specify how the system behaves when a dependency (e.g., database, external service, or the data acquisition network) fails or becomes slow. Resilience patterns (timeouts, circuit breakers, fallbacks) are missing.",
+   "question": "What are the required failure behaviors (e.g., circuit breaking, timeouts, fallback mechanisms) when downstream dependencies (like the database or data acquisition network) become unavailable or unresponsive?",
+   "grounding": [
+    "iso-25010:2023 (Fault tolerance)",
+    "API / backend microservice concerns"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "State Restoration and Backup Strategy",
+   "severity": "high",
+   "detail": "The requirements lack specifications for backup frequency, retention, and the process/guarantee of state restoration (e.g., PITR capability for the data store).",
+   "question": "What are the requirements for data backup frequency, retention policy, and the mechanism/guarantee for point-in-time recovery (PITR) for the stored data?",
+   "grounding": [
+    "iso-25010:2023 (Recoverability)",
+    "Data store / database / storage engine concerns"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Idempotency for Data Ingestion/Updates",
+   "severity": "high",
+   "detail": "Since data is being uploaded/curated (Req 56) and potentially retried, there is no explicit requirement for operations to be idempotent, which is crucial for safe retries in distributed systems.",
+   "question": "Are mutating operations (data uploads, template edits) required to be idempotent, and if so, how will idempotency keys be managed?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Specific Authentication Mechanisms",
+   "severity": "high",
+   "detail": "The requirements mention a login page (Req 27) and roles (Req 77), but do not specify *how* authentication is performed (e.g., OAuth 2.0, OIDC, username/password storage/hashing standards, MFA support).",
+   "question": "What specific authentication protocols (e.g., OAuth 2.0, OIDC) and credential management standards (e.g., password hashing algorithms, MFA requirements) must be used for user login?",
+   "grounding": [
+    "API / backend microservice concerns: OAuth 2.0 / OIDC, JWT validation",
+    "Web / SaaS application concerns: Authentication (MFA, SSO/OIDC/SAML)"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Data Integrity and Tamper Protection",
+   "severity": "high",
+   "detail": "While input validation is implied by schema/template usage (Req 54, 65), there is no explicit requirement for data integrity checks on the data itself (e.g., digital signatures, checksums) to ensure it hasn't been tampered with between collection and storage/retrieval.",
+   "question": "What mechanisms are required to ensure the integrity and authenticity of the manufacturing data once it is ingested and stored (e.g., cryptographic hashing, digital signatures)?",
+   "grounding": [
+    "Integrity (iso-25010:2023)",
+    "Data pipeline / analytics / ETL concerns: integrity/authenticity of ingested data"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Comprehensive Audit Logging",
+   "severity": "high",
+   "detail": "Accountability requires logging security-relevant events. While general security practices are mentioned (Req 70), there is no specification for *what* must be logged (e.g., successful/failed logins, permission changes, data access attempts, template modifications) or how long logs must be retained.",
+   "question": "What specific security events (e.g., login attempts, permission changes, data retrieval by role) must be logged, and what are the retention and immutability requirements for these audit logs?",
+   "grounding": [
+    "Accountability (iso-25010:2023)",
+    "API / backend microservice concerns: audit logging of security-relevant calls and abuse/anomaly detection"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Operational Constraints and Hazard Warnings",
+   "severity": "high",
+   "detail": "While there are limits on query results (Req 13, 48), there is no specification for warnings related to hazardous operational states, such as data quality degradation, exceeding defined data thresholds, or approaching system capacity limits that could impact data integrity or availability.",
+   "question": "Are there requirements specifying when the system must issue a warning to the operator/user regarding data quality issues, exceeding defined operational thresholds, or approaching resource exhaustion?",
+   "grounding": [
+    "Hazard warning (iso-25010:2023)",
+    "Operational constraint (iso-25010:2023)"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Safe Integration with Other Systems",
+   "severity": "high",
+   "detail": "The system integrates with an 'Industrial-Equipment Network' and is part of a 'larger manufacturing-monitoring system'. The requirements do not specify how the system maintains safety or integrity when interacting with these external, potentially unreliable, systems.",
+   "question": "What mechanisms are in place to ensure the safety and integrity of the data when integrating with the external Industrial-Equipment Network, especially concerning data source failures or malformed inputs?",
+   "grounding": [
+    "Safe integration (iso-25010:2023)",
+    "Operational constraint (iso-25010:2023)"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "API Versioning Strategy",
+   "severity": "high",
+   "detail": "The requirements specify RESTful APIs (11, 19, 40) but lack any explicit strategy for versioning these APIs (e.g., URI versioning, header versioning). This is critical for backward compatibility.",
+   "question": "What is the defined API versioning strategy (e.g., /v1/, header acceptance) and what is the policy for deprecating older versions?",
+   "grounding": [
+    "API / backend microservice concerns: versioning strategy (URI/header/media-type) and deprecation/sunset policy with timelines"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Backward Compatibility Rules for Data Templates/Schemas",
+   "severity": "high",
+   "detail": "While data templates and schemas are managed (10, 65), there are no explicit rules ensuring that changes to these templates/schemas do not break existing consumers (backward compatibility).",
+   "question": "What are the rules governing schema evolution (e.g., additive-only changes, required field deprecation) to ensure backward compatibility for existing data consumers?",
+   "grounding": [
+    "API / backend microservice concerns: backward compatibility: additive-only evolution, no breaking changes to existing consumers"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Learnability/Onboarding",
+   "severity": "high",
+   "detail": "The requirements specify documentation (22) but lack explicit requirements for a guided onboarding flow for new tenants or users, which is critical for a complex data distribution system.",
+   "question": "What specific requirements govern the initial onboarding experience for a new user or tenant, including guided tours or setup wizards?",
+   "grounding": [
+    "Learnability (iso-25010:2023)",
+    "Web / SaaS application concerns: onboarding/learnability for new tenants and users"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "Assistive Technology Support",
+   "severity": "high",
+   "detail": "While WCAG addresses this, there is no explicit requirement ensuring compatibility with specific assistive technologies (like screen readers) beyond general UI structure (Req 24, 25).",
+   "question": "Are there specific requirements to ensure compatibility with common assistive technologies (e.g., ARIA roles, proper semantic HTML) for screen reader users?",
+   "grounding": [
+    "Assistive-technology support",
+    "Robust (wcag-2.2)"
+   ],
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization"
+  },
+  {
+   "title": "Localization and Internationalization (i18n)",
+   "severity": "high",
+   "detail": "The requirements do not mention support for multiple languages, locales, or Right-to-Left (RTL) text directionality, which is a key part of the domain.",
+   "question": "Does the system need to support multiple languages or locales, and if so, what is the required scope (e.g., language switching, locale-specific formatting)?",
+   "grounding": [
+    "localization / internationalization (languages, locales, RTL)"
+   ],
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization"
+  },
+  {
+   "title": "Lack of explicit modularity/bounded context definition",
+   "severity": "high",
+   "detail": "The requirements describe functional components (VDS, QDR, Admin), but do not specify the architectural boundaries, interfaces, or separation of concerns necessary to ensure components can change independently (Modularity/Bounded Context).",
+   "question": "How are the architectural boundaries defined between the VDS, QDR, and administrative services to ensure independent evolution and minimal impact from changes?",
+   "grounding": [
+    "Modularity (iso-25010:2023)",
+    "API / backend microservice"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Insufficient observability requirements",
+   "severity": "high",
+   "detail": "The requirements mention RESTful APIs and data streaming, but lack specific mandates for operational observability, such as structured logging, metrics (RED/USE), or distributed tracing (OpenTelemetry) needed to diagnose production issues.",
+   "question": "Are structured logging, RED/USE metrics, and distributed tracing (e.g., OpenTelemetry) required for all critical services (VDS, QDR, API) to support operational diagnostics?",
+   "grounding": [
+    "Observability (logging, metrics, tracing, diagnostics)",
+    "API / backend microservice"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Target Platform/Environment Matrix",
+   "severity": "high",
+   "detail": "While the constraint specifies Linux for server-side components (Req 15), there is no explicit matrix defining supported OS versions, specific Linux distributions, or hardware architectures (e.g., x86_64, ARM) for both server and client environments, which is crucial for portability.",
+   "question": "What is the specific matrix of supported operating systems, versions, and hardware architectures for the server-side components?",
+   "grounding": [
+    "SRS portability (29148:2018)",
+    "Adaptability (iso-25010:2023)",
+    "Archetype: supported OS/filesystem/architecture matrix"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Deployment Model Specification",
+   "severity": "high",
+   "detail": "The requirements mention server-side components but do not specify the deployment model (e.g., Docker/Kubernetes, VM image, bare metal installation). This is critical for portability and operationalizing the system.",
+   "question": "What is the required deployment model (e.g., containerization standard, orchestration platform, VM image specification) for the system components?",
+   "grounding": [
+    "Archetype: deployment model (containers, orchestration, targets)",
+    "SRS portability (29148:2018)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Installation/Upgrade/Rollback Procedures",
+   "severity": "high",
+   "detail": "There are no requirements detailing how the system should be installed, upgraded, or rolled back in a target environment, which is a core aspect of Installability.",
+   "question": "Are there defined procedures or requirements for initial installation, in-place upgrades, and rollback mechanisms for the system?",
+   "grounding": [
+    "Installability (iso-25010:2023)",
+    "SRS portability (29148:2018)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Storage Backend and Durability Assumptions",
+   "severity": "high",
+   "detail": "The system interacts with a database (Req 36, 54), but there are no requirements specifying the expected storage backend (e.g., local disk, network volume, cloud storage) or any durability assumptions (like fsync guarantees) for the underlying data store, which impacts data integrity and portability.",
+   "question": "What are the required storage backend targets (e.g., local NVMe, network volume, object storage) and what are the durability assumptions (e.g., fsync guarantees) for the data repository?",
+   "grounding": [
+    "Archetype: storage-backend targets",
+    "Archetype: fsync assumptions"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Runtime Monitoring and Alerting",
+   "severity": "high",
+   "detail": "The requirements specify functionality but lack any explicit requirements for monitoring the system's health, performance, or operational status (e.g., CPU usage, memory, API latency, error rates). This is critical for an operational system.",
+   "question": "What specific metrics must be monitored for both VDS and QDR components, and what alerting thresholds (SLOs/SLIs) must be defined for these metrics?",
+   "grounding": [
+    "API / backend microservice concerns: SLO monitoring, alerting on error budget burn",
+    "Web / SaaS application concerns: monitoring, alerting, on-call and runbooks"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Graceful Shutdown and Health Checks",
+   "severity": "high",
+   "detail": "As a backend microservice handling real-time data streams (VDS) and API requests (QDR), the system must support zero-downtime deployments. Requirements for liveness and readiness probes, and graceful connection draining are missing.",
+   "question": "Are there requirements defining health/readiness probes and graceful shutdown procedures for the VDS and QDR services to support zero-downtime deployments?",
+   "grounding": [
+    "API / backend microservice concerns: health/readiness/liveness probes and graceful shutdown (connection draining) for zero-downtime deploys"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Configuration and Secret Management",
+   "severity": "high",
+   "detail": "While templates are managed, there is no explicit requirement addressing how runtime configuration parameters (e.g., database connection strings, external service endpoints, API keys/secrets) are injected or managed, especially in a 12-factor manner.",
+   "question": "How must configuration and secrets be externalized and injected into the running services (e.g., via environment variables or dedicated secret stores) to avoid hardcoding?",
+   "grounding": [
+    "API / backend microservice concerns: configuration and secret injection via environment (12-factor), no hardcoded config"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Data Subject Rights (DSAR/Erasure)",
+   "severity": "high",
+   "detail": "If PII is present, the system must support Data Subject Access Requests (DSAR) and the Right to Erasure ('Right to be Forgotten'). The requirements do not specify how data subjects can request data deletion from the repository or streams.",
+   "question": "If PII is present, what is the defined process and technical mechanism for handling data subject requests for access or erasure across the VDS and QDR?",
+   "grounding": [
+    "GDPR/CCPA",
+    "Archetype Priors for this Domain (Data pipeline / analytics / ETL)"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Consent Management and Purpose Limitation",
+   "severity": "high",
+   "detail": "The system enables data distribution for various purposes (research, practitioner optimization, solution provider development). If the data is subject to privacy regulations, the system must enforce purpose limitation based on user consent or defined lawful basis.",
+   "question": "How will the system enforce purpose limitation? Is there a mechanism to track and enforce the specific consent scope under which data is being used for downstream analytics or research?",
+   "grounding": [
+    "GDPR/CCPA",
+    "Archetype Priors for this Domain (Data pipeline / analytics / ETL)"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Data Residency and Sovereignty",
+   "severity": "high",
+   "detail": "The system handles data from a manufacturing facility. If this facility or its users are subject to data sovereignty laws (e.g., data must remain within a specific geographic boundary), this constraint is entirely missing.",
+   "question": "Are there any geographic or jurisdictional constraints on where the data must be stored, processed, or accessed (data residency/sovereignty)?",
+   "grounding": [
+    "Domain Concerns: data sovereignty / residency",
+    "Archetype Priors for this Domain (Web / SaaS application)"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Specific Technology Stack Mandates",
+   "severity": "high",
+   "detail": "The requirements mandate Linux and HTTPS, but do not specify the required programming languages, frameworks, databases, or cloud/server platforms, which are critical constraints for this domain.",
+   "question": "Are there mandated languages, frameworks (e.g., specific ORMs, web frameworks), or database technologies that must be used for the VDS and QDR components?",
+   "grounding": [
+    "SRS: design constraints (29148:2018)",
+    "Mandated / off-the-shelf solutions (volere)"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Cost/Budget Ceiling Definition",
+   "severity": "high",
+   "detail": "While maintenance time limits (74, 76) imply cost constraints, there is no explicit requirement defining the overall budget ceiling or operational cost limits (e.g., cloud compute/storage credits) for the data pipeline/repository.",
+   "question": "What are the defined budget ceilings or maximum allowable operational costs (e.g., cloud resource limits) for running the VDS and QDR components?",
+   "grounding": [
+    "Project constraints (volere)",
+    "Data pipeline / analytics / ETL concerns"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Organizational Policy Enforcement (Compliance)",
+   "severity": "high",
+   "detail": "The requirements specify *how* to manage users, groups, and permissions (CRUD), but they do not specify *what* organizational policies or governance rules the system must enforce (e.g., data retention policies, data access policies based on organizational role/affiliation, compliance with specific industry regulations beyond general security).",
+   "question": "What specific organizational policies, compliance mandates (e.g., GDPR, internal data governance rules), or data retention/lifecycle policies must the system adhere to?",
+   "grounding": [
+    "organizational policies & governance",
+    "Volere type 16"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "User Success Metrics/Effectiveness",
+   "severity": "high",
+   "detail": "The requirements define *what* the system does (distributes data) but fail to define *how well* it achieves the intended user goals (Effectiveness). We lack metrics for task success, data accuracy, or completeness relative to user needs.",
+   "question": "What are the measurable success metrics (e.g., task completion rate, data accuracy percentage, time to first meaningful insight) that define whether a researcher/practitioner has successfully achieved their goal using the distributed data?",
+   "grounding": [
+    "iso-25019:2023 (Effectiveness)",
+    "Web / SaaS application concerns: task-success metrics"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Efficiency Metrics (Time/Effort)",
+   "severity": "high",
+   "detail": "While time-to-value is mentioned in archetypes, there are no specified acceptable limits on the effort or time required for key user workflows (e.g., time-to-value for a new tenant/researcher, time taken to run a complex query, or time to onboard a new data source).",
+   "question": "What are the acceptable time-to-value targets for new users/tenants, and what are the maximum acceptable latency/effort for critical operations like data retrieval or template creation?",
+   "grounding": [
+    "iso-25019:2023 (Efficiency)",
+    "Web / SaaS application concerns: time-to-value"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "VDS Concurrency Semantics",
+   "severity": "medium",
+   "detail": "The VDS streams data. If multiple clients or internal processes attempt to read/write/subscribe to the same data item concurrently, there is no specification on how conflicts (e.g., race conditions on the 'most current value') are managed.",
+   "question": "What concurrency control mechanism (e.g., optimistic locking, versioning) is required for the VDS to ensure data consistency when multiple consumers access the same data item simultaneously?",
+   "grounding": [
+    "API / backend microservice concerns: concurrency semantics: optimistic concurrency (ETags/If-Match) and conflict handling"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Data Integrity Constraints on Templates",
+   "severity": "medium",
+   "detail": "Templates are defined using XSD. While the system must manage these, there is no explicit requirement defining the constraints (e.g., uniqueness, referential integrity, cardinality) that the XSD must enforce on the data being curated against that template.",
+   "question": "Beyond basic schema definition, what specific data integrity constraints (e.g., uniqueness constraints on key fields, foreign key relationships between template elements) must the system enforce when curating data against a template?",
+   "grounding": [
+    "Data store / database / storage engine concerns: deterministic constraint enforcement (uniqueness, foreign keys, checks, NOT NULL)"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Data Consistency Model",
+   "severity": "medium",
+   "detail": "The system handles both real-time streaming (VDS) and batch curation (QDR). The consistency guarantees (e.g., strong vs. eventual) for data retrieved from the QDR, especially after batch processing, are not specified.",
+   "question": "What consistency model must the QDR guarantee for data retrieved via API/Query (e.g., strong consistency, bounded staleness)?",
+   "grounding": [
+    "API / backend microservice concerns: data consistency model (strong vs eventual) and transaction boundaries across service calls",
+    "Data store / database / storage engine concerns: consistency model across replicas"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Handling Late/Out-of-Order Data",
+   "severity": "medium",
+   "detail": "Manufacturing data streams can suffer from network latency, causing data points to arrive out of sequence or significantly late. The requirements do not specify how the QDR should handle these events.",
+   "question": "How must the QDR handle data points that arrive significantly late or out of sequence relative to the time-series data already stored?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: late-arriving, out-of-order, and corrected/restated data handling"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Data Repository Capacity Limits",
+   "severity": "medium",
+   "detail": "The QDR must process data daily (Req 21), but there are no specified capacity limits regarding the volume of data it must store, the maximum number of data elements, or the maximum number of concurrent queries it must support.",
+   "question": "What are the expected maximum capacity limits for the QDR, including total data volume, number of data elements, and maximum concurrent user/query load?",
+   "grounding": [
+    "Capacity (iso-25010:2023)",
+    "Data store / database / storage engine concerns: concurrency and connection-concurrency limits"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Data Pipeline Determinism/Replayability",
+   "severity": "medium",
+   "detail": "The QDR processes data daily (Req 21). If reprocessing or backfilling is required, there is no guarantee that re-running the process will yield identical, non-duplicated results.",
+   "question": "What are the requirements for data transformation determinism, and how must the system handle re-processing or backfilling historical data to ensure exactly-once semantics?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Secrets and Key Management Specifics",
+   "severity": "medium",
+   "detail": "TLS (Req 16) covers transit encryption, but there is no requirement detailing how secrets (e.g., database credentials, API keys for external services) are managed, rotated, or protected at rest within the system components.",
+   "question": "What standards or mechanisms must be used for managing, rotating, and protecting secrets and cryptographic keys used by the backend services (e.g., using a dedicated vault)?",
+   "grounding": [
+    "secrets, key management, dependency/supply-chain security",
+    "API / backend microservice concerns: secrets/token management, key rotation, and short-lived credentials"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Consumer-Driven Contract Testing",
+   "severity": "medium",
+   "detail": "The requirements mandate data distribution and API provision but do not specify any mechanism (like contract testing) to verify that the implemented interfaces meet the expectations of consumers.",
+   "question": "Are consumer-driven contract tests required in the CI/CD pipeline to validate that changes to the API or data templates do not violate consumer expectations?",
+   "grounding": [
+    "API / backend microservice concerns: consumer-driven contract testing and schema-compatibility checks in CI (breaking-change gate)"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Coexistence/Resource Contention Management",
+   "severity": "medium",
+   "detail": "The system operates in a larger manufacturing-monitoring system context. While Linux is specified (15), there is no requirement addressing how the system coexists with other processes or services on the same host/network regarding resource contention (CPU, I/O, network bandwidth).",
+   "question": "Are there requirements defining how the system manages resource contention (e.g., throttling, priority setting) when sharing a host or network with other components of the manufacturing-monitoring system?",
+   "grounding": [
+    "Co-existence (iso-25010:2023): Performs required functions while sharing an environment and resources with other products without detrimental impact."
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Data Format Schema Registry Compatibility",
+   "severity": "medium",
+   "detail": "Data is exchanged in various formats (XML, JSON, CSV) and uses MTConnect schemas. There is no mention of a centralized schema registry or rules to ensure producers and consumers agree on the exact structure of the data being exchanged.",
+   "question": "Is there a defined schema registry or mechanism to ensure that producers (data sources) and consumers (QDR/API) are using compatible versions of the MTConnect data schemas?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: serialization formats and their schema-registry compatibility (Avro/Protobuf/JSON) across producers and consumers"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Operability/Workflow Complexity Targets",
+   "severity": "medium",
+   "detail": "The requirements define *what* can be done (e.g., CRUD operations, querying), but not *how easily* it can be done. There are no stated targets for workflow efficiency or complexity.",
+   "question": "Are there measurable targets for task completion time or workflow complexity (e.g., 'User must be able to define a complex query in under X steps')?",
+   "grounding": [
+    "Operability (iso-25010:2023)",
+    "DOMAIN QUESTIONS: Are acceptable learning time / workflow-complexity targets stated?"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "Discoverability and Guidance",
+   "severity": "medium",
+   "detail": "While navigation is mentioned (24, 26), there is no explicit requirement for proactive guidance, tooltips, or contextual help to ensure users can discover all available features.",
+   "question": "Are there requirements for contextual help, tooltips, or feature discovery mechanisms to ensure users are aware of all available functionalities?",
+   "grounding": [
+    "Helpfulness (guidance, feedback, discoverability)",
+    "DOMAIN CONCERNS: helpfulness (guidance, feedback, discoverability)"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "Missing data pipeline/transform testability",
+   "severity": "medium",
+   "detail": "The QDR curates and processes data daily (Req 21). This transformation logic needs specific data validation and assertion tests (like dbt tests or Great Expectations) to ensure data integrity across transformations, which is not specified.",
+   "question": "What data validation and assertion tests must be applied to the data transformations performed by the QDR during the daily processing cycle?",
+   "grounding": [
+    "Data pipeline / analytics / ETL"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Lack of explicit dependency/impact analysis",
+   "severity": "medium",
+   "detail": "When data templates or schemas change, the impact on downstream consumers (queries, reports) is not specified, hindering analysability.",
+   "question": "What mechanism must be in place to analyze the impact of a change to a data template or schema on existing QDR queries and downstream consumers?",
+   "grounding": [
+    "Analysability (iso-25010:2023)",
+    "Data pipeline / analytics / ETL"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Data File Portability (Endianness/Page Size)",
+   "severity": "medium",
+   "detail": "Since the system handles data streams and databases, there is no explicit requirement addressing data-file portability across different system architectures regarding endianness or memory page size, which is critical for data integrity when moving data between different hardware platforms.",
+   "question": "Are there requirements ensuring data-file portability across different system architectures regarding endianness and page size?",
+   "grounding": [
+    "Archetype: data-file portability (endianness/page size)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Operational Runbooks and Incident Response",
+   "severity": "medium",
+   "detail": "The system needs operational procedures for common failures (e.g., data ingestion failure, database connection loss, high latency). Runbooks are not specified.",
+   "question": "Are there requirements defining operational runbooks for common failure scenarios, such as data ingestion backlogs, database connection failures, or high query latency?",
+   "grounding": [
+    "API / backend microservice concerns: SLO monitoring, alerting on error budget burn, and runbooks",
+    "Data pipeline / analytics / ETL concerns: operational runbooks for backfills, replays, and stuck/failed jobs"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Capacity and Load Management",
+   "severity": "medium",
+   "detail": "The system handles real-time streams and batch curation. Requirements for capacity planning, load shedding, or per-consumer usage metering are absent.",
+   "question": "Are there requirements defining capacity limits, load shedding mechanisms, or usage metering for different consumers (researchers vs. solution providers)?",
+   "grounding": [
+    "API / backend microservice concerns: capacity/cost management and per-consumer usage metering",
+    "Web / SaaS application concerns: cost/capacity operations"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Data Freshness and Lag Monitoring (VDS)",
+   "severity": "medium",
+   "detail": "Requirement 69 specifies a minimum rate (1 Hz), but there is no requirement to monitor the *actual* lag or freshness of the data stream relative to the source or the system's internal buffer, which is crucial for VDS.",
+   "question": "Must the system monitor and alert if the actual data stream latency or buffer lag exceeds predefined thresholds?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: data-freshness/SLA monitoring, pipeline health, and lag/backpressure alerting"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Data Retention and Defensible Deletion",
+   "severity": "medium",
+   "detail": "The requirements specify data curation and storage but lack any explicit policies on how long data must be kept (retention period) or how it must be securely and defensibly deleted after that period.",
+   "question": "What are the defined retention periods for raw, curated, and derived manufacturing data, and what is the process for defensible deletion?",
+   "grounding": [
+    "Archetype Priors for this Domain (Data pipeline / analytics / ETL)"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "PII Handling Mechanisms (Masking/Tokenization)",
+   "severity": "medium",
+   "detail": "If PII is present, the requirements do not specify any technical controls for protecting it during storage or transit, such as masking, tokenization, or pseudonymization, especially in the QDR where data is queried and shared.",
+   "question": "If PII is present, what specific privacy-preserving techniques (e.g., masking, tokenization, pseudonymization) must be applied to the data before it is stored or exposed via the API?",
+   "grounding": [
+    "V14 Data Protection (owasp-asvs)",
+    "Archetype Priors for this Domain (Data pipeline / analytics / ETL)"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Licensing Constraints",
+   "severity": "medium",
+   "detail": "The requirements do not specify any constraints regarding the open-source licenses of third-party libraries or components used in the stack, which is a key concern for data pipeline systems.",
+   "question": "Are there restrictions on the open-source licenses (e.g., must be permissive, must avoid copyleft) for any third-party dependencies used in the system?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns",
+    "Standard Expectations for this Domain"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Processing Window/SLA for VDS",
+   "severity": "medium",
+   "detail": "Requirement 69 specifies a minimum rate (1 Hz) for VDS data availability, but this is a performance metric, not a formal SLA constraint on the *processing* window or data freshness guarantee relative to the source event time.",
+   "question": "What is the required end-to-end latency or Service Level Agreement (SLA) for data ingestion and availability from the industrial equipment network to the VDS buffer?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns",
+    "Standard Expectations for this Domain"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Workflow Integration/Stakeholder Buy-in",
+   "severity": "medium",
+   "detail": "The requirements focus heavily on technical functionality (CRUD, API, UI). They lack explicit requirements detailing how the system must integrate into existing, complex human workflows or how it must facilitate stakeholder buy-in/change management (e.g., notification mechanisms for policy changes, audit trails for governance decisions).",
+   "question": "What specific organizational workflows must the system support, and what mechanisms are required to track stakeholder approval or manage organizational change related to data usage?",
+   "grounding": [
+    "human workflows the system must fit",
+    "change-management & stakeholder buy-in"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "User Satisfaction/Trust Metrics",
+   "severity": "medium",
+   "detail": "Satisfaction is a key domain concern, but the requirements only address basic UI consistency (31, 32, 25). There is no specification regarding user trust, perceived usefulness, or comfort beyond basic usability features.",
+   "question": "How will user satisfaction (trust, comfort, usefulness) be measured or ensured? Are there requirements for feedback mechanisms or trust indicators?",
+   "grounding": [
+    "iso-25019:2023 (Satisfaction)",
+    "Web / SaaS application concerns: user trust and satisfaction"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Context Completeness/Flexibility",
+   "severity": "medium",
+   "detail": "The scope is defined, but the requirements do not specify how the system handles contexts *beyond* the defined scope (Context Coverage). For example, what happens if a new, unmodeled data source is introduced, or if a user needs to analyze data outside the predefined daily batch processing window?",
+   "question": "How must the system handle data sources or use cases that fall outside the explicitly defined scope (e.g., ad-hoc data ingestion, non-standard data formats)?",
+   "grounding": [
+    "iso-25019:2023 (Context coverage)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "UI Aesthetics / Look-and-Feel Specificity",
+   "severity": "low",
+   "detail": "Requirements 31 and 32 mandate a 'consistent visual theme,' but this is too abstract. Specific expectations regarding branding, visual hierarchy, or interaction patterns are missing.",
+   "question": "Are there specific design guidelines or style guides (e.g., color palettes, component libraries) that must be adhered to for the UI?",
+   "grounding": [
+    "Look and feel requirements (volere)",
+    "DOMAIN CONCERNS: UI aesthetics / look-and-feel expectations"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  }
+ ],
+ "summary": {
+  "partial": 16
+ },
+ "enrichments": [
+  {
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness",
+   "text": "Define the exact semantics for 'near-real-time' (Requirement 7) in terms of maximum acceptable latency (e.g., P95 latency must be < 500ms)."
+  },
+  {
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness",
+   "text": "Specify the data retention policy for both VDS (buffer size/time) and QDR (how long curated data is kept before archival/deletion)."
+  },
+  {
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness",
+   "text": "Clarify the mechanism for handling data corrections or restatements in the QDR, ensuring downstream consumers are notified or data is correctly overwritten/merged."
+  },
+  {
+   "domain": "data",
+   "domain_name": "Data & information",
+   "text": "Consider defining a canonical data model that abstracts the MTConnect specifics, allowing the QDR to query based on business concepts rather than raw sensor fields."
+  },
+  {
+   "domain": "data",
+   "domain_name": "Data & information",
+   "text": "Specify the required durability contract for the underlying data store (e.g., what does a successful write acknowledgment guarantee against hardware failure?)."
+  },
+  {
+   "domain": "data",
+   "domain_name": "Data & information",
+   "text": "Since data is distributed to researchers, consider requirements for data masking, anonymization, or differential privacy if the data contains sensitive operational metrics."
+  },
+  {
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity",
+   "text": "Define specific throughput targets for the data ingestion/curation process (Req 20, 56) to ensure the system can handle the expected rate of data from the Industrial-Equipment Network."
+  },
+  {
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity",
+   "text": "Specify the expected data retention policy and associated performance implications (e.g., query performance degradation over time) for the QDR."
+  },
+  {
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity",
+   "text": "Given the stateless communication requirement (Req 41), explicitly define the expected session management or state persistence mechanism for administrative functions, if any, to ensure performance consistency."
+  },
+  {
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience",
+   "text": "Consider defining specific failure modes for the MTConnect Agent communication (Req 23/45) to ensure the VDS maintains its required availability even if the agent connection is intermittent."
+  },
+  {
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience",
+   "text": "Given the batch curation (Req 20) and daily processing (Req 21), explicitly define the expected latency/throughput for the daily data processing job to meet operational needs."
+  },
+  {
+   "domain": "security",
+   "domain_name": "Security",
+   "text": "The problem statement should specify requirements for rate limiting and abuse detection on the RESTful API endpoints to prevent denial-of-service attacks."
+  },
+  {
+   "domain": "security",
+   "domain_name": "Security",
+   "text": "Given the industrial context, requirements for data provenance (tracking the origin and transformation history of a data point) should be considered to support regulatory compliance and trust."
+  },
+  {
+   "domain": "security",
+   "domain_name": "Security",
+   "text": "Consider specifying requirements for dependency scanning (Software Composition Analysis) to address supply-chain security risks inherent in modern microservices."
+  },
+  {
+   "domain": "safety",
+   "domain_name": "Safety",
+   "text": "The problem statement should explicitly define the criticality level of the data being distributed (e.g., safety-critical vs. informational) to properly scope safety requirements."
+  },
+  {
+   "domain": "safety",
+   "domain_name": "Safety",
+   "text": "Consider adding requirements for data provenance tracking (who/what generated the data, when it was curated, and which templates it adheres to) to support auditing and risk tracing."
+  },
+  {
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability",
+   "text": "Consider defining specific data retention policies for the QDR, especially concerning the time-series data (VDS buffer) to manage storage costs and compliance."
+  },
+  {
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability",
+   "text": "Given the industrial context, consider requirements for data provenance tracking (who collected it, when, from which specific sensor/device) beyond just the UUID."
+  },
+  {
+   "domain": "usability",
+   "domain_name": "Usability & interaction",
+   "text": "Consider defining specific performance targets for the UI responsiveness (e.g., page load time, API response time) to meet operability expectations."
+  },
+  {
+   "domain": "usability",
+   "domain_name": "Usability & interaction",
+   "text": "Given the complexity of manufacturing data, consider adding requirements for data visualization capabilities beyond simple tabular/CSV output to aid researcher/practitioner analysis."
+  },
+  {
+   "domain": "usability",
+   "domain_name": "Usability & interaction",
+   "text": "Explicitly define requirements for handling data schema evolution (versioning) when data templates are updated, ensuring backward compatibility for historical queries."
+  },
+  {
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization",
+   "text": "Consider defining specific requirements for keyboard-only navigation across all UI components (Operable principle)."
+  },
+  {
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization",
+   "text": "If the target user base is global, explicitly define requirements for date, time, and number formatting based on locale."
+  },
+  {
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization",
+   "text": "Specify requirements for color contrast ratios for all UI elements to meet WCAG standards."
+  },
+  {
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability",
+   "text": "Consider specifying requirements for data cataloging and semantic documentation for the curated datasets to improve discoverability and maintainability."
+  },
+  {
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability",
+   "text": "Given the manufacturing context, consider requirements for data lineage tracking to trace data from the source (MTConnect) through curation to the final query result."
+  },
+  {
+   "domain": "portability",
+   "domain_name": "Portability & deployment",
+   "text": "Specify the required level of backward compatibility for data templates and schemas when new versions of the system are deployed."
+  },
+  {
+   "domain": "portability",
+   "domain_name": "Portability & deployment",
+   "text": "Define the expected resource footprint (CPU, Memory, Disk I/O) for the deployed components to aid in environment selection and capacity planning."
+  },
+  {
+   "domain": "operational",
+   "domain_name": "Operational & environmental",
+   "text": "Consider defining Service Level Objectives (SLOs) for query response times (QDR) and data availability (VDS) to drive monitoring requirements."
+  },
+  {
+   "domain": "operational",
+   "domain_name": "Operational & environmental",
+   "text": "Since the system interacts with an Industrial-Equipment Network, consider requirements for handling network partitioning or intermittent connectivity gracefully (e.g., local buffering/store-and-forward mechanisms)."
+  },
+  {
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy",
+   "text": "Consider defining specific roles/permissions based on data sensitivity (e.g., 'PII Viewer' vs. 'Aggregated Data Viewer') rather than just general 'User' and 'Super-User' roles."
+  },
+  {
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy",
+   "text": "The problem statement should explicitly define the scope of 'manufacturing data' to determine if it falls under regulated data types (e.g., if it relates to employee performance or health monitoring, HIPAA/GDPR implications increase)."
+  },
+  {
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions",
+   "text": "Define the specific cloud provider or on-premise infrastructure target to properly constrain compute/storage costs."
+  },
+  {
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions",
+   "text": "Specify the required data retention policies (how long must data be kept in the QDR/database) to constrain storage costs and architecture."
+  },
+  {
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions",
+   "text": "Explicitly define the acceptable tolerance for data loss or corruption during batch curation/processing."
+  },
+  {
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational",
+   "text": "The problem statement should specify the required audit logging capabilities for all administrative actions (CRUD operations on users, permissions, templates) to satisfy governance requirements."
+  },
+  {
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational",
+   "text": "Consider adding requirements for data provenance tracking to ensure that the origin, transformations, and lineage of the distributed manufacturing data are traceable, which is critical for research and compliance."
+  },
+  {
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes",
+   "text": "Define Service Level Objectives (SLOs) for data availability and query response times, especially for VDS (beyond 1Hz) and QDR."
+  },
+  {
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes",
+   "text": "Specify data lineage requirements: The system should track where data originated, how it was curated, and which templates/processes modified it, to support auditability and trust."
+  },
+  {
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes",
+   "text": "Define data retention and archival policies, especially concerning the lifecycle of historical manufacturing data."
+  }
+ ],
+ "synthesis": {
+  "overall_coverage": "partial",
+  "confidence": "medium",
+  "headline": "Critical gaps exist across security, reliability, and data governance, requiring immediate attention to define SLOs, authorization, and data lifecycle policies.",
+  "top_priorities": [
+   {
+    "title": "Data Lifecycle Management (Retention, Deletion, PII Classification)",
+    "severity": "critical",
+    "domains": [
+     "data",
+     "legal-privacy"
+    ],
+    "why": "Failure to define how data is retained, deleted, and classified (PII) poses immediate legal and compliance risks.",
+    "question": "What are the definitive, auditable policies for data retention, archival, and defensible deletion across all data types?"
+   },
+   {
+    "title": "System Availability and Resilience (SLOs, RTO/RPO, Fault Tolerance)",
+    "severity": "critical",
+    "domains": [
+     "reliability"
+    ],
+    "why": "Lack of defined SLOs, RTO, and RPO means the system's operational uptime and recovery capabilities are undefined and unmeasurable.",
+    "question": "What are the quantified Service Level Objectives (SLOs) for availability, and what are the mandated Recovery Time/Point Objectives (RTO/RPO)?"
+   },
+   {
+    "title": "Security Authorization and Integrity",
+    "severity": "critical",
+    "domains": [
+     "security"
+    ],
+    "why": "Missing object-level authorization (BOLA/IDOR) and data integrity controls represent direct, high-risk attack vectors.",
+    "question": "How is object-level authorization enforced to prevent unauthorized data access, and what mechanisms ensure data integrity against tampering?"
+   },
+   {
+    "title": "Safety and Risk Management",
+    "severity": "critical",
+    "domains": [
+     "safety"
+    ],
+    "why": "The absence of formal Hazard Identification, Risk Analysis, and defined fail-safe states leaves the system vulnerable to catastrophic operational failure.",
+    "question": "What is the documented Hazard Identification and Risk Analysis, and what are the mandated safe-state behaviors for all critical functions?"
+   },
+   {
+    "title": "Regulatory and Geopolitical Compliance",
+    "severity": "critical",
+    "domains": [
+     "cultural-political",
+     "legal-privacy"
+    ],
+    "why": "Failure to address geopolitical routing, sanctions, and data sovereignty risks immediate legal non-compliance in global operations.",
+    "question": "How are data routing decisions governed to comply with specific geopolitical regulations and sanctions, and how is data residency enforced?"
+   },
+   {
+    "title": "Performance and Scalability Guarantees",
+    "severity": "critical",
+    "domains": [
+     "performance"
+    ],
+    "why": "Without quantified SLOs for latency/throughput, the system cannot be proven to meet operational demands under load.",
+    "question": "What are the quantified latency and throughput SLOs for both the core VDS and QDR APIs under expected load conditions?"
+   },
+   {
+    "title": "System Testability and Maintainability",
+    "severity": "critical",
+    "domains": [
+     "maintainability"
+    ],
+    "why": "The lack of requirements for automated testing and explicit modularity prevents effective quality assurance and future evolution.",
+    "question": "What is the mandated automated test strategy, and how are bounded contexts and dependencies explicitly defined to ensure maintainability?"
+   },
+   {
+    "title": "Accessibility and Usability Standards",
+    "severity": "critical",
+    "domains": [
+     "accessibility",
+     "usability"
+    ],
+    "why": "Failure to meet WCAG standards and protect users from destructive actions creates legal exposure and poor user experience.",
+    "question": "What is the required WCAG conformance level, and what specific controls are in place to prevent user-initiated destructive actions?"
+   },
+   {
+    "title": "Data Quality and Lineage",
+    "severity": "high",
+    "domains": [
+     "data"
+    ],
+    "why": "Without defined quality thresholds and lineage, the trustworthiness and auditability of the data are compromised.",
+    "question": "What are the required data quality thresholds, and how is end-to-end data lineage and provenance tracked?"
+   },
+   {
+    "title": "Operational Observability and Monitoring",
+    "severity": "high",
+    "domains": [
+     "operational"
+    ],
+    "why": "Insufficient observability means operational issues will be detected too late, leading to prolonged downtime.",
+    "question": "What specific runtime monitoring, alerting thresholds, and health check requirements must be implemented for production operations?"
+   }
+  ]
+ }
+}

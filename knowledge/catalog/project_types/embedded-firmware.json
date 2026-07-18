@@ -1,0 +1,66 @@
+{
+  "id": "embedded-firmware",
+  "name": "Embedded / firmware device",
+  "class": "control-dominant",
+  "aliases": ["embedded", "firmware", "microcontroller", "mcu", "iot device", "edge device", "bare-metal", "rtos", "device firmware", "sensor node", "connected device", "soc firmware", "bootloader"],
+  "summary": "Software running directly on resource-constrained hardware (microcontroller/SoC) that senses and actuates in the physical world, often bare-metal or on an RTOS. It is bounded by flash/RAM/power budgets, must be robust to physical faults and field conditions, and is typically updated in the field via signed OTA.",
+  "matching_signals": ["firmware", "microcontroller", "MCU", "embedded", "RTOS", "bare-metal", "flash", "RAM", "bootloader", "OTA", "watchdog", "GPIO", "I2C", "SPI", "UART", "CAN", "BLE", "sensor", "actuator", "low power", "interrupt", "device driver"],
+  "salient_domains": ["performance", "reliability", "security", "safety", "portability", "operational", "compatibility", "maintainability", "constraints"],
+  "grounding": ["iec-61508", "iec-62443", "iso-25010:2023", "misra-c", "en-55032", "eu-cra", "29148:2018"],
+  "domains": {
+    "performance": {
+      "emphasis": "critical",
+      "concerns": ["flash (code) and RAM (data/stack/heap) budgets and worst-case footprint with headroom", "real-time responsiveness: interrupt latency, task deadlines, and jitter on constrained MCU cycles", "CPU cycle / MIPS budget and duty-cycle constraints; determinism of tight timing loops", "power and energy budget: sleep/low-power modes, wake latency, and battery-life targets", "stack-depth analysis and prevention of heap fragmentation / dynamic-allocation failures"],
+      "typical_requirements": ["flash & RAM footprint budget", "interrupt latency & task-deadline limits", "CPU/MIPS & duty-cycle budget", "power / battery-life target", "stack-depth & allocation policy"],
+      "questions": ["Are flash and RAM budgets specified with worst-case footprint and headroom?", "Are interrupt-latency, task-deadline, and timing-jitter limits quantified?", "Is a power/energy budget (sleep modes, battery life) defined for the device?"]
+    },
+    "reliability": {
+      "emphasis": "critical",
+      "concerns": ["watchdog timer strategy: independent/windowed watchdogs and recovery from hangs", "brown-out / power-loss handling: safe shutdown, flash-write atomicity, and power-on reset behaviour", "recovery from transient faults, memory corruption (ECC/CRC), and single-event upsets", "field robustness: environmental extremes (temperature, vibration, EMI) and long unattended uptime", "on-device fault/error logging and post-mortem diagnostics without a debugger attached"],
+      "typical_requirements": ["watchdog & hang-recovery", "brown-out / power-loss safe handling", "memory-integrity (CRC/ECC) & fault recovery", "environmental robustness", "field diagnostics / error logging"],
+      "questions": ["Is a watchdog strategy defined to detect and recover from firmware hangs?", "Is behaviour on brown-out/power loss specified so flash writes and state stay consistent?", "Are field-diagnostic logging and recovery from transient faults/memory corruption required?"]
+    },
+    "security": {
+      "emphasis": "high",
+      "concerns": ["secure boot: hardware root of trust and cryptographic verification of the boot chain before execution", "signed OTA firmware updates with authentication, integrity verification, and encrypted transport", "anti-rollback protection (version counters) preventing downgrade to vulnerable firmware", "A/B (dual-bank) atomic updates with automatic rollback to known-good on failed boot", "debug-port lockdown (JTAG/SWD), secure key storage, and readback/tamper protection; IEC 62443 / EU CRA obligations"],
+      "typical_requirements": ["secure boot / root of trust", "signed & encrypted OTA update", "anti-rollback / version counters", "A/B partition & auto-rollback", "debug-lock & secure key storage"],
+      "questions": ["Is secure boot with a hardware root of trust required, refusing unsigned firmware?", "Are OTA updates signed, integrity-verified, and protected against rollback/downgrade?", "Is an A/B update with automatic rollback to a known-good image, plus debug-port lockdown, specified?"]
+    },
+    "safety": {
+      "emphasis": "high",
+      "concerns": ["fail-safe / safe-state behaviour of actuators on fault, reset, or update", "hazard identification for a device acting on the physical world; SIL where the device performs a safety function", "safe behaviour during firmware update and on interrupted/failed update", "EMC/EMI immunity so electrical interference cannot cause unsafe actuation", "diagnostic coverage and detection of dangerous failures within the safety timeframe"],
+      "typical_requirements": ["actuator fail-safe / safe-state", "hazard analysis & SIL (if applicable)", "safe-update behaviour", "EMC/EMI immunity", "diagnostic coverage"],
+      "questions": ["Is a fail-safe state defined for actuators on fault, reset, or update?", "For safety functions, are hazards analysed and a SIL/diagnostic-coverage target set?", "Is the device kept in a safe state during and after an interrupted firmware update?"]
+    },
+    "portability": {
+      "emphasis": "high",
+      "concerns": ["hardware abstraction (HAL/board-support) isolating device drivers from application logic", "portability across MCU families, silicon revisions, and board variants", "toolchain and RTOS dependence (compiler, linker scripts, RTOS APIs) and reproducible builds", "peripheral/driver bring-up for new hardware and pin/clock configuration", "handling of hardware errata and part obsolescence / second-source parts"],
+      "typical_requirements": ["HAL / board-support abstraction", "supported-MCU / board matrix", "pinned toolchain & reproducible build", "driver bring-up scope", "errata / second-source handling"],
+      "questions": ["Is a hardware abstraction layer required so drivers and application logic can vary independently?", "Are the target MCU families, board variants, and toolchain specified for reproducible builds?", "Is handling of hardware errata and part second-sourcing addressed?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["fleet OTA rollout: staged/canary rollout, update campaigns, and monitoring update success across devices", "device provisioning at manufacture: key injection, unique identity, and factory test", "field diagnostics/telemetry retrieval from deployed devices, possibly over constrained or intermittent links", "remote configuration management and its validation on-device", "handling of devices that are offline, air-gapped, or on intermittent connectivity"],
+      "typical_requirements": ["staged fleet OTA & rollout monitoring", "factory provisioning & key injection", "field telemetry / diagnostics retrieval", "remote configuration management", "offline / intermittent-connectivity operation"],
+      "questions": ["Is a staged OTA rollout with per-device update-success monitoring defined for the fleet?", "Is factory provisioning (unique identity, key injection, test) specified?", "Is field diagnostics/telemetry retrieval defined for devices on constrained or intermittent links?"]
+    },
+    "compatibility": {
+      "emphasis": "medium",
+      "concerns": ["hardware bus/peripheral interfaces and their electrical/timing specs (I2C, SPI, UART, CAN, USB)", "wireless/wired protocol stacks and versions (BLE, Zigbee, LoRaWAN, Modbus, Ethernet)", "backward compatibility of the OTA/wire protocol across firmware versions in a mixed fleet", "interoperability with companion apps, gateways, and cloud back-ends"],
+      "typical_requirements": ["bus/peripheral interface specs", "protocol-stack versions", "cross-version wire/OTA compatibility", "companion-app / gateway interop"],
+      "questions": ["Are the hardware interfaces and wired/wireless protocol versions the device must support specified?", "Is backward compatibility of the protocol maintained across firmware versions in a mixed fleet?"]
+    },
+    "maintainability": {
+      "emphasis": "medium",
+      "concerns": ["testability on constrained targets: hardware-in-the-loop (HIL), unit tests on host, and hardware mocks", "coding-standard conformance (e.g. MISRA C) and static analysis for defect-free constrained code", "structured on-device logging within tight memory/bandwidth limits", "modular driver/service architecture enabling isolated change and reuse across products"],
+      "typical_requirements": ["HIL / host-based test strategy", "MISRA / static-analysis conformance", "constrained on-device logging", "modular driver architecture"],
+      "questions": ["Is a test strategy (HIL plus host-based unit tests with hardware mocks) required?", "Is a coding standard (e.g. MISRA C) and static analysis mandated for the firmware?"]
+    },
+    "constraints": {
+      "emphasis": "medium",
+      "concerns": ["regulatory certification: EMC (CE/FCC), radio (RED/FCC Part 15), and product-safety marks as mandated deliverables", "bill-of-materials cost ceilings driving MCU/memory selection and thus code/RAM budgets", "mandated MCU/RTOS/toolchain and licensing of the RTOS or middleware", "unit-cost, power, and physical-size constraints from the hardware design"],
+      "typical_requirements": ["EMC / radio / safety certification", "BOM cost ceiling", "mandated MCU / RTOS / toolchain", "RTOS / middleware licensing"],
+      "questions": ["Are required regulatory certifications (EMC, radio, safety marks) captured as constraints?", "Do BOM-cost and hardware-selection ceilings constrain the memory and power budgets?", "Is a mandated MCU/RTOS/toolchain (and its licensing) specified?"]
+    }
+  }
+}

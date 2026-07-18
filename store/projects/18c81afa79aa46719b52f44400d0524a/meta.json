@@ -1,0 +1,210 @@
+{
+ "id": "18c81afa79aa46719b52f44400d0524a",
+ "name": "Lotify",
+ "created_at": "2026-07-11T13:58:50+00:00",
+ "documents": [
+  {
+   "id": "79e663cd0a294d2ea5bee0e53fec6eff",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "sdd.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:58:59+00:00",
+   "size": 7148
+  },
+  {
+   "id": "1ba30e979ad847cdb6134f5a207af2a3",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "architecture.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:58:59+00:00",
+   "size": 3950
+  },
+  {
+   "id": "cf16832e7503476cb7284545f2a73e39",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "04-doctor.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 3068
+  },
+  {
+   "id": "e34d194c58ef438db34d56df4f28ca49",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "02-user.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 2623
+  },
+  {
+   "id": "8ffb326c6ad44377acc39a4a6591e4ac",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "03-auth.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 3647
+  },
+  {
+   "id": "3a44d055a87248f2bb7651d9460ce127",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "05-specialty.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 2288
+  },
+  {
+   "id": "943253df6345493bbfb16f510e4277d4",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "06-doctor-specialty.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 2679
+  },
+  {
+   "id": "919454fe008c44b0ae66e791f362377d",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "07-medication.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 2301
+  },
+  {
+   "id": "91f1e09fa78e4c7e90df32f75dba0255",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "08-prescription.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 3422
+  },
+  {
+   "id": "fad6a9d7e8b04019a4922729df0346dc",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "09-documents.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 1744
+  },
+  {
+   "id": "e53a2f23f4c049018897d4ebfdc2a614",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "10-share.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 2093
+  },
+  {
+   "id": "0c369253c92648af9a879bf1b80735e0",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "11-attendant-doctor.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 2211
+  },
+  {
+   "id": "0fd1c21407df461cb52d4263399d81f5",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "12-schedule.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 3849
+  },
+  {
+   "id": "2ad1b363bc7747f2a295774f08d89b06",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "13-finalization.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 1783
+  },
+  {
+   "id": "c19e45cec1bc4e44909f2f9fc1360748",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "filename": "01-setup.md",
+   "ext": ".md",
+   "ingested_at": "2026-07-11T13:59:35+00:00",
+   "size": 2329
+  }
+ ],
+ "quality_runs": [
+  {
+   "run_id": "f1db2bd0f58049e39a9ec7e0cea0df41",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "kind": "quality",
+   "finished_at": "2026-07-11T14:26:02+00:00",
+   "source_file": "Lotify",
+   "total": 263,
+   "produced_in_s": 1562,
+   "documents": [
+    {
+     "document_id": "79e663cd0a294d2ea5bee0e53fec6eff",
+     "filename": "sdd.md"
+    },
+    {
+     "document_id": "1ba30e979ad847cdb6134f5a207af2a3",
+     "filename": "architecture.md"
+    },
+    {
+     "document_id": "cf16832e7503476cb7284545f2a73e39",
+     "filename": "04-doctor.md"
+    },
+    {
+     "document_id": "e34d194c58ef438db34d56df4f28ca49",
+     "filename": "02-user.md"
+    },
+    {
+     "document_id": "8ffb326c6ad44377acc39a4a6591e4ac",
+     "filename": "03-auth.md"
+    },
+    {
+     "document_id": "3a44d055a87248f2bb7651d9460ce127",
+     "filename": "05-specialty.md"
+    },
+    {
+     "document_id": "943253df6345493bbfb16f510e4277d4",
+     "filename": "06-doctor-specialty.md"
+    },
+    {
+     "document_id": "919454fe008c44b0ae66e791f362377d",
+     "filename": "07-medication.md"
+    },
+    {
+     "document_id": "91f1e09fa78e4c7e90df32f75dba0255",
+     "filename": "08-prescription.md"
+    },
+    {
+     "document_id": "fad6a9d7e8b04019a4922729df0346dc",
+     "filename": "09-documents.md"
+    },
+    {
+     "document_id": "e53a2f23f4c049018897d4ebfdc2a614",
+     "filename": "10-share.md"
+    },
+    {
+     "document_id": "0c369253c92648af9a879bf1b80735e0",
+     "filename": "11-attendant-doctor.md"
+    },
+    {
+     "document_id": "0fd1c21407df461cb52d4263399d81f5",
+     "filename": "12-schedule.md"
+    },
+    {
+     "document_id": "2ad1b363bc7747f2a295774f08d89b06",
+     "filename": "13-finalization.md"
+    },
+    {
+     "document_id": "c19e45cec1bc4e44909f2f9fc1360748",
+     "filename": "01-setup.md"
+    }
+   ]
+  }
+ ],
+ "coverage_runs": [
+  {
+   "run_id": "ed08b3eed28046d6886548a211850c3e",
+   "project_id": "18c81afa79aa46719b52f44400d0524a",
+   "kind": "coverage",
+   "finished_at": "2026-07-11T14:27:21+00:00",
+   "requirement_count": 263,
+   "gap_count": 69
+  }
+ ]
+}

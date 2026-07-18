@@ -1,0 +1,2102 @@
+{
+ "problem_statement_version": 2,
+ "requirement_count": 263,
+ "domains": [
+  {
+   "coverage": "partial",
+   "addressed": [
+    "User/Identity Management (RBAC, Roles)",
+    "Catalog Management (Specialties, Medications lifecycle)",
+    "Doctor Profile Management (Activation, Specialty Association)",
+    "Prescription Lifecycle Management (Draft -> Issued/Cancelled)",
+    "Digital Document Generation and Signing (ICP-Brasil, Snapshot)",
+    "Scheduling/Appointment Management (Attendant/Doctor linkage)",
+    "Auditability and Non-destructive Data Handling (No hard deletes)"
+   ],
+   "gaps": [
+    {
+     "title": "Precision of Clinical Data/Results",
+     "severity": "high",
+     "detail": "The requirements specify that a snapshot of the clinical content is generated upon issuance (30, 36), but they do not define the required precision, format, or validation rules for the *content* itself (e.g., dosage units, frequency, specific medical terminology standards) that must be captured or validated during the DRAFT phase.",
+     "question": "What are the required precision levels and validation constraints for the clinical data (medication details, dosage, frequency, etc.) entered by the doctor during the DRAFT phase?",
+     "grounding": [
+      "Functional correctness (iso-25010:2023)",
+      "Functional requirements (volere)"
+     ]
+    },
+    {
+     "title": "Error/Exception Contract for State Transitions",
+     "severity": "high",
+     "detail": "While state transitions (DRAFT -> ISSUED) are mentioned (26, 188), the requirements lack a comprehensive specification of *all* possible failure modes, guards, and resulting error states for critical transitions (e.g., what happens if a required specialty is deactivated *after* a prescription is in DRAFT but *before* issuance? What if the signing key is revoked mid-process?).",
+     "question": "For the prescription lifecycle (DRAFT, ISSUED, CANCELLED), what are the defined error/exception behaviors and resulting states for all invalid transitions or failures (e.g., signature failure, data integrity breach)?",
+     "grounding": [
+      "State-machine correctness: valid transitions, guards, reopen/rollback, and exception paths",
+      "Functional suitability & capability completeness"
+     ]
+    },
+    {
+     "title": "Concurrency Control for Prescription Editing",
+     "severity": "medium",
+     "detail": "The system handles state transitions, but there is no explicit requirement defining how concurrent edits to a prescription in the DRAFT state are managed (e.g., optimistic locking, last-write-wins, or explicit locking mechanisms).",
+     "question": "How must the system handle concurrent attempts by the same doctor to edit a prescription currently in the DRAFT state?",
+     "grounding": [
+      "API / backend microservice concerns: concurrency semantics: optimistic concurrency (ETags/If-Match) and conflict handling"
+     ]
+    },
+    {
+     "title": "Completeness of Role-Based Access Control (RBAC) Granularity",
+     "severity": "medium",
+     "detail": "RBAC is mandated (17, 94), but the requirements are heavily focused on *who* can perform an action (e.g., Admin manages specialties), rather than defining the specific *permissions* required for complex interactions, especially regarding data visibility across roles (e.g., can an Attendant view a patient's record if they are linked to the doctor, even if they can't manage the prescription?).",
+     "question": "Beyond the high-level roles (Admin, Doctor, Patient, Attendant), are there specific, granular permissions required for data access (Read/Write/View) for each role concerning specific entities (e.g., can an Attendant view the *details* of a prescription, or just the scheduling data)?",
+     "grounding": [
+      "Enterprise / line-of-business system concerns: multi-step, role-based workflows with approvals, delegation, escalation",
+      "Functional suitability & capability completeness"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Define clear Service Level Agreements (SLAs) for critical processes, such as prescription issuance time or document delivery time, especially given the regulated medical domain.",
+    "Specify the exact mechanism and required data for 'Escalation' when a prescription workflow stalls or requires higher-level review (e.g., if an Admin approval is pending for too long).",
+    "Detail the requirements for data integrity checks during the snapshot process to ensure that the captured state accurately reflects the business rules at the moment of issuance, even if underlying catalog data changes immediately after."
+   ],
+   "confidence": "high",
+   "id": "functional",
+   "name": "Functional suitability & capability completeness"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Data lifecycle management (no hard deletes)",
+    "Data immutability (prescription snapshots)",
+    "Data integrity constraints (role/eligibility checks)",
+    "Data structure/schema definition (entities, relationships)",
+    "Data quality (validation at entry, ownership via RBAC)",
+    "Data lineage/provenance (snapshotting, auditability)"
+   ],
+   "gaps": [
+    {
+     "title": "Data Quality - Completeness/Accuracy for Catalog Data",
+     "severity": "medium",
+     "detail": "While catalog entities (Specialties, Medications) are managed, there are no explicit requirements defining the required completeness or accuracy of the data they hold (e.g., required fields for a Medication, valid ranges for a Specialty code).",
+     "question": "What are the mandatory fields and acceptable data formats/ranges for Medications and Specialties?",
+     "grounding": [
+      "Enterprise / line-of-business system concerns: data quality dimensions (accuracy, completeness)"
+     ]
+    },
+    {
+     "title": "Data Quality - Consistency for Relationships",
+     "severity": "high",
+     "detail": "The system relies heavily on relationships (e.g., Doctor -> Specialty -> Prescription). While integrity is enforced via application logic (e.g., 154), there is no explicit requirement defining how consistency is maintained across distributed/cached views or how data conflicts are resolved if multiple services/modules interact with the same core data.",
+     "question": "What is the defined consistency model (e.g., strong, eventual) for cross-module data reads, especially when using caching (Redis)?",
+     "grounding": [
+      "API / backend microservice concerns: data consistency model (strong vs eventual)",
+      "Enterprise / line-of-business system concerns: transactional consistency"
+     ]
+    },
+    {
+     "title": "Data Retention and Archival Policy",
+     "severity": "high",
+     "detail": "The scope explicitly states 'no hard deletes' and mentions auditability, but it lacks any defined rules for data retention (how long data must be kept) or archival (when/how data moves from active storage to long-term/cold storage).",
+     "question": "What are the defined retention periods for Prescriptions, User records, and Audit Logs, and what is the process for archival?",
+     "grounding": [
+      "Web / SaaS application concerns: retention, export, and deletion",
+      "Domain Concerns: retention, archival, deletion"
+     ]
+    },
+    {
+     "title": "Data Lineage/Provenance for Prescription Content",
+     "severity": "high",
+     "detail": "Requirement 30 mandates a snapshot, which is good for immutability. However, lineage requires tracking *where* the data came from (source system/user/time) for the snapshot components (Specialty Name, Medication Name). The current requirements only state the snapshot is generated, not how its provenance is tracked.",
+     "question": "For the immutable prescription snapshot, what metadata must be captured to trace the exact version/ID of the Specialty and Medication used at the time of issuance?",
+     "grounding": [
+      "Domain Concerns: lineage / provenance / master-data ownership",
+      "Enterprise / line-of-business system concerns: effective-dated records, temporal/bitemporal history"
+     ]
+    },
+    {
+     "title": "Master Data Ownership and Stewardship",
+     "severity": "medium",
+     "detail": "The system defines who *can* manage data (Admin for Catalog, Doctor for own profile), but it lacks formal definition of 'Master Data Ownership' or 'Data Stewardship' for the core entities (e.g., who is the ultimate owner/steward of the Medication catalog data, even if Admin manages it).",
+     "question": "Who is designated as the data steward or owner for the Medication and Specialty catalogs, beyond just the administrative role?",
+     "grounding": [
+      "Domain Concerns: master-data ownership",
+      "Enterprise / line-of-business system concerns: master-data management, golden records, deduplication, and ownership/stewardship"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining a formal data dictionary or glossary for key terms like 'Active Doctor,' 'Approved Specialty,' and 'Issued Prescription' to ensure consistent interpretation across modules.",
+    "Given the regulated medical domain, explicitly define requirements for data export capabilities (e.g., for regulatory audits or patient requests), beyond just the prescription download link."
+   ],
+   "confidence": "high",
+   "id": "data",
+   "name": "Data & information"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Lifecycle management (Draft -> Issued/Cancelled)",
+    "Digital signing (ICP-Brasil, PAdES)",
+    "Role-Based Access Control (RBAC)",
+    "Data immutability (Snapshotting)",
+    "Auditability (No hard deletes)",
+    "Scalability concerns (Pagination, Caching, Horizontal scaling patterns)",
+    "Resource management (Connection/Pool sizing implied by DB/Cache usage)"
+   ],
+   "gaps": [
+    {
+     "title": "Quantified Latency/Throughput SLOs for Core Operations",
+     "severity": "critical",
+     "detail": "The requirements specify functionality but lack any measurable performance targets (SLOs/SLAs) for critical paths like prescription issuance, PDF generation, or API response times under load. This is a core concern of the Performance domain.",
+     "question": "What are the required p95 and p99 latency targets for prescription issuance (DRAFT -> ISSUED) and for the API endpoints handling prescription retrieval?",
+     "grounding": [
+      "API / backend microservice concerns: latency SLOs (p95/p99) and throughput (req/s) targets per endpoint",
+      "Time behaviour (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Capacity Limits and Throughput Targets",
+     "severity": "high",
+     "detail": "While pagination is mentioned (Req 97), there are no specified capacity limits (e.g., max concurrent prescriptions, max users, max transactions per second) that define the system's operational ceiling.",
+     "question": "What is the expected peak throughput (transactions/second) the system must sustain, and what are the defined capacity limits for concurrent users or active prescriptions?",
+     "grounding": [
+      "Capacity limits & headroom",
+      "Web / SaaS application concerns: throughput"
+     ]
+    },
+    {
+     "title": "Load Shedding and Overload Behavior",
+     "severity": "high",
+     "detail": "The system is complex and regulated. Under extreme load, there is no defined behavior for overload (e.g., rate limiting, graceful degradation, queueing, or explicit load shedding mechanisms) beyond basic rate limiting implied by API design.",
+     "question": "What is the defined behavior when the system exceeds its designed capacity (e.g., implementing rate limiting, returning 429s with Retry-After, or shedding non-critical load)?",
+     "grounding": [
+      "API / backend microservice concerns: rate limiting / throttling and quota enforcement per client (429 + Retry-After), plus load-shedding under overload"
+     ]
+    },
+    {
+     "title": "Resource Utilization Ceilings",
+     "severity": "medium",
+     "detail": "The requirements mention PostgreSQL and Redis usage, but there are no specified ceilings on resource consumption (e.g., maximum memory footprint per service instance, maximum database connection pool size, or acceptable CPU utilization under load).",
+     "question": "Are there defined ceilings for resource utilization (CPU, Memory, DB connections) that the deployed services must adhere to?",
+     "grounding": [
+      "Resource utilisation (iso-25010:2023)",
+      "API / backend microservice concerns: resource ceilings & pooling"
+     ]
+    },
+    {
+     "title": "Horizontal Scaling Strategy Definition",
+     "severity": "medium",
+     "detail": "The architecture implies microservices/modules (Req 64, 65), suggesting horizontal scaling is possible, but the requirements do not specify *how* the system should scale (e.g., statelessness guarantees, required autoscaling triggers, or target scaling factor).",
+     "question": "What is the defined horizontal scaling strategy (e.g., statelessness requirements, target utilization thresholds for autoscaling)?",
+     "grounding": [
+      "Scalability / elasticity under load and growth",
+      "API / backend microservice concerns: horizontal scalability and statelessness"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Define specific Service Level Objectives (SLOs) for the critical path: Prescription Issuance (Draft -> Issued) latency and success rate.",
+    "Specify the required concurrency level (e.g., number of concurrent users or active prescriptions) the system must support at peak load.",
+    "Detail the mechanism and thresholds for rate limiting/throttling on public and authenticated endpoints."
+   ],
+   "confidence": "high",
+   "id": "performance",
+   "name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Availability SLO/SLA (implied by operational requirements)",
+    "Fault tolerance & graceful degradation (implied by dependency handling/caching)",
+    "Recoverability (RTO/RPO, state restoration, backups) (covered by 'No hard delete' and snapshotting)",
+    "Maturity (failure rate, MTBF) (covered by testing/auditing)",
+    "Idempotency of mutating operations and safe retries (implied by transactional integrity/state management)"
+   ],
+   "gaps": [
+    {
+     "title": "Explicit Availability SLO/SLA Definition",
+     "severity": "high",
+     "detail": "While the system must be operational, there is no stated Service Level Objective (SLO) or Service Level Agreement (SLA) for uptime or response time, which is critical for a regulated medical application.",
+     "question": "What is the required uptime percentage (e.g., 99.9%) and the acceptable latency for critical operations (e.g., prescription issuance)?",
+     "grounding": [
+      "Availability (iso-25010:2023)",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "Dependency Failure Behavior Specification",
+     "severity": "high",
+     "detail": "The requirements mention caching (Redis) and dependency lookups, but do not specify the required behavior (e.g., timeout, circuit breaking, fallback) when a critical dependency (like PostgreSQL, external identity provider, or ICP-Brasil service) fails or becomes slow.",
+     "question": "What are the defined timeout, retry policy (e.g., exponential backoff), and fallback/degradation strategy when external services or database connections fail?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "Fault tolerance (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Defined RTO/RPO and Backup Strategy",
+     "severity": "critical",
+     "detail": "The system mandates data integrity and auditability, but lacks explicit Recovery Time Objective (RTO) and Recovery Point Objective (RPO) metrics, nor does it specify the backup frequency, retention, or disaster recovery (DR) strategy across zones/regions.",
+     "question": "What are the required RTO (time to restore service) and RPO (maximum acceptable data loss) for the system, and what is the defined backup/DR strategy?",
+     "grounding": [
+      "Recoverability (iso-25010:2023)",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "Idempotency Guarantee for State Transitions",
+     "severity": "medium",
+     "detail": "Operations like 'Issue' or 'Cancel' are critical state changes. While transactional integrity is implied, there is no explicit requirement guaranteeing that re-issuing or re-sending a request (due to network retry) will not result in duplicate prescriptions or incorrect state transitions.",
+     "question": "Are all mutating operations (e.g., IssuePrescription, CancelPrescription) guaranteed to be idempotent, and if so, how are idempotency keys managed?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "Enterprise / line-of-business system concerns"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the regulated medical domain, the system should explicitly define requirements for data lineage and audit trails that survive system failures, ensuring that the state restoration process can reconstruct the exact sequence of events leading to a prescription's final state.",
+    "Consider defining a 'Disaster Recovery' strategy that specifies failover procedures between geographic zones, as this is crucial for maintaining availability in a critical healthcare context."
+   ],
+   "confidence": "high",
+   "id": "reliability",
+   "name": "Reliability & resilience"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Authentication and Authorization (RBAC, JWT, Role-based access)",
+    "Confidentiality (Encryption in transit via TLS implied by JWT/API context, data at rest via PostgreSQL)",
+    "Integrity (Input validation, immutability via snapshotting, lifecycle management)",
+    "Accountability & Non-repudiation (Audit logging of security-relevant actions, digital signing)",
+    "Secrets Management (Loading credentials via environment variables)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Encryption Requirements",
+     "severity": "high",
+     "detail": "While data at rest is implied by PostgreSQL, specific requirements for encrypting sensitive PII/PHI (e.g., patient medical data, prescription content) at rest, beyond standard DB encryption, are missing. Confidentiality requires explicit scoping.",
+     "question": "Are there specific data fields (e.g., patient identifiers, prescription details) that require field-level encryption at rest, beyond standard database security?",
+     "grounding": [
+      "Confidentiality (iso-25010:2023)",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "Input Validation Scope",
+     "severity": "high",
+     "detail": "The requirements mention input validation (Req 73), but they do not specify *what* OWASP Top 10 threats must be mitigated across all input vectors (e.g., XSS on profile fields, SQLi on catalog lookups, injection in appointment notes).",
+     "question": "Are there explicit requirements detailing input validation rules (e.g., regex, length limits, sanitization context) for all user-controllable inputs, especially those interacting with the database or rendered in the UI?",
+     "grounding": [
+      "Integrity (iso-25010:2023)",
+      "V1 Encoding and Sanitization (owasp-asvs)",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "Authorization Granularity (BOLA/IDOR)",
+     "severity": "high",
+     "detail": "While ownership checks are mentioned (Req 194), the requirements lack explicit, comprehensive protection against Broken Object Level Authorization (BOLA/IDOR) for all resources, especially when accessing data via public/temporary links (Req 43, 210).",
+     "question": "Are there explicit requirements ensuring that all data retrieval endpoints (e.g., GET /prescriptions/:id, download links) strictly enforce authorization checks against the requesting user's identity/scope, even when the request appears 'public'?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "Confidentiality (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Session Management & MFA",
+     "severity": "medium",
+     "detail": "The system handles sessions (Req 140, 141) and authentication (Req 142), but there is no mention of Multi-Factor Authentication (MFA) or specific session fixation/hijacking countermeasures beyond standard JWT usage.",
+     "question": "Is Multi-Factor Authentication (MFA) required for users with login capabilities (Admin, Doctor, Attendant)?",
+     "grounding": [
+      "Web / SaaS application concerns",
+      "Authentication & Authorization (identity, permissions, sessions)"
+     ]
+    },
+    {
+     "title": "Audit Logging Detail",
+     "severity": "medium",
+     "detail": "Audit logging is mentioned (Req 32), but the requirements do not specify *what* security-relevant events must be logged (e.g., failed logins, permission changes, critical state transitions like prescription issuance/cancellation, key management operations).",
+     "question": "What specific security-relevant events (e.g., role changes, failed authorization attempts, key rotation, prescription state changes) must be captured in the audit log, and what level of detail (who, what, when, why) is required?",
+     "grounding": [
+      "Accountability & Non-repudiation (audit logging)",
+      "Enterprise / line-of-business system concerns"
+     ]
+    },
+    {
+     "title": "Key Management Lifecycle",
+     "severity": "medium",
+     "detail": "Keys are stored (Req 38, 91), and signing is required (Req 37). However, there are no requirements for key rotation, revocation, or secure destruction/archival of private keys, which is critical for long-term compliance.",
+     "question": "Are there defined procedures or requirements for the rotation, revocation, and secure lifecycle management of the private signing keys (A1/A3) used for ICP-Brasil signatures?",
+     "grounding": [
+      "secrets, key management, dependency/supply-chain security",
+      "API / backend microservice concerns"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the regulated medical domain, consider adding requirements for data residency and compliance with specific regional health data regulations (e.g., HIPAA, GDPR, LGPD) if applicable to the deployment geography.",
+    "Since prescriptions are legally binding, consider requirements for data integrity checks *after* issuance, such as cryptographic verification of the signed PDF against the stored snapshot to prove non-tampering over time."
+   ],
+   "confidence": "high",
+   "id": "security",
+   "name": "Security"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Hazard identification & risk analysis (via lifecycle/auditability)",
+    "Fail-safe / safe-state behaviour (via status/lifecycle management)",
+    "Operational constraints & hazard warnings (via role-based access control and state transitions)",
+    "Safe integration with other systems (via defined interfaces/ports)"
+   ],
+   "gaps": [
+    {
+     "title": "Explicit Hazard Identification and Risk Analysis",
+     "severity": "high",
+     "detail": "The requirements focus heavily on functional correctness, data integrity, and access control, but do not explicitly mandate a formal Hazard Identification and Risk Analysis (HIRA) process or the documentation of identified hazards (e.g., data breach risk, incorrect dosage risk, system unavailability risk).",
+     "question": "Has a formal Hazard Identification and Risk Analysis (HIRA) been performed, and are the resulting identified hazards and their required mitigations documented as specific safety requirements?",
+     "grounding": [
+      "Risk identification (iso-25010:2023)",
+      "SRS: safety requirements (29148:2018)"
+     ]
+    },
+    {
+     "title": "Definition of System-Wide Safe State",
+     "severity": "high",
+     "detail": "While state transitions exist (DRAFT -> ISSUED), there is no explicit definition of the system's 'safe state' when a critical failure occurs (e.g., database connection loss during prescription issuance, loss of ICP-Brasil signing service).",
+     "question": "What is the defined safe state for the system when a critical dependency (e.g., database, signing service) fails during a high-risk operation like prescription issuance?",
+     "grounding": [
+      "Fail safe (iso-25010:2023)",
+      "SRS: safety requirements (29148:2018)"
+     ]
+    },
+    {
+     "title": "Specification of Operational Hazard Warnings",
+     "severity": "medium",
+     "detail": "The requirements specify operational constraints (e.g., only DRAFT can be edited), but they lack explicit requirements for *warnings* presented to the operator (Doctor/Attendant) when they approach an unacceptable risk state or violate a constraint.",
+     "question": "Are there specific requirements detailing when and how the system must issue a warning to the operator regarding an impending operational hazard or constraint violation (beyond standard error codes)?",
+     "grounding": [
+      "Hazard warning (iso-25010:2023)",
+      "Operational constraint (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Safety Constraints for Integration with External Systems",
+     "severity": "medium",
+     "detail": "The system integrates with ICP-Brasil for signing and potentially external identity providers (OAuth). The requirements do not specify safety constraints related to the failure or compromise of these external integrations.",
+     "question": "What are the safety requirements governing the system's behavior if the external ICP-Brasil signing service becomes unavailable or returns invalid credentials?",
+     "grounding": [
+      "Safe integration (iso-25010:2023)",
+      "SRS: safety requirements (29148:2018)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining a specific 'Audit Trail Integrity' requirement that goes beyond simple logging, ensuring that the audit trail itself cannot be tampered with or selectively removed, which is crucial for medical/legal compliance.",
+    "Given the regulated nature, consider adding requirements for data residency and jurisdictional compliance related to where patient/prescription data is stored and processed."
+   ],
+   "confidence": "high",
+   "id": "safety",
+   "name": "Safety"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "API contract definition and versioning (via Swagger/HTTP specs)",
+    "Backward compatibility (additive-only evolution implied by lifecycle/snapshotting)",
+    "Data exchange formats (implied by structured data/PDF)",
+    "Coexistence (via PostgreSQL/Redis usage)",
+    "Integration with external systems (ICP-Brasil signing)"
+   ],
+   "gaps": [
+    {
+     "title": "Explicit API Versioning Strategy",
+     "severity": "high",
+     "detail": "The requirements specify endpoints and Swagger documentation (103, 118, 122, 144, 178, 199, 206, 217, 226), but there is no explicit definition of the API versioning strategy (e.g., URI versioning, header versioning) or a formal deprecation/sunset policy for evolving contracts.",
+     "question": "What is the defined API versioning strategy (e.g., /v1/resource) and what is the policy for deprecating older versions?",
+     "grounding": [
+      "API / backend microservice concerns: versioning strategy (URI/header/media-type) and deprecation/sunset policy with timelines"
+     ]
+    },
+    {
+     "title": "Canonical Data Exchange Format Specification",
+     "severity": "high",
+     "detail": "While the system uses structured data (JSON/Protobuf implied by API context) and generates PDFs, the canonical exchange format for core entities (User, Prescription, Medication, Specialty) used *between* services or for external integration (beyond the immediate API request/response) is not formally specified, which is crucial for interoperability.",
+     "question": "Are there canonical data models or schemas (e.g., JSON Schema, Protobuf definitions) defined for the primary entities (Prescription, User, Medication) that govern data exchange across the system boundaries?",
+     "grounding": [
+      "API / backend microservice concerns: API contract definition (OpenAPI/JSON Schema/Protobuf/GraphQL SDL) as the source of truth",
+      "Enterprise / line-of-business system concerns: canonical exchange formats and versioned contracts"
+     ]
+    },
+    {
+     "title": "Interoperability Protocol Specification (External)",
+     "severity": "medium",
+     "detail": "The system integrates with ICP-Brasil for signing (39, 92), which is an external protocol dependency. The requirements specify *that* it uses PAdES, but not the specific communication protocols, message formats, or expected handshake/exchange mechanisms required to interact with the signing authority or external certificate services.",
+     "question": "What are the specific communication protocols, message formats, and interface specifications required to interact with the ICP-Brasil signing service?",
+     "grounding": [
+      "DOMAIN CONCERNS: interoperability (protocols, APIs, data exchange formats)",
+      "SRS: interface requirements (29148:2018): SRS section specifying external interfaces"
+     ]
+    },
+    {
+     "title": "Data Exchange Format Compatibility Rules",
+     "severity": "medium",
+     "detail": "The requirements mention snapshots (30, 36) and immutability, which helps with backward compatibility for prescriptions. However, there are no explicit rules defined for how data formats change when entities like Medication or Specialty are updated (e.g., if a field is added/removed/renamed in the source catalog, how does this affect existing, historical data or future state transitions?).",
+     "question": "What are the defined compatibility rules for data fields when catalog entities (Medication, Specialty) are updated, ensuring that historical records (like snapshots) remain valid against future schema changes?",
+     "grounding": [
+      "DOMAIN CONCERNS: backward/forward compatibility",
+      "API / backend microservice concerns: backward compatibility: additive-only evolution, no breaking changes to existing consumers"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining a formal integration contract/schema for the data exchange between the Prescription module and the Catalog modules (Specialty/Medication) to ensure that the snapshotting process (30, 91) is robust against future catalog changes.",
+    "Given the regulatory nature, explicitly define the required audit trail structure for *all* state transitions (e.g., DRAFT -> ISSUED, pending -> approved) to meet regulatory standards beyond simple 'auditability'."
+   ],
+   "confidence": "high",
+   "id": "compatibility",
+   "name": "Compatibility & interoperability"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "User/Identity Management (RBAC, Roles)",
+    "Catalog Management (Specialties, Medications lifecycle)",
+    "Prescription Lifecycle Management (Draft -> Issued/Cancelled)",
+    "Digital Document Generation and Signing (ICP-Brasil, Snapshot)",
+    "Scheduling/Appointment Management (Doctor/Attendant linkage, Slots)",
+    "Data Integrity (No hard deletes, Auditability)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Learnability Targets",
+     "severity": "medium",
+     "detail": "The requirements define functionality but do not specify measurable targets for learnability (e.g., time to complete a core task, success rate for first-time users).",
+     "question": "What are the target metrics for learnability (e.g., time to complete prescription issuance for a new doctor, or success rate for a new patient viewing their prescription)?",
+     "grounding": [
+      "Learnability (iso-25010:2023)",
+      "SRS: usability requirements (29148:2018)"
+     ]
+    },
+    {
+     "title": "UI/UX Consistency and Aesthetics",
+     "severity": "medium",
+     "detail": "There are no requirements specifying the visual design, branding, or interaction patterns (e.g., required feedback mechanisms, visual hierarchy) necessary for a cohesive user experience.",
+     "question": "Are there specific requirements or design guidelines (e.g., style guides, color palettes, required component libraries) that define the look-and-feel and interaction consistency across the application?",
+     "grounding": [
+      "Look and feel requirements (volere)",
+      "UI aesthetics / look-and-feel expectations"
+     ]
+    },
+    {
+     "title": "User Error Prevention in Complex Workflows",
+     "severity": "high",
+     "detail": "While 'no hard delete' is specified, the requirements lack explicit safeguards for complex, irreversible business actions *other* than deletion (e.g., final submission of a prescription, critical data entry errors in catalog management).",
+     "question": "For critical, non-destructive actions (like finalizing a prescription or approving a specialty assignment), are there specific confirmation steps, undo mechanisms, or mandatory review stages required to prevent accidental commitment?",
+     "grounding": [
+      "User error protection (iso-25010:2023)",
+      "Enterprise / line-of-business system concerns: error prevention on complex forms"
+     ]
+    },
+    {
+     "title": "Discoverability of Infrequent Critical Operations",
+     "severity": "medium",
+     "detail": "Given the complexity (roles, lifecycle states, scheduling), there is no explicit requirement ensuring that infrequent but critical functions (like administrative deactivation or specific audit trail viewing) are easily discoverable by the relevant user roles.",
+     "question": "How will the system ensure that less frequently used, but critical, administrative or compliance functions are discoverable by the appropriate roles (Admin, Doctor)?",
+     "grounding": [
+      "Discoverability of infrequent but critical operations across a large feature surface",
+      "User assistance (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Responsive Design and Cross-Browser Support",
+     "severity": "low",
+     "detail": "As a Web/SaaS application, responsiveness across different viewports and browsers is a standard expectation that is not explicitly mentioned.",
+     "question": "Are there requirements specifying responsive design breakpoints or required compatibility with specific browsers/viewports?",
+     "grounding": [
+      "Web / SaaS application concerns: responsive UI across viewports and browsers"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific performance targets for high-throughput data entry (e.g., bulk editing efficiency if that feature is expanded) to meet expert power user expectations.",
+    "Explicitly define the required feedback mechanisms for state transitions (e.g., what visual/audible feedback must accompany a successful prescription issuance or a failed API call)."
+   ],
+   "confidence": "high",
+   "id": "usability",
+   "name": "Usability & interaction"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "WCAG conformance level (implied by general accessibility domain concern, but not explicitly stated)",
+    "Assistive-technology support (not explicitly stated)",
+    "Localization/i18n (languages, locales, RTL) (not explicitly stated)"
+   ],
+   "gaps": [
+    {
+     "title": "WCAG Conformance Level",
+     "severity": "high",
+     "detail": "The problem statement and requirements focus heavily on medical compliance (ICP-Brasil, data integrity) but do not specify any required WCAG conformance level (A, AA, AAA) for the user interface.",
+     "question": "What specific WCAG conformance level (e.g., 2.2 AA) must the application meet?",
+     "grounding": [
+      "Conformance level (A / AA / AAA) (wcag-2.2)"
+     ]
+    },
+    {
+     "title": "Assistive Technology Support",
+     "severity": "high",
+     "detail": "There is no explicit requirement or mention of supporting specific assistive technologies (e.g., screen readers, keyboard-only navigation) beyond general UI functionality.",
+     "question": "Are there specific requirements regarding keyboard navigation, ARIA roles, or screen reader compatibility for the application?",
+     "grounding": [
+      "Operable (wcag-2.2)",
+      "Assistive-technology support"
+     ]
+    },
+    {
+     "title": "Internationalization Scope",
+     "severity": "medium",
+     "detail": "The system is described as a medical application, which suggests potential international use, but there are no requirements specifying support for multiple languages, locales, or Right-to-Left (RTL) layouts.",
+     "question": "Does the application need to support multiple languages or locales, and if so, what is the required scope (e.g., language switching, date/number format localization)?",
+     "grounding": [
+      "localization / internationalization (languages, locales, RTL)",
+      "i18n/localization (languages, locales, RTL, formats)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the regulated medical domain, consider adding requirements for language/locale support to accommodate international clinical practices or multi-national operations.",
+    "Explicitly define the required WCAG conformance level (e.g., WCAG 2.2 AA) as a baseline for all user-facing interfaces."
+   ],
+   "confidence": "high",
+   "id": "accessibility",
+   "name": "Accessibility & internationalization"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Modularity via service boundaries (implied by module structure/DI)",
+    "Testability (explicit test requirement 243, 249)",
+    "Observability (logging/metrics/tracing implied by structured logging/API docs, but not explicitly detailed)",
+    "Analysability/Modifiability (via lifecycle management and non-destructive design)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Observability Requirements (Metrics/Tracing)",
+     "severity": "high",
+     "detail": "While the system has complex workflows (prescription lifecycle, scheduling), there are no explicit requirements for monitoring operational health, such as RED/USE metrics (Rate, Errors, Duration) or distributed tracing (e.g., OpenTelemetry) across service boundaries, which is critical for a regulated system.",
+     "question": "Are there specific requirements for instrumenting key business processes (e.g., prescription issuance, appointment booking) with metrics (latency, throughput) and distributed tracing to allow operations teams to diagnose issues?",
+     "grounding": [
+      "API / backend microservice concerns: observability: structured logs, RED/USE metrics, and distributed tracing (OpenTelemetry) with trace/correlation propagation",
+      "Web / SaaS application concerns: structured logging/metrics/tracing"
+     ]
+    },
+    {
+     "title": "Test Coverage Granularity",
+     "severity": "medium",
+     "detail": "Requirement 243 mandates running tests, but there is no specification on the required level of automated test coverage (e.g., unit, integration, contract coverage) or the role of CI gates in enforcing this coverage, which is vital for maintainability.",
+     "question": "What is the required automated test coverage percentage, and are there specific requirements for integration or contract testing (e.g., between modules or external services like ICP-Brasil)?",
+     "grounding": [
+      "Web / SaaS application concerns: automated test coverage and CI gates",
+      "API / backend microservice concerns: automated test strategy: unit, integration, and consumer-driven contract tests as CI gates"
+     ]
+    },
+    {
+     "title": "Architectural Boundary Definition for Independent Change",
+     "severity": "medium",
+     "detail": "The requirements mention modularity (64, 65, 68, 84), but they lack explicit constraints defining the boundaries between core domains (e.g., Prescription vs. Scheduling vs. Identity) to ensure that a change in one module does not necessitate changes in others unnecessarily (Modularity/Analysability).",
+     "question": "Are there explicit architectural constraints defining the boundaries between the core domains (e.g., Prescription, Scheduling, Identity) to ensure high cohesion and low coupling, allowing independent evolution?",
+     "grounding": [
+      "Modularity (iso-25010:2023): Composed of discrete components such that a change to one has minimal impact on others.",
+      "API / backend microservice concerns: modular bounded-context design and clear API/domain separation"
+     ]
+    },
+    {
+     "title": "Configurability for Business Policy Evolution",
+     "severity": "medium",
+     "detail": "The system is highly regulated and deals with evolving business policies (e.g., eligibility rules, workflow states). The requirements heavily rely on code changes (e.g., adding new statuses, changing approval logic) rather than configuration, which impacts long-term maintainability in a business context.",
+     "question": "For evolving business policies (e.g., eligibility criteria, prescription workflow rules), is there a requirement for configuration-over-code capability to allow changes without redeploying the application?",
+     "grounding": [
+      "Enterprise / line-of-business system concerns: configurability without code change (workflows, rules, forms, reports) for evolving business policy"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the regulated medical domain, explicitly define requirements for data retention policies beyond 'no hard delete' (e.g., minimum archival periods for prescriptions and audit logs to meet regulatory compliance).",
+    "Specify requirements for dependency injection mechanisms to support easy swapping of external services (e.g., ICP-Brasil signing service, Email service) to improve testability and modularity.",
+    "Define clear versioning strategies for APIs and data schemas (e.g., API versioning, database schema evolution strategy beyond simple migrations) to support long service life."
+   ],
+   "confidence": "high",
+   "id": "maintainability",
+   "name": "Maintainability, testability & observability"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Installation/Packaging (via deployment model specification)",
+    "Adaptability (via environment/platform constraints)",
+    "Replaceability (implied by lifecycle management)",
+    "Deployment Model (via container/orchestration context, though not explicitly detailed)"
+   ],
+   "gaps": [
+    {
+     "title": "Target Platform Specification",
+     "severity": "high",
+     "detail": "The requirements specify PostgreSQL as the source of truth (Constraint), but do not specify the target operating systems, cloud environments, or containerization strategy (e.g., Docker, Kubernetes) needed for deployment portability.",
+     "question": "What are the required target environments (OS, Cloud Provider, Container Runtime) for deployment?",
+     "grounding": [
+      "SRS portability (29148:2018)",
+      "Adaptability (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Installation/Upgrade/Rollback Procedures",
+     "severity": "high",
+     "detail": "While migrations are mentioned (258, 260), the requirements lack explicit, defined procedures for the *installation* process (e.g., prerequisites, setup steps) and detailed, tested rollback strategies beyond 'no data loss' (90).",
+     "question": "What are the step-by-step installation and upgrade procedures, including defined rollback plans for major version changes?",
+     "grounding": [
+      "Installability (iso-25010:2023)",
+      "SRS portability (29148:2018)"
+     ]
+    },
+    {
+     "title": "Packaging Definition",
+     "severity": "medium",
+     "detail": "The requirements mention build/test targets (244, 260) but do not specify the artifact packaging format (e.g., Dockerfile, Helm chart, binary distribution package) required for deployment.",
+     "question": "What is the required deployment artifact format (e.g., Docker image, binary package) and what are its build specifications?",
+     "grounding": [
+      "Installability (iso-25010:2023)",
+      "SRS portability (29148:2018)"
+     ]
+    },
+    {
+     "title": "Replaceability Definition",
+     "severity": "low",
+     "detail": "Replaceability is mentioned in the domain concerns, but no specific requirements define how the system must interface with or replace another system (e.g., API contracts, data migration compatibility) if it were to substitute an existing medical system.",
+     "question": "Are there any defined interfaces or data compatibility requirements necessary for this system to replace an existing medical system?",
+     "grounding": [
+      "Replaceability (iso-25010:2023)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Specify the required deployment model (e.g., Kubernetes deployment, VM deployment, Serverless) to fully address the 'deployment model' concern.",
+    "Define environment-specific configuration profiles (e.g., DEV, STAGING, PROD) and how configuration changes affect portability between them."
+   ],
+   "confidence": "high",
+   "id": "portability",
+   "name": "Portability & deployment"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Lifecycle management (no hard deletes)",
+    "Role-Based Access Control (RBAC)",
+    "Digital Signature (ICP-Brasil, PAdES)",
+    "Data Immutability (Snapshots)",
+    "Externalized Configuration (Env Vars)",
+    "Database Persistence (PostgreSQL)",
+    "API Design (Swagger, HTTP references)",
+    "Operational Readiness (Graceful Shutdown, Migrations)"
+   ],
+   "gaps": [
+    {
+     "title": "Runtime Monitoring and Alerting",
+     "severity": "high",
+     "detail": "The requirements specify operational readiness (graceful shutdown, migrations) but lack any explicit requirements for runtime monitoring (metrics collection, logging standards, health checks beyond basic API functionality) or alerting mechanisms (SLOs, error budget monitoring).",
+     "question": "What specific metrics (e.g., request latency, error rates, resource utilization) must be exposed, and what alerting thresholds must be configured for production environments?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "SRS: operational / environmental (29148:2018)"
+     ]
+    },
+    {
+     "title": "Capacity and Load Testing Requirements",
+     "severity": "medium",
+     "detail": "While capacity/cost operations are a domain concern, the requirements do not specify expected load profiles, throughput targets, or performance benchmarks needed to validate the system's operational capacity under expected medical usage.",
+     "question": "What are the expected peak concurrent user loads, transaction rates (e.g., prescriptions/hour), and latency targets for critical paths (e.g., prescription issuance)?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "Disaster Recovery and Backup Strategy",
+     "severity": "high",
+     "detail": "The system relies on PostgreSQL and Redis, but there are no requirements detailing backup frequency, recovery point objective (RPO), or recovery time objective (RTO) for data loss scenarios, which is critical for a regulated medical application.",
+     "question": "What are the required RPO and RTO for the primary data store (PostgreSQL) and cache (Redis) in case of catastrophic failure?",
+     "grounding": [
+      "SRS: operational / environmental (29148:2018)",
+      "Enterprise / line-of-business system concerns"
+     ]
+    },
+    {
+     "title": "Environment Configuration Promotion Strategy",
+     "severity": "medium",
+     "detail": "The requirements mention configuration via environment variables (95), but they do not specify the process or validation steps for promoting configuration/secrets from development/testing environments to production, which is crucial for regulated systems.",
+     "question": "What is the defined process for validating and promoting configuration parameters and secrets across different deployment environments (Dev -> Staging -> Prod)?",
+     "grounding": [
+      "Enterprise / line-of-business system concerns",
+      "Volere type 13"
+     ]
+    },
+    {
+     "title": "Offline/Intermittent Connectivity Handling",
+     "severity": "medium",
+     "detail": "The domain concerns include intermittent connectivity. Since this is a web/API system, it is unclear how the system is expected to behave if network connectivity to external services (like ICP-Brasil signing authority or external identity providers) is temporarily lost.",
+     "question": "How must the system behave or queue operations if external dependencies (e.g., signing service, external identity provider) become temporarily unavailable due to network issues?",
+     "grounding": [
+      "Volere type 13",
+      "SRS: operational / environmental (29148:2018)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the regulated medical domain, explicit requirements for audit logging (who, what, when, why) for *every* state transition (especially prescription lifecycle and role changes) should be formalized beyond just 'auditability'.",
+    "Consider defining specific requirements for data residency and geographical compliance, given the sensitive nature of medical data.",
+    "Since ICP-Brasil is involved, requirements for key rotation, certificate expiration handling, and secure storage/retrieval of private keys should be detailed."
+   ],
+   "confidence": "high",
+   "id": "operational",
+   "name": "Operational & environmental"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "PII handling via lifecycle management (no hard deletes)",
+    "Role-Based Access Control (RBAC) enforcement",
+    "Data integrity via immutable snapshots for prescriptions",
+    "Digital signing using ICP-Brasil standards",
+    "Data residency/sovereignty constraints (implied by tenant/region context, but not explicitly defined)",
+    "Data-subject rights (Access/Erasure/Portability) via lifecycle/auditability",
+    "Auditability for regulatory compliance (immutable records)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Data Protection/PII Classification and Handling",
+     "severity": "high",
+     "detail": "The system handles medical data (prescriptions, patient info), which is highly sensitive (PHI/PII). While 'no hard delete' is specified, there is no explicit requirement detailing *how* PII is classified (e.g., Level 1, 2, 3) or what specific controls (encryption at rest/in transit, masking, pseudonymization) must be applied to PII fields, beyond the general lifecycle approach.",
+     "question": "What are the specific data classification levels for PII/PHI within the system, and what encryption/masking requirements apply to data at rest and in transit for each level?",
+     "grounding": [
+      "V14 Data Protection (owasp-asvs)",
+      "GDPR/HIPAA"
+     ]
+    },
+    {
+     "title": "Data Subject Access Request (DSAR) Mechanism",
+     "severity": "high",
+     "detail": "The system supports data retention and auditability, which supports DSARs, but there is no defined workflow or mechanism to fulfill a Data Subject Access Request (e.g., providing a patient with a complete, exportable record of their data, or fulfilling the Right to Erasure/Restriction if applicable).",
+     "question": "What is the defined process and technical capability for fulfilling a Data Subject Access Request (DSAR), including data portability requirements?",
+     "grounding": [
+      "GDPR/CCPA",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "Data Residency and Sovereignty Enforcement",
+     "severity": "critical",
+     "detail": "The problem statement implies a regulated medical domain, which often mandates data residency (e.g., data must stay within the EU or specific country). While the architecture mentions PostgreSQL, there is no requirement specifying *where* the data must reside or how the system enforces tenant-specific residency constraints.",
+     "question": "Are there specific geographic or jurisdictional data residency requirements (e.g., EU, US state) that must be enforced for data storage and processing?",
+     "grounding": [
+      "Data sovereignty / residency",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "Consent Management for Data Processing",
+     "severity": "high",
+     "detail": "As a medical application, explicit consent for data processing (especially for secondary uses like research or sharing) is critical under GDPR/HIPAA. The requirements focus on *transactional* consent (e.g., signing a prescription) but lack a mechanism to track and enforce granular consent for data usage.",
+     "question": "How is user consent tracked, managed, and enforced for different types of data processing activities beyond the core prescription workflow?",
+     "grounding": [
+      "GDPR/CCPA: lawful basis, consent",
+      "Web / SaaS application concerns"
+     ]
+    },
+    {
+     "title": "Legal Hold and Defensible Deletion Policy",
+     "severity": "medium",
+     "detail": "The system prohibits hard deletes and maintains audit trails, which is good for compliance. However, for regulatory compliance (e.g., litigation), there must be a mechanism to place specific records under a 'Legal Hold' to prevent their deletion or modification, even if their standard retention period has passed.",
+     "question": "Is there a mechanism to place specific records or data sets under a 'Legal Hold' to prevent deletion or modification pending legal review?",
+     "grounding": [
+      "Enterprise / line-of-business system concerns",
+      "Records-retention schedules and legal hold"
+     ]
+    }
+   ],
+   "enrichments": [
+    "The problem statement should explicitly define the regulatory scope (e.g., 'Must comply with HIPAA for US patient data and GDPR for EU patient data').",
+    "Consider adding requirements for data breach notification procedures, as this is a core regulatory obligation in medical/privacy domains.",
+    "Specify requirements for data minimization: ensuring that only the minimum necessary data required for the stated purpose (prescription issuance) is collected and retained."
+   ],
+   "confidence": "high",
+   "id": "legal-privacy",
+   "name": "Legal, compliance & privacy"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Mandated technology stack (PostgreSQL, Go/Chi implied by requirements)",
+    "Lifecycle constraints (No hard deletes, status tracking)",
+    "Scope constraints (Defined in/out)",
+    "Design constraints (RBAC, Immutability, ICP-Brasil signing)",
+    "Budget/Schedule constraints (Not explicitly captured, but architectural constraints are present)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Technology Stack Mandates",
+     "severity": "medium",
+     "detail": "While PostgreSQL is specified (254), the requirements do not mandate the specific language (Go is implied by patterns like 'chi.Router' and file structure) or specific frameworks beyond the database. The domain requires mandated technology stack definition.",
+     "question": "Is the technology stack strictly limited to Go and PostgreSQL, or are other languages/frameworks permissible?",
+     "grounding": [
+      "SRS: design constraints (29148:2018)",
+      "Mandated technology stack (languages, frameworks, servers)"
+     ]
+    },
+    {
+     "title": "Licensing Constraints",
+     "severity": "high",
+     "detail": "There is no mention of any constraints regarding the open-source licenses of third-party dependencies (e.g., for JWT libraries, PDF generation libraries, or database drivers). This is critical for compliance.",
+     "question": "Are there specific requirements regarding the licensing of any third-party libraries used (e.g., must be permissive like MIT, or must adhere to specific copyleft licenses)?",
+     "grounding": [
+      "open-source licensing limits (permissive vs copyleft)"
+     ]
+    },
+    {
+     "title": "Budget and Schedule Constraints",
+     "severity": "medium",
+     "detail": "The problem statement and requirements are entirely functional/technical. There are no explicit requirements capturing budget ceilings or hard delivery timelines/milestones, which are core components of project constraints.",
+     "question": "Are there defined budget ceilings or mandatory project milestones that the system must adhere to?",
+     "grounding": [
+      "budget & cost ceilings",
+      "schedule / timeline / milestone constraints",
+      "Project constraints (volere)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the regulated medical domain and ICP-Brasil requirement, the problem statement should explicitly mandate compliance with relevant national health data security standards (e.g., LGPD in Brazil, or equivalent regional standards) beyond just data integrity.",
+    "The system should define requirements for disaster recovery (RTO/RPO) given the critical nature of medical records."
+   ],
+   "confidence": "high",
+   "id": "constraints",
+   "name": "Constraints & mandated solutions"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "User/Identity Management (Admin, Attendant, Doctor, Patient)",
+    "Catalog Management (Specialties, Medications)",
+    "Doctor Profile Management (Activation, Specialty Association)",
+    "Prescription Lifecycle Management (Draft, Issued, Cancelled)",
+    "Digital Document Generation and Signing (ICP-Brasil PDF)",
+    "Scheduling/Appointment Management (Attendant/Doctor linkage)",
+    "Lifecycle management (no hard deletes)",
+    "Role-Based Access Control (RBAC)"
+   ],
+   "gaps": [
+    {
+     "title": "Organizational Policy Enforcement (Governance)",
+     "severity": "high",
+     "detail": "The requirements detail *what* the system does (e.g., Admin approves specialty), but not the *organizational policies* governing *why* or *how* these decisions are made, or how they interact with external organizational structures (e.g., internal compliance checks, required sign-offs beyond system approval).",
+     "question": "What specific organizational policies or internal control frameworks must the system enforce regarding data access, prescription issuance, or role changes that are external to the technical RBAC?",
+     "grounding": [
+      "Enterprise / line-of-business system] concerns: organizational policies and internal-control frameworks the system must enforce"
+     ]
+    },
+    {
+     "title": "Geopolitical/Data Routing Constraints",
+     "severity": "critical",
+     "detail": "The problem statement mentions operating in a 'regulated medical domain' and requires ICP-Brasil signing, implying strict data residency and sovereignty requirements. There is no mention of constraints regarding where data (especially patient/prescription data) can be stored or routed (e.g., GDPR, HIPAA, local health authority mandates).",
+     "question": "Are there specific geopolitical restrictions (e.g., data residency requirements, sanctions compliance, required data routing paths) that dictate where patient or prescription data must be stored or processed?",
+     "grounding": [
+      "geopolitical restrictions (data routing, sanctions)"
+     ]
+    },
+    {
+     "title": "Human Workflow Integration (Adoption/Change Management)",
+     "severity": "high",
+     "detail": "The system must fit existing human workflows. While scheduling is present, there is no explicit requirement detailing how the system supports the *transition* from old manual processes to the new digital workflow, which is crucial for adoption and managing resistance.",
+     "question": "What specific training, phased rollout, or workflow adaptation steps are required to ensure smooth adoption by existing clinical and administrative staff?",
+     "grounding": [
+      "human workflows the system must fit; change-management & stakeholder buy-in",
+      "Enterprise / line-of-business system] concerns: change management and adoption: training, phased rollout, resistance from displaced manual processes"
+     ]
+    },
+    {
+     "title": "Cross-Departmental Governance Ownership",
+     "severity": "medium",
+     "detail": "The system manages data across multiple functional areas (Users, Specialties, Prescriptions, Scheduling). The requirements lack explicit definition of which department/role owns the ultimate governance or data quality for shared entities (e.g., who owns the master data integrity for a Medication across different specialties).",
+     "question": "How is cross-departmental ownership and accountability defined for shared data entities (e.g., Medications, Specialties) when multiple organizational units interact with them?",
+     "grounding": [
+      "Enterprise / line-of-business system] concerns: cross-departmental governance and ownership of shared data/processes"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific data retention policies beyond 'no hard delete' to meet regulatory archival requirements (e.g., 'Prescriptions must be retained for X years after patient discharge').",
+    "Explicitly model the process for auditing *why* a doctor's specialty approval was granted or denied, linking it to the organizational approval workflow.",
+    "Define the required level of integration or synchronization with external national/regional health registries or e-prescribing networks, if applicable."
+   ],
+   "confidence": "high",
+   "id": "cultural-political",
+   "name": "Cultural, political & organizational"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "User/Identity Management (RBAC, Roles)",
+    "Catalog Management (Specialties, Medications lifecycle)",
+    "Prescription Lifecycle Management (Draft -> Issued -> Cancelled)",
+    "Digital Document Generation and Signing (ICP-Brasil, PDF, Snapshot)",
+    "Scheduling/Appointment Management (Doctor/Attendant linkage, Slots)",
+    "Data Integrity (No hard deletes, Auditability)",
+    "Security (RBAC enforcement, Auth mechanisms)"
+   ],
+   "gaps": [
+    {
+     "title": "User Success Metrics Definition",
+     "severity": "high",
+     "detail": "The requirements define *what* the system does, but not *how well* it performs in terms of user outcomes (Effectiveness/Efficiency). There are no defined metrics for task success rate for doctors/patients, or time-to-value for new users/tenants.",
+     "question": "What are the measurable success metrics (e.g., prescription issuance success rate, average time taken for a doctor to complete a prescription, patient satisfaction scores) that define the system's effectiveness and efficiency in the clinical workflow?",
+     "grounding": [
+      "iso-25019:2023 (Effectiveness)",
+      "Archetype Priors (task-success metrics, time-to-value)"
+     ]
+    },
+    {
+     "title": "Acceptable Effort/Time-to-Outcome Specification",
+     "severity": "high",
+     "detail": "While efficiency is a domain concern, the requirements lack any specification on acceptable performance thresholds (e.g., maximum acceptable latency for prescription generation, maximum time for a doctor to complete a workflow step).",
+     "question": "What are the Service Level Objectives (SLOs) or acceptable time limits for critical user journeys, such as prescription issuance time or appointment booking latency?",
+     "grounding": [
+      "iso-25019:2023 (Efficiency)",
+      "Archetype Priors (time-to-value)"
+     ]
+    },
+    {
+     "title": "Economic/Health/Environmental Risk Mitigation",
+     "severity": "critical",
+     "detail": "The system is medical, making health and economic risks paramount. While data integrity is covered, there is no explicit requirement detailing how the system mitigates risks related to incorrect medical advice, data breaches impacting patient health, or financial/legal risks associated with prescription errors.",
+     "question": "What specific risk mitigation strategies are required for clinical errors (e.g., drug interaction checks, dosage validation) or data breaches that could directly harm patient health or violate medical regulations?",
+     "grounding": [
+      "iso-25019:2023 (Freedom from risk - Health)",
+      "Domain Questions (Are risks to users considered?)"
+     ]
+    },
+    {
+     "title": "Context Completeness for Use",
+     "severity": "medium",
+     "detail": "The context is defined as 'regulated medical domain.' The requirements focus heavily on the *system* capabilities but do not explicitly define the boundaries of the *intended context of use* (e.g., what happens if the doctor is offline, or if the patient is in an emergency setting).",
+     "question": "What are the defined operational contexts of use (e.g., in-clinic, remote consultation, emergency) and how must the system maintain quality-in-use across these different contexts?",
+     "grounding": [
+      "iso-25019:2023 (Context coverage)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "The problem statement should explicitly define the required clinical validation checks (e.g., drug-drug interaction checks, contraindication checks) that the system must perform to ensure effectiveness and freedom from health risk.",
+    "Define specific SLAs for system availability and response times, as this directly relates to efficiency and user trust in a critical medical application."
+   ],
+   "confidence": "high",
+   "id": "quality-in-use",
+   "name": "Quality-in-use & stakeholder outcomes"
+  }
+ ],
+ "gaps": [
+  {
+   "title": "Quantified Latency/Throughput SLOs for Core Operations",
+   "severity": "critical",
+   "detail": "The requirements specify functionality but lack any measurable performance targets (SLOs/SLAs) for critical paths like prescription issuance, PDF generation, or API response times under load. This is a core concern of the Performance domain.",
+   "question": "What are the required p95 and p99 latency targets for prescription issuance (DRAFT -> ISSUED) and for the API endpoints handling prescription retrieval?",
+   "grounding": [
+    "API / backend microservice concerns: latency SLOs (p95/p99) and throughput (req/s) targets per endpoint",
+    "Time behaviour (iso-25010:2023)"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Defined RTO/RPO and Backup Strategy",
+   "severity": "critical",
+   "detail": "The system mandates data integrity and auditability, but lacks explicit Recovery Time Objective (RTO) and Recovery Point Objective (RPO) metrics, nor does it specify the backup frequency, retention, or disaster recovery (DR) strategy across zones/regions.",
+   "question": "What are the required RTO (time to restore service) and RPO (maximum acceptable data loss) for the system, and what is the defined backup/DR strategy?",
+   "grounding": [
+    "Recoverability (iso-25010:2023)",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Data Residency and Sovereignty Enforcement",
+   "severity": "critical",
+   "detail": "The problem statement implies a regulated medical domain, which often mandates data residency (e.g., data must stay within the EU or specific country). While the architecture mentions PostgreSQL, there is no requirement specifying *where* the data must reside or how the system enforces tenant-specific residency constraints.",
+   "question": "Are there specific geographic or jurisdictional data residency requirements (e.g., EU, US state) that must be enforced for data storage and processing?",
+   "grounding": [
+    "Data sovereignty / residency",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Geopolitical/Data Routing Constraints",
+   "severity": "critical",
+   "detail": "The problem statement mentions operating in a 'regulated medical domain' and requires ICP-Brasil signing, implying strict data residency and sovereignty requirements. There is no mention of constraints regarding where data (especially patient/prescription data) can be stored or routed (e.g., GDPR, HIPAA, local health authority mandates).",
+   "question": "Are there specific geopolitical restrictions (e.g., data residency requirements, sanctions compliance, required data routing paths) that dictate where patient or prescription data must be stored or processed?",
+   "grounding": [
+    "geopolitical restrictions (data routing, sanctions)"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "Economic/Health/Environmental Risk Mitigation",
+   "severity": "critical",
+   "detail": "The system is medical, making health and economic risks paramount. While data integrity is covered, there is no explicit requirement detailing how the system mitigates risks related to incorrect medical advice, data breaches impacting patient health, or financial/legal risks associated with prescription errors.",
+   "question": "What specific risk mitigation strategies are required for clinical errors (e.g., drug interaction checks, dosage validation) or data breaches that could directly harm patient health or violate medical regulations?",
+   "grounding": [
+    "iso-25019:2023 (Freedom from risk - Health)",
+    "Domain Questions (Are risks to users considered?)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Precision of Clinical Data/Results",
+   "severity": "high",
+   "detail": "The requirements specify that a snapshot of the clinical content is generated upon issuance (30, 36), but they do not define the required precision, format, or validation rules for the *content* itself (e.g., dosage units, frequency, specific medical terminology standards) that must be captured or validated during the DRAFT phase.",
+   "question": "What are the required precision levels and validation constraints for the clinical data (medication details, dosage, frequency, etc.) entered by the doctor during the DRAFT phase?",
+   "grounding": [
+    "Functional correctness (iso-25010:2023)",
+    "Functional requirements (volere)"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Error/Exception Contract for State Transitions",
+   "severity": "high",
+   "detail": "While state transitions (DRAFT -> ISSUED) are mentioned (26, 188), the requirements lack a comprehensive specification of *all* possible failure modes, guards, and resulting error states for critical transitions (e.g., what happens if a required specialty is deactivated *after* a prescription is in DRAFT but *before* issuance? What if the signing key is revoked mid-process?).",
+   "question": "For the prescription lifecycle (DRAFT, ISSUED, CANCELLED), what are the defined error/exception behaviors and resulting states for all invalid transitions or failures (e.g., signature failure, data integrity breach)?",
+   "grounding": [
+    "State-machine correctness: valid transitions, guards, reopen/rollback, and exception paths",
+    "Functional suitability & capability completeness"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Data Quality - Consistency for Relationships",
+   "severity": "high",
+   "detail": "The system relies heavily on relationships (e.g., Doctor -> Specialty -> Prescription). While integrity is enforced via application logic (e.g., 154), there is no explicit requirement defining how consistency is maintained across distributed/cached views or how data conflicts are resolved if multiple services/modules interact with the same core data.",
+   "question": "What is the defined consistency model (e.g., strong, eventual) for cross-module data reads, especially when using caching (Redis)?",
+   "grounding": [
+    "API / backend microservice concerns: data consistency model (strong vs eventual)",
+    "Enterprise / line-of-business system concerns: transactional consistency"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Data Retention and Archival Policy",
+   "severity": "high",
+   "detail": "The scope explicitly states 'no hard deletes' and mentions auditability, but it lacks any defined rules for data retention (how long data must be kept) or archival (when/how data moves from active storage to long-term/cold storage).",
+   "question": "What are the defined retention periods for Prescriptions, User records, and Audit Logs, and what is the process for archival?",
+   "grounding": [
+    "Web / SaaS application concerns: retention, export, and deletion",
+    "Domain Concerns: retention, archival, deletion"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Data Lineage/Provenance for Prescription Content",
+   "severity": "high",
+   "detail": "Requirement 30 mandates a snapshot, which is good for immutability. However, lineage requires tracking *where* the data came from (source system/user/time) for the snapshot components (Specialty Name, Medication Name). The current requirements only state the snapshot is generated, not how its provenance is tracked.",
+   "question": "For the immutable prescription snapshot, what metadata must be captured to trace the exact version/ID of the Specialty and Medication used at the time of issuance?",
+   "grounding": [
+    "Domain Concerns: lineage / provenance / master-data ownership",
+    "Enterprise / line-of-business system concerns: effective-dated records, temporal/bitemporal history"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Capacity Limits and Throughput Targets",
+   "severity": "high",
+   "detail": "While pagination is mentioned (Req 97), there are no specified capacity limits (e.g., max concurrent prescriptions, max users, max transactions per second) that define the system's operational ceiling.",
+   "question": "What is the expected peak throughput (transactions/second) the system must sustain, and what are the defined capacity limits for concurrent users or active prescriptions?",
+   "grounding": [
+    "Capacity limits & headroom",
+    "Web / SaaS application concerns: throughput"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Load Shedding and Overload Behavior",
+   "severity": "high",
+   "detail": "The system is complex and regulated. Under extreme load, there is no defined behavior for overload (e.g., rate limiting, graceful degradation, queueing, or explicit load shedding mechanisms) beyond basic rate limiting implied by API design.",
+   "question": "What is the defined behavior when the system exceeds its designed capacity (e.g., implementing rate limiting, returning 429s with Retry-After, or shedding non-critical load)?",
+   "grounding": [
+    "API / backend microservice concerns: rate limiting / throttling and quota enforcement per client (429 + Retry-After), plus load-shedding under overload"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Explicit Availability SLO/SLA Definition",
+   "severity": "high",
+   "detail": "While the system must be operational, there is no stated Service Level Objective (SLO) or Service Level Agreement (SLA) for uptime or response time, which is critical for a regulated medical application.",
+   "question": "What is the required uptime percentage (e.g., 99.9%) and the acceptable latency for critical operations (e.g., prescription issuance)?",
+   "grounding": [
+    "Availability (iso-25010:2023)",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Dependency Failure Behavior Specification",
+   "severity": "high",
+   "detail": "The requirements mention caching (Redis) and dependency lookups, but do not specify the required behavior (e.g., timeout, circuit breaking, fallback) when a critical dependency (like PostgreSQL, external identity provider, or ICP-Brasil service) fails or becomes slow.",
+   "question": "What are the defined timeout, retry policy (e.g., exponential backoff), and fallback/degradation strategy when external services or database connections fail?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "Fault tolerance (iso-25010:2023)"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Specific Encryption Requirements",
+   "severity": "high",
+   "detail": "While data at rest is implied by PostgreSQL, specific requirements for encrypting sensitive PII/PHI (e.g., patient medical data, prescription content) at rest, beyond standard DB encryption, are missing. Confidentiality requires explicit scoping.",
+   "question": "Are there specific data fields (e.g., patient identifiers, prescription details) that require field-level encryption at rest, beyond standard database security?",
+   "grounding": [
+    "Confidentiality (iso-25010:2023)",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Input Validation Scope",
+   "severity": "high",
+   "detail": "The requirements mention input validation (Req 73), but they do not specify *what* OWASP Top 10 threats must be mitigated across all input vectors (e.g., XSS on profile fields, SQLi on catalog lookups, injection in appointment notes).",
+   "question": "Are there explicit requirements detailing input validation rules (e.g., regex, length limits, sanitization context) for all user-controllable inputs, especially those interacting with the database or rendered in the UI?",
+   "grounding": [
+    "Integrity (iso-25010:2023)",
+    "V1 Encoding and Sanitization (owasp-asvs)",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Authorization Granularity (BOLA/IDOR)",
+   "severity": "high",
+   "detail": "While ownership checks are mentioned (Req 194), the requirements lack explicit, comprehensive protection against Broken Object Level Authorization (BOLA/IDOR) for all resources, especially when accessing data via public/temporary links (Req 43, 210).",
+   "question": "Are there explicit requirements ensuring that all data retrieval endpoints (e.g., GET /prescriptions/:id, download links) strictly enforce authorization checks against the requesting user's identity/scope, even when the request appears 'public'?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "Confidentiality (iso-25010:2023)"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Explicit Hazard Identification and Risk Analysis",
+   "severity": "high",
+   "detail": "The requirements focus heavily on functional correctness, data integrity, and access control, but do not explicitly mandate a formal Hazard Identification and Risk Analysis (HIRA) process or the documentation of identified hazards (e.g., data breach risk, incorrect dosage risk, system unavailability risk).",
+   "question": "Has a formal Hazard Identification and Risk Analysis (HIRA) been performed, and are the resulting identified hazards and their required mitigations documented as specific safety requirements?",
+   "grounding": [
+    "Risk identification (iso-25010:2023)",
+    "SRS: safety requirements (29148:2018)"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Definition of System-Wide Safe State",
+   "severity": "high",
+   "detail": "While state transitions exist (DRAFT -> ISSUED), there is no explicit definition of the system's 'safe state' when a critical failure occurs (e.g., database connection loss during prescription issuance, loss of ICP-Brasil signing service).",
+   "question": "What is the defined safe state for the system when a critical dependency (e.g., database, signing service) fails during a high-risk operation like prescription issuance?",
+   "grounding": [
+    "Fail safe (iso-25010:2023)",
+    "SRS: safety requirements (29148:2018)"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Explicit API Versioning Strategy",
+   "severity": "high",
+   "detail": "The requirements specify endpoints and Swagger documentation (103, 118, 122, 144, 178, 199, 206, 217, 226), but there is no explicit definition of the API versioning strategy (e.g., URI versioning, header versioning) or a formal deprecation/sunset policy for evolving contracts.",
+   "question": "What is the defined API versioning strategy (e.g., /v1/resource) and what is the policy for deprecating older versions?",
+   "grounding": [
+    "API / backend microservice concerns: versioning strategy (URI/header/media-type) and deprecation/sunset policy with timelines"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Canonical Data Exchange Format Specification",
+   "severity": "high",
+   "detail": "While the system uses structured data (JSON/Protobuf implied by API context) and generates PDFs, the canonical exchange format for core entities (User, Prescription, Medication, Specialty) used *between* services or for external integration (beyond the immediate API request/response) is not formally specified, which is crucial for interoperability.",
+   "question": "Are there canonical data models or schemas (e.g., JSON Schema, Protobuf definitions) defined for the primary entities (Prescription, User, Medication) that govern data exchange across the system boundaries?",
+   "grounding": [
+    "API / backend microservice concerns: API contract definition (OpenAPI/JSON Schema/Protobuf/GraphQL SDL) as the source of truth",
+    "Enterprise / line-of-business system concerns: canonical exchange formats and versioned contracts"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "User Error Prevention in Complex Workflows",
+   "severity": "high",
+   "detail": "While 'no hard delete' is specified, the requirements lack explicit safeguards for complex, irreversible business actions *other* than deletion (e.g., final submission of a prescription, critical data entry errors in catalog management).",
+   "question": "For critical, non-destructive actions (like finalizing a prescription or approving a specialty assignment), are there specific confirmation steps, undo mechanisms, or mandatory review stages required to prevent accidental commitment?",
+   "grounding": [
+    "User error protection (iso-25010:2023)",
+    "Enterprise / line-of-business system concerns: error prevention on complex forms"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "WCAG Conformance Level",
+   "severity": "high",
+   "detail": "The problem statement and requirements focus heavily on medical compliance (ICP-Brasil, data integrity) but do not specify any required WCAG conformance level (A, AA, AAA) for the user interface.",
+   "question": "What specific WCAG conformance level (e.g., 2.2 AA) must the application meet?",
+   "grounding": [
+    "Conformance level (A / AA / AAA) (wcag-2.2)"
+   ],
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization"
+  },
+  {
+   "title": "Assistive Technology Support",
+   "severity": "high",
+   "detail": "There is no explicit requirement or mention of supporting specific assistive technologies (e.g., screen readers, keyboard-only navigation) beyond general UI functionality.",
+   "question": "Are there specific requirements regarding keyboard navigation, ARIA roles, or screen reader compatibility for the application?",
+   "grounding": [
+    "Operable (wcag-2.2)",
+    "Assistive-technology support"
+   ],
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization"
+  },
+  {
+   "title": "Specific Observability Requirements (Metrics/Tracing)",
+   "severity": "high",
+   "detail": "While the system has complex workflows (prescription lifecycle, scheduling), there are no explicit requirements for monitoring operational health, such as RED/USE metrics (Rate, Errors, Duration) or distributed tracing (e.g., OpenTelemetry) across service boundaries, which is critical for a regulated system.",
+   "question": "Are there specific requirements for instrumenting key business processes (e.g., prescription issuance, appointment booking) with metrics (latency, throughput) and distributed tracing to allow operations teams to diagnose issues?",
+   "grounding": [
+    "API / backend microservice concerns: observability: structured logs, RED/USE metrics, and distributed tracing (OpenTelemetry) with trace/correlation propagation",
+    "Web / SaaS application concerns: structured logging/metrics/tracing"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Target Platform Specification",
+   "severity": "high",
+   "detail": "The requirements specify PostgreSQL as the source of truth (Constraint), but do not specify the target operating systems, cloud environments, or containerization strategy (e.g., Docker, Kubernetes) needed for deployment portability.",
+   "question": "What are the required target environments (OS, Cloud Provider, Container Runtime) for deployment?",
+   "grounding": [
+    "SRS portability (29148:2018)",
+    "Adaptability (iso-25010:2023)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Installation/Upgrade/Rollback Procedures",
+   "severity": "high",
+   "detail": "While migrations are mentioned (258, 260), the requirements lack explicit, defined procedures for the *installation* process (e.g., prerequisites, setup steps) and detailed, tested rollback strategies beyond 'no data loss' (90).",
+   "question": "What are the step-by-step installation and upgrade procedures, including defined rollback plans for major version changes?",
+   "grounding": [
+    "Installability (iso-25010:2023)",
+    "SRS portability (29148:2018)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Runtime Monitoring and Alerting",
+   "severity": "high",
+   "detail": "The requirements specify operational readiness (graceful shutdown, migrations) but lack any explicit requirements for runtime monitoring (metrics collection, logging standards, health checks beyond basic API functionality) or alerting mechanisms (SLOs, error budget monitoring).",
+   "question": "What specific metrics (e.g., request latency, error rates, resource utilization) must be exposed, and what alerting thresholds must be configured for production environments?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "SRS: operational / environmental (29148:2018)"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Disaster Recovery and Backup Strategy",
+   "severity": "high",
+   "detail": "The system relies on PostgreSQL and Redis, but there are no requirements detailing backup frequency, recovery point objective (RPO), or recovery time objective (RTO) for data loss scenarios, which is critical for a regulated medical application.",
+   "question": "What are the required RPO and RTO for the primary data store (PostgreSQL) and cache (Redis) in case of catastrophic failure?",
+   "grounding": [
+    "SRS: operational / environmental (29148:2018)",
+    "Enterprise / line-of-business system concerns"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Specific Data Protection/PII Classification and Handling",
+   "severity": "high",
+   "detail": "The system handles medical data (prescriptions, patient info), which is highly sensitive (PHI/PII). While 'no hard delete' is specified, there is no explicit requirement detailing *how* PII is classified (e.g., Level 1, 2, 3) or what specific controls (encryption at rest/in transit, masking, pseudonymization) must be applied to PII fields, beyond the general lifecycle approach.",
+   "question": "What are the specific data classification levels for PII/PHI within the system, and what encryption/masking requirements apply to data at rest and in transit for each level?",
+   "grounding": [
+    "V14 Data Protection (owasp-asvs)",
+    "GDPR/HIPAA"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Data Subject Access Request (DSAR) Mechanism",
+   "severity": "high",
+   "detail": "The system supports data retention and auditability, which supports DSARs, but there is no defined workflow or mechanism to fulfill a Data Subject Access Request (e.g., providing a patient with a complete, exportable record of their data, or fulfilling the Right to Erasure/Restriction if applicable).",
+   "question": "What is the defined process and technical capability for fulfilling a Data Subject Access Request (DSAR), including data portability requirements?",
+   "grounding": [
+    "GDPR/CCPA",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Consent Management for Data Processing",
+   "severity": "high",
+   "detail": "As a medical application, explicit consent for data processing (especially for secondary uses like research or sharing) is critical under GDPR/HIPAA. The requirements focus on *transactional* consent (e.g., signing a prescription) but lack a mechanism to track and enforce granular consent for data usage.",
+   "question": "How is user consent tracked, managed, and enforced for different types of data processing activities beyond the core prescription workflow?",
+   "grounding": [
+    "GDPR/CCPA: lawful basis, consent",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Licensing Constraints",
+   "severity": "high",
+   "detail": "There is no mention of any constraints regarding the open-source licenses of third-party dependencies (e.g., for JWT libraries, PDF generation libraries, or database drivers). This is critical for compliance.",
+   "question": "Are there specific requirements regarding the licensing of any third-party libraries used (e.g., must be permissive like MIT, or must adhere to specific copyleft licenses)?",
+   "grounding": [
+    "open-source licensing limits (permissive vs copyleft)"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Organizational Policy Enforcement (Governance)",
+   "severity": "high",
+   "detail": "The requirements detail *what* the system does (e.g., Admin approves specialty), but not the *organizational policies* governing *why* or *how* these decisions are made, or how they interact with external organizational structures (e.g., internal compliance checks, required sign-offs beyond system approval).",
+   "question": "What specific organizational policies or internal control frameworks must the system enforce regarding data access, prescription issuance, or role changes that are external to the technical RBAC?",
+   "grounding": [
+    "Enterprise / line-of-business system] concerns: organizational policies and internal-control frameworks the system must enforce"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "Human Workflow Integration (Adoption/Change Management)",
+   "severity": "high",
+   "detail": "The system must fit existing human workflows. While scheduling is present, there is no explicit requirement detailing how the system supports the *transition* from old manual processes to the new digital workflow, which is crucial for adoption and managing resistance.",
+   "question": "What specific training, phased rollout, or workflow adaptation steps are required to ensure smooth adoption by existing clinical and administrative staff?",
+   "grounding": [
+    "human workflows the system must fit; change-management & stakeholder buy-in",
+    "Enterprise / line-of-business system] concerns: change management and adoption: training, phased rollout, resistance from displaced manual processes"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "User Success Metrics Definition",
+   "severity": "high",
+   "detail": "The requirements define *what* the system does, but not *how well* it performs in terms of user outcomes (Effectiveness/Efficiency). There are no defined metrics for task success rate for doctors/patients, or time-to-value for new users/tenants.",
+   "question": "What are the measurable success metrics (e.g., prescription issuance success rate, average time taken for a doctor to complete a prescription, patient satisfaction scores) that define the system's effectiveness and efficiency in the clinical workflow?",
+   "grounding": [
+    "iso-25019:2023 (Effectiveness)",
+    "Archetype Priors (task-success metrics, time-to-value)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Acceptable Effort/Time-to-Outcome Specification",
+   "severity": "high",
+   "detail": "While efficiency is a domain concern, the requirements lack any specification on acceptable performance thresholds (e.g., maximum acceptable latency for prescription generation, maximum time for a doctor to complete a workflow step).",
+   "question": "What are the Service Level Objectives (SLOs) or acceptable time limits for critical user journeys, such as prescription issuance time or appointment booking latency?",
+   "grounding": [
+    "iso-25019:2023 (Efficiency)",
+    "Archetype Priors (time-to-value)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Concurrency Control for Prescription Editing",
+   "severity": "medium",
+   "detail": "The system handles state transitions, but there is no explicit requirement defining how concurrent edits to a prescription in the DRAFT state are managed (e.g., optimistic locking, last-write-wins, or explicit locking mechanisms).",
+   "question": "How must the system handle concurrent attempts by the same doctor to edit a prescription currently in the DRAFT state?",
+   "grounding": [
+    "API / backend microservice concerns: concurrency semantics: optimistic concurrency (ETags/If-Match) and conflict handling"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Completeness of Role-Based Access Control (RBAC) Granularity",
+   "severity": "medium",
+   "detail": "RBAC is mandated (17, 94), but the requirements are heavily focused on *who* can perform an action (e.g., Admin manages specialties), rather than defining the specific *permissions* required for complex interactions, especially regarding data visibility across roles (e.g., can an Attendant view a patient's record if they are linked to the doctor, even if they can't manage the prescription?).",
+   "question": "Beyond the high-level roles (Admin, Doctor, Patient, Attendant), are there specific, granular permissions required for data access (Read/Write/View) for each role concerning specific entities (e.g., can an Attendant view the *details* of a prescription, or just the scheduling data)?",
+   "grounding": [
+    "Enterprise / line-of-business system concerns: multi-step, role-based workflows with approvals, delegation, escalation",
+    "Functional suitability & capability completeness"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Data Quality - Completeness/Accuracy for Catalog Data",
+   "severity": "medium",
+   "detail": "While catalog entities (Specialties, Medications) are managed, there are no explicit requirements defining the required completeness or accuracy of the data they hold (e.g., required fields for a Medication, valid ranges for a Specialty code).",
+   "question": "What are the mandatory fields and acceptable data formats/ranges for Medications and Specialties?",
+   "grounding": [
+    "Enterprise / line-of-business system concerns: data quality dimensions (accuracy, completeness)"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Master Data Ownership and Stewardship",
+   "severity": "medium",
+   "detail": "The system defines who *can* manage data (Admin for Catalog, Doctor for own profile), but it lacks formal definition of 'Master Data Ownership' or 'Data Stewardship' for the core entities (e.g., who is the ultimate owner/steward of the Medication catalog data, even if Admin manages it).",
+   "question": "Who is designated as the data steward or owner for the Medication and Specialty catalogs, beyond just the administrative role?",
+   "grounding": [
+    "Domain Concerns: master-data ownership",
+    "Enterprise / line-of-business system concerns: master-data management, golden records, deduplication, and ownership/stewardship"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Resource Utilization Ceilings",
+   "severity": "medium",
+   "detail": "The requirements mention PostgreSQL and Redis usage, but there are no specified ceilings on resource consumption (e.g., maximum memory footprint per service instance, maximum database connection pool size, or acceptable CPU utilization under load).",
+   "question": "Are there defined ceilings for resource utilization (CPU, Memory, DB connections) that the deployed services must adhere to?",
+   "grounding": [
+    "Resource utilisation (iso-25010:2023)",
+    "API / backend microservice concerns: resource ceilings & pooling"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Horizontal Scaling Strategy Definition",
+   "severity": "medium",
+   "detail": "The architecture implies microservices/modules (Req 64, 65), suggesting horizontal scaling is possible, but the requirements do not specify *how* the system should scale (e.g., statelessness guarantees, required autoscaling triggers, or target scaling factor).",
+   "question": "What is the defined horizontal scaling strategy (e.g., statelessness requirements, target utilization thresholds for autoscaling)?",
+   "grounding": [
+    "Scalability / elasticity under load and growth",
+    "API / backend microservice concerns: horizontal scalability and statelessness"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Idempotency Guarantee for State Transitions",
+   "severity": "medium",
+   "detail": "Operations like 'Issue' or 'Cancel' are critical state changes. While transactional integrity is implied, there is no explicit requirement guaranteeing that re-issuing or re-sending a request (due to network retry) will not result in duplicate prescriptions or incorrect state transitions.",
+   "question": "Are all mutating operations (e.g., IssuePrescription, CancelPrescription) guaranteed to be idempotent, and if so, how are idempotency keys managed?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "Enterprise / line-of-business system concerns"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Session Management & MFA",
+   "severity": "medium",
+   "detail": "The system handles sessions (Req 140, 141) and authentication (Req 142), but there is no mention of Multi-Factor Authentication (MFA) or specific session fixation/hijacking countermeasures beyond standard JWT usage.",
+   "question": "Is Multi-Factor Authentication (MFA) required for users with login capabilities (Admin, Doctor, Attendant)?",
+   "grounding": [
+    "Web / SaaS application concerns",
+    "Authentication & Authorization (identity, permissions, sessions)"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Audit Logging Detail",
+   "severity": "medium",
+   "detail": "Audit logging is mentioned (Req 32), but the requirements do not specify *what* security-relevant events must be logged (e.g., failed logins, permission changes, critical state transitions like prescription issuance/cancellation, key management operations).",
+   "question": "What specific security-relevant events (e.g., role changes, failed authorization attempts, key rotation, prescription state changes) must be captured in the audit log, and what level of detail (who, what, when, why) is required?",
+   "grounding": [
+    "Accountability & Non-repudiation (audit logging)",
+    "Enterprise / line-of-business system concerns"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Key Management Lifecycle",
+   "severity": "medium",
+   "detail": "Keys are stored (Req 38, 91), and signing is required (Req 37). However, there are no requirements for key rotation, revocation, or secure destruction/archival of private keys, which is critical for long-term compliance.",
+   "question": "Are there defined procedures or requirements for the rotation, revocation, and secure lifecycle management of the private signing keys (A1/A3) used for ICP-Brasil signatures?",
+   "grounding": [
+    "secrets, key management, dependency/supply-chain security",
+    "API / backend microservice concerns"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Specification of Operational Hazard Warnings",
+   "severity": "medium",
+   "detail": "The requirements specify operational constraints (e.g., only DRAFT can be edited), but they lack explicit requirements for *warnings* presented to the operator (Doctor/Attendant) when they approach an unacceptable risk state or violate a constraint.",
+   "question": "Are there specific requirements detailing when and how the system must issue a warning to the operator regarding an impending operational hazard or constraint violation (beyond standard error codes)?",
+   "grounding": [
+    "Hazard warning (iso-25010:2023)",
+    "Operational constraint (iso-25010:2023)"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Safety Constraints for Integration with External Systems",
+   "severity": "medium",
+   "detail": "The system integrates with ICP-Brasil for signing and potentially external identity providers (OAuth). The requirements do not specify safety constraints related to the failure or compromise of these external integrations.",
+   "question": "What are the safety requirements governing the system's behavior if the external ICP-Brasil signing service becomes unavailable or returns invalid credentials?",
+   "grounding": [
+    "Safe integration (iso-25010:2023)",
+    "SRS: safety requirements (29148:2018)"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Interoperability Protocol Specification (External)",
+   "severity": "medium",
+   "detail": "The system integrates with ICP-Brasil for signing (39, 92), which is an external protocol dependency. The requirements specify *that* it uses PAdES, but not the specific communication protocols, message formats, or expected handshake/exchange mechanisms required to interact with the signing authority or external certificate services.",
+   "question": "What are the specific communication protocols, message formats, and interface specifications required to interact with the ICP-Brasil signing service?",
+   "grounding": [
+    "DOMAIN CONCERNS: interoperability (protocols, APIs, data exchange formats)",
+    "SRS: interface requirements (29148:2018): SRS section specifying external interfaces"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Data Exchange Format Compatibility Rules",
+   "severity": "medium",
+   "detail": "The requirements mention snapshots (30, 36) and immutability, which helps with backward compatibility for prescriptions. However, there are no explicit rules defined for how data formats change when entities like Medication or Specialty are updated (e.g., if a field is added/removed/renamed in the source catalog, how does this affect existing, historical data or future state transitions?).",
+   "question": "What are the defined compatibility rules for data fields when catalog entities (Medication, Specialty) are updated, ensuring that historical records (like snapshots) remain valid against future schema changes?",
+   "grounding": [
+    "DOMAIN CONCERNS: backward/forward compatibility",
+    "API / backend microservice concerns: backward compatibility: additive-only evolution, no breaking changes to existing consumers"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Specific Learnability Targets",
+   "severity": "medium",
+   "detail": "The requirements define functionality but do not specify measurable targets for learnability (e.g., time to complete a core task, success rate for first-time users).",
+   "question": "What are the target metrics for learnability (e.g., time to complete prescription issuance for a new doctor, or success rate for a new patient viewing their prescription)?",
+   "grounding": [
+    "Learnability (iso-25010:2023)",
+    "SRS: usability requirements (29148:2018)"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "UI/UX Consistency and Aesthetics",
+   "severity": "medium",
+   "detail": "There are no requirements specifying the visual design, branding, or interaction patterns (e.g., required feedback mechanisms, visual hierarchy) necessary for a cohesive user experience.",
+   "question": "Are there specific requirements or design guidelines (e.g., style guides, color palettes, required component libraries) that define the look-and-feel and interaction consistency across the application?",
+   "grounding": [
+    "Look and feel requirements (volere)",
+    "UI aesthetics / look-and-feel expectations"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "Discoverability of Infrequent Critical Operations",
+   "severity": "medium",
+   "detail": "Given the complexity (roles, lifecycle states, scheduling), there is no explicit requirement ensuring that infrequent but critical functions (like administrative deactivation or specific audit trail viewing) are easily discoverable by the relevant user roles.",
+   "question": "How will the system ensure that less frequently used, but critical, administrative or compliance functions are discoverable by the appropriate roles (Admin, Doctor)?",
+   "grounding": [
+    "Discoverability of infrequent but critical operations across a large feature surface",
+    "User assistance (iso-25010:2023)"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "Internationalization Scope",
+   "severity": "medium",
+   "detail": "The system is described as a medical application, which suggests potential international use, but there are no requirements specifying support for multiple languages, locales, or Right-to-Left (RTL) layouts.",
+   "question": "Does the application need to support multiple languages or locales, and if so, what is the required scope (e.g., language switching, date/number format localization)?",
+   "grounding": [
+    "localization / internationalization (languages, locales, RTL)",
+    "i18n/localization (languages, locales, RTL, formats)"
+   ],
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization"
+  },
+  {
+   "title": "Test Coverage Granularity",
+   "severity": "medium",
+   "detail": "Requirement 243 mandates running tests, but there is no specification on the required level of automated test coverage (e.g., unit, integration, contract coverage) or the role of CI gates in enforcing this coverage, which is vital for maintainability.",
+   "question": "What is the required automated test coverage percentage, and are there specific requirements for integration or contract testing (e.g., between modules or external services like ICP-Brasil)?",
+   "grounding": [
+    "Web / SaaS application concerns: automated test coverage and CI gates",
+    "API / backend microservice concerns: automated test strategy: unit, integration, and consumer-driven contract tests as CI gates"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Architectural Boundary Definition for Independent Change",
+   "severity": "medium",
+   "detail": "The requirements mention modularity (64, 65, 68, 84), but they lack explicit constraints defining the boundaries between core domains (e.g., Prescription vs. Scheduling vs. Identity) to ensure that a change in one module does not necessitate changes in others unnecessarily (Modularity/Analysability).",
+   "question": "Are there explicit architectural constraints defining the boundaries between the core domains (e.g., Prescription, Scheduling, Identity) to ensure high cohesion and low coupling, allowing independent evolution?",
+   "grounding": [
+    "Modularity (iso-25010:2023): Composed of discrete components such that a change to one has minimal impact on others.",
+    "API / backend microservice concerns: modular bounded-context design and clear API/domain separation"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Configurability for Business Policy Evolution",
+   "severity": "medium",
+   "detail": "The system is highly regulated and deals with evolving business policies (e.g., eligibility rules, workflow states). The requirements heavily rely on code changes (e.g., adding new statuses, changing approval logic) rather than configuration, which impacts long-term maintainability in a business context.",
+   "question": "For evolving business policies (e.g., eligibility criteria, prescription workflow rules), is there a requirement for configuration-over-code capability to allow changes without redeploying the application?",
+   "grounding": [
+    "Enterprise / line-of-business system concerns: configurability without code change (workflows, rules, forms, reports) for evolving business policy"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Packaging Definition",
+   "severity": "medium",
+   "detail": "The requirements mention build/test targets (244, 260) but do not specify the artifact packaging format (e.g., Dockerfile, Helm chart, binary distribution package) required for deployment.",
+   "question": "What is the required deployment artifact format (e.g., Docker image, binary package) and what are its build specifications?",
+   "grounding": [
+    "Installability (iso-25010:2023)",
+    "SRS portability (29148:2018)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Capacity and Load Testing Requirements",
+   "severity": "medium",
+   "detail": "While capacity/cost operations are a domain concern, the requirements do not specify expected load profiles, throughput targets, or performance benchmarks needed to validate the system's operational capacity under expected medical usage.",
+   "question": "What are the expected peak concurrent user loads, transaction rates (e.g., prescriptions/hour), and latency targets for critical paths (e.g., prescription issuance)?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Environment Configuration Promotion Strategy",
+   "severity": "medium",
+   "detail": "The requirements mention configuration via environment variables (95), but they do not specify the process or validation steps for promoting configuration/secrets from development/testing environments to production, which is crucial for regulated systems.",
+   "question": "What is the defined process for validating and promoting configuration parameters and secrets across different deployment environments (Dev -> Staging -> Prod)?",
+   "grounding": [
+    "Enterprise / line-of-business system concerns",
+    "Volere type 13"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Offline/Intermittent Connectivity Handling",
+   "severity": "medium",
+   "detail": "The domain concerns include intermittent connectivity. Since this is a web/API system, it is unclear how the system is expected to behave if network connectivity to external services (like ICP-Brasil signing authority or external identity providers) is temporarily lost.",
+   "question": "How must the system behave or queue operations if external dependencies (e.g., signing service, external identity provider) become temporarily unavailable due to network issues?",
+   "grounding": [
+    "Volere type 13",
+    "SRS: operational / environmental (29148:2018)"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Legal Hold and Defensible Deletion Policy",
+   "severity": "medium",
+   "detail": "The system prohibits hard deletes and maintains audit trails, which is good for compliance. However, for regulatory compliance (e.g., litigation), there must be a mechanism to place specific records under a 'Legal Hold' to prevent their deletion or modification, even if their standard retention period has passed.",
+   "question": "Is there a mechanism to place specific records or data sets under a 'Legal Hold' to prevent deletion or modification pending legal review?",
+   "grounding": [
+    "Enterprise / line-of-business system concerns",
+    "Records-retention schedules and legal hold"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Specific Technology Stack Mandates",
+   "severity": "medium",
+   "detail": "While PostgreSQL is specified (254), the requirements do not mandate the specific language (Go is implied by patterns like 'chi.Router' and file structure) or specific frameworks beyond the database. The domain requires mandated technology stack definition.",
+   "question": "Is the technology stack strictly limited to Go and PostgreSQL, or are other languages/frameworks permissible?",
+   "grounding": [
+    "SRS: design constraints (29148:2018)",
+    "Mandated technology stack (languages, frameworks, servers)"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Budget and Schedule Constraints",
+   "severity": "medium",
+   "detail": "The problem statement and requirements are entirely functional/technical. There are no explicit requirements capturing budget ceilings or hard delivery timelines/milestones, which are core components of project constraints.",
+   "question": "Are there defined budget ceilings or mandatory project milestones that the system must adhere to?",
+   "grounding": [
+    "budget & cost ceilings",
+    "schedule / timeline / milestone constraints",
+    "Project constraints (volere)"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Cross-Departmental Governance Ownership",
+   "severity": "medium",
+   "detail": "The system manages data across multiple functional areas (Users, Specialties, Prescriptions, Scheduling). The requirements lack explicit definition of which department/role owns the ultimate governance or data quality for shared entities (e.g., who owns the master data integrity for a Medication across different specialties).",
+   "question": "How is cross-departmental ownership and accountability defined for shared data entities (e.g., Medications, Specialties) when multiple organizational units interact with them?",
+   "grounding": [
+    "Enterprise / line-of-business system] concerns: cross-departmental governance and ownership of shared data/processes"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "Context Completeness for Use",
+   "severity": "medium",
+   "detail": "The context is defined as 'regulated medical domain.' The requirements focus heavily on the *system* capabilities but do not explicitly define the boundaries of the *intended context of use* (e.g., what happens if the doctor is offline, or if the patient is in an emergency setting).",
+   "question": "What are the defined operational contexts of use (e.g., in-clinic, remote consultation, emergency) and how must the system maintain quality-in-use across these different contexts?",
+   "grounding": [
+    "iso-25019:2023 (Context coverage)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Responsive Design and Cross-Browser Support",
+   "severity": "low",
+   "detail": "As a Web/SaaS application, responsiveness across different viewports and browsers is a standard expectation that is not explicitly mentioned.",
+   "question": "Are there requirements specifying responsive design breakpoints or required compatibility with specific browsers/viewports?",
+   "grounding": [
+    "Web / SaaS application concerns: responsive UI across viewports and browsers"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "Replaceability Definition",
+   "severity": "low",
+   "detail": "Replaceability is mentioned in the domain concerns, but no specific requirements define how the system must interface with or replace another system (e.g., API contracts, data migration compatibility) if it were to substitute an existing medical system.",
+   "question": "Are there any defined interfaces or data compatibility requirements necessary for this system to replace an existing medical system?",
+   "grounding": [
+    "Replaceability (iso-25010:2023)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  }
+ ],
+ "summary": {
+  "partial": 16
+ },
+ "enrichments": [
+  {
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness",
+   "text": "Define clear Service Level Agreements (SLAs) for critical processes, such as prescription issuance time or document delivery time, especially given the regulated medical domain."
+  },
+  {
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness",
+   "text": "Specify the exact mechanism and required data for 'Escalation' when a prescription workflow stalls or requires higher-level review (e.g., if an Admin approval is pending for too long)."
+  },
+  {
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness",
+   "text": "Detail the requirements for data integrity checks during the snapshot process to ensure that the captured state accurately reflects the business rules at the moment of issuance, even if underlying catalog data changes immediately after."
+  },
+  {
+   "domain": "data",
+   "domain_name": "Data & information",
+   "text": "Consider defining a formal data dictionary or glossary for key terms like 'Active Doctor,' 'Approved Specialty,' and 'Issued Prescription' to ensure consistent interpretation across modules."
+  },
+  {
+   "domain": "data",
+   "domain_name": "Data & information",
+   "text": "Given the regulated medical domain, explicitly define requirements for data export capabilities (e.g., for regulatory audits or patient requests), beyond just the prescription download link."
+  },
+  {
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity",
+   "text": "Define specific Service Level Objectives (SLOs) for the critical path: Prescription Issuance (Draft -> Issued) latency and success rate."
+  },
+  {
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity",
+   "text": "Specify the required concurrency level (e.g., number of concurrent users or active prescriptions) the system must support at peak load."
+  },
+  {
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity",
+   "text": "Detail the mechanism and thresholds for rate limiting/throttling on public and authenticated endpoints."
+  },
+  {
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience",
+   "text": "Given the regulated medical domain, the system should explicitly define requirements for data lineage and audit trails that survive system failures, ensuring that the state restoration process can reconstruct the exact sequence of events leading to a prescription's final state."
+  },
+  {
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience",
+   "text": "Consider defining a 'Disaster Recovery' strategy that specifies failover procedures between geographic zones, as this is crucial for maintaining availability in a critical healthcare context."
+  },
+  {
+   "domain": "security",
+   "domain_name": "Security",
+   "text": "Given the regulated medical domain, consider adding requirements for data residency and compliance with specific regional health data regulations (e.g., HIPAA, GDPR, LGPD) if applicable to the deployment geography."
+  },
+  {
+   "domain": "security",
+   "domain_name": "Security",
+   "text": "Since prescriptions are legally binding, consider requirements for data integrity checks *after* issuance, such as cryptographic verification of the signed PDF against the stored snapshot to prove non-tampering over time."
+  },
+  {
+   "domain": "safety",
+   "domain_name": "Safety",
+   "text": "Consider defining a specific 'Audit Trail Integrity' requirement that goes beyond simple logging, ensuring that the audit trail itself cannot be tampered with or selectively removed, which is crucial for medical/legal compliance."
+  },
+  {
+   "domain": "safety",
+   "domain_name": "Safety",
+   "text": "Given the regulated nature, consider adding requirements for data residency and jurisdictional compliance related to where patient/prescription data is stored and processed."
+  },
+  {
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability",
+   "text": "Consider defining a formal integration contract/schema for the data exchange between the Prescription module and the Catalog modules (Specialty/Medication) to ensure that the snapshotting process (30, 91) is robust against future catalog changes."
+  },
+  {
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability",
+   "text": "Given the regulatory nature, explicitly define the required audit trail structure for *all* state transitions (e.g., DRAFT -> ISSUED, pending -> approved) to meet regulatory standards beyond simple 'auditability'."
+  },
+  {
+   "domain": "usability",
+   "domain_name": "Usability & interaction",
+   "text": "Consider defining specific performance targets for high-throughput data entry (e.g., bulk editing efficiency if that feature is expanded) to meet expert power user expectations."
+  },
+  {
+   "domain": "usability",
+   "domain_name": "Usability & interaction",
+   "text": "Explicitly define the required feedback mechanisms for state transitions (e.g., what visual/audible feedback must accompany a successful prescription issuance or a failed API call)."
+  },
+  {
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization",
+   "text": "Given the regulated medical domain, consider adding requirements for language/locale support to accommodate international clinical practices or multi-national operations."
+  },
+  {
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization",
+   "text": "Explicitly define the required WCAG conformance level (e.g., WCAG 2.2 AA) as a baseline for all user-facing interfaces."
+  },
+  {
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability",
+   "text": "Given the regulated medical domain, explicitly define requirements for data retention policies beyond 'no hard delete' (e.g., minimum archival periods for prescriptions and audit logs to meet regulatory compliance)."
+  },
+  {
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability",
+   "text": "Specify requirements for dependency injection mechanisms to support easy swapping of external services (e.g., ICP-Brasil signing service, Email service) to improve testability and modularity."
+  },
+  {
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability",
+   "text": "Define clear versioning strategies for APIs and data schemas (e.g., API versioning, database schema evolution strategy beyond simple migrations) to support long service life."
+  },
+  {
+   "domain": "portability",
+   "domain_name": "Portability & deployment",
+   "text": "Specify the required deployment model (e.g., Kubernetes deployment, VM deployment, Serverless) to fully address the 'deployment model' concern."
+  },
+  {
+   "domain": "portability",
+   "domain_name": "Portability & deployment",
+   "text": "Define environment-specific configuration profiles (e.g., DEV, STAGING, PROD) and how configuration changes affect portability between them."
+  },
+  {
+   "domain": "operational",
+   "domain_name": "Operational & environmental",
+   "text": "Given the regulated medical domain, explicit requirements for audit logging (who, what, when, why) for *every* state transition (especially prescription lifecycle and role changes) should be formalized beyond just 'auditability'."
+  },
+  {
+   "domain": "operational",
+   "domain_name": "Operational & environmental",
+   "text": "Consider defining specific requirements for data residency and geographical compliance, given the sensitive nature of medical data."
+  },
+  {
+   "domain": "operational",
+   "domain_name": "Operational & environmental",
+   "text": "Since ICP-Brasil is involved, requirements for key rotation, certificate expiration handling, and secure storage/retrieval of private keys should be detailed."
+  },
+  {
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy",
+   "text": "The problem statement should explicitly define the regulatory scope (e.g., 'Must comply with HIPAA for US patient data and GDPR for EU patient data')."
+  },
+  {
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy",
+   "text": "Consider adding requirements for data breach notification procedures, as this is a core regulatory obligation in medical/privacy domains."
+  },
+  {
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy",
+   "text": "Specify requirements for data minimization: ensuring that only the minimum necessary data required for the stated purpose (prescription issuance) is collected and retained."
+  },
+  {
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions",
+   "text": "Given the regulated medical domain and ICP-Brasil requirement, the problem statement should explicitly mandate compliance with relevant national health data security standards (e.g., LGPD in Brazil, or equivalent regional standards) beyond just data integrity."
+  },
+  {
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions",
+   "text": "The system should define requirements for disaster recovery (RTO/RPO) given the critical nature of medical records."
+  },
+  {
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational",
+   "text": "Consider defining specific data retention policies beyond 'no hard delete' to meet regulatory archival requirements (e.g., 'Prescriptions must be retained for X years after patient discharge')."
+  },
+  {
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational",
+   "text": "Explicitly model the process for auditing *why* a doctor's specialty approval was granted or denied, linking it to the organizational approval workflow."
+  },
+  {
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational",
+   "text": "Define the required level of integration or synchronization with external national/regional health registries or e-prescribing networks, if applicable."
+  },
+  {
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes",
+   "text": "The problem statement should explicitly define the required clinical validation checks (e.g., drug-drug interaction checks, contraindication checks) that the system must perform to ensure effectiveness and freedom from health risk."
+  },
+  {
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes",
+   "text": "Define specific SLAs for system availability and response times, as this directly relates to efficiency and user trust in a critical medical application."
+  }
+ ],
+ "synthesis": {
+  "overall_coverage": "partial",
+  "confidence": "medium",
+  "headline": "Critical gaps exist across data governance, system resilience, and core operational performance.",
+  "top_priorities": [
+   {
+    "title": "Data Residency, Sovereignty, and PII Handling",
+    "severity": "critical",
+    "domains": [
+     "legal-privacy",
+     "cultural-political"
+    ],
+    "why": "These requirements are foundational for legal compliance and geopolitical acceptance, making them blocking risks.",
+    "question": "Are data residency, sovereignty, and PII handling requirements fully defined and enforceable across all operational boundaries?"
+   },
+   {
+    "title": "System Resilience and Disaster Recovery",
+    "severity": "critical",
+    "domains": [
+     "reliability",
+     "operational"
+    ],
+    "why": "Defining RTO/RPO, backup strategies, and dependency failure behavior is essential for system uptime and business continuity.",
+    "question": "Are explicit RTO/RPO targets and comprehensive dependency failure handling strategies defined for the system?"
+   },
+   {
+    "title": "Core Performance and Scalability SLOs",
+    "severity": "critical",
+    "domains": [
+     "performance"
+    ],
+    "why": "Lack of quantified SLOs for latency/throughput makes it impossible to validate system fitness for purpose under load.",
+    "question": "Are quantified SLOs established for all core operational latency and throughput metrics?"
+   },
+   {
+    "title": "Safety and Hazard Mitigation",
+    "severity": "high",
+    "domains": [
+     "safety"
+    ],
+    "why": "Safety requirements are non-negotiable; undefined hazard analysis or safe state definitions pose direct risk to users/patients.",
+    "question": "Has a complete hazard identification and risk analysis been performed, and is a system-wide safe state defined?"
+   },
+   {
+    "title": "Security Posture (Auth, Encryption, Validation)",
+    "severity": "high",
+    "domains": [
+     "security"
+    ],
+    "why": "Gaps in authorization granularity (BOLA/IDOR), input validation, and specific encryption requirements represent immediate security vulnerabilities.",
+    "question": "Are granular authorization controls, comprehensive input validation scopes, and specific encryption requirements documented?"
+   },
+   {
+    "title": "Clinical Data Integrity and Lineage",
+    "severity": "high",
+    "domains": [
+     "functional",
+     "data"
+    ],
+    "why": "The precision and provenance of clinical data are central to the system's core function and regulatory acceptance.",
+    "question": "Is the precision of clinical data defined, and is full lineage/provenance tracked for prescription content?"
+   },
+   {
+    "title": "Geopolitical and Cultural Constraints",
+    "severity": "critical",
+    "domains": [
+     "cultural-political"
+    ],
+    "why": "These constraints dictate where and how the system can operate, potentially blocking deployment in target markets.",
+    "question": "Are all geopolitical routing constraints and organizational policy enforcement mechanisms clearly defined?"
+   },
+   {
+    "title": "Data Governance (Retention, Quality, Lineage)",
+    "severity": "high",
+    "domains": [
+     "data"
+    ],
+    "why": "Poor data quality, retention policies, or lack of lineage undermines trust and auditability.",
+    "question": "Are policies for data retention, archival, and lineage tracking fully specified across all relevant data types?"
+   }
+  ]
+ }
+}

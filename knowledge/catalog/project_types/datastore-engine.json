@@ -1,0 +1,66 @@
+{
+  "id": "datastore-engine",
+  "name": "Data store / database / storage engine",
+  "class": "systems-software",
+  "aliases": ["database", "database engine", "storage engine", "dbms", "key-value store", "kv store", "object store", "time-series database", "embedded database", "transactional store", "persistence engine", "distributed database"],
+  "summary": "A systems-software component that persists, indexes and serves data with defined durability, consistency and concurrency guarantees. Its contract is the survival and correctness of data across crashes, contention and replication rather than an end-user interface.",
+  "matching_signals": ["database", "storage engine", "datastore", "durability", "acid", "transaction", "isolation level", "wal", "write-ahead log", "replication", "sharding", "partitioning", "consistency", "kv store", "index", "query engine", "point-in-time recovery", "checksum", "mvcc"],
+  "salient_domains": ["data", "reliability", "performance", "functional", "security", "compatibility", "operational", "maintainability", "portability"],
+  "grounding": ["iso-25010:2023", "iso-25012", "ansi-sql:isolation", "owasp-asvs", "29148:2018", "volere"],
+  "domains": {
+    "data": {
+      "emphasis": "critical",
+      "concerns": ["durability contract: exactly what a commit ack guarantees against crash/power-loss (fsync/O_DIRECT, group commit, sync vs async commit)", "on-disk/page format with block checksums and corruption detection, scrubbing and repair", "consistency model across replicas (linearizable, serializable, snapshot, or eventual with bounded staleness)", "schema/format versioning, migration and compaction/vacuum semantics", "backup consistency (physical vs logical) and what a restored image is guaranteed to represent"],
+      "typical_requirements": ["durability/commit guarantee", "on-disk format & block checksums", "corruption detection, scrub & repair", "replica consistency model & staleness bound", "schema/format versioning & migration"],
+      "questions": ["Is the durability guarantee precisely defined (when an ack means the write survives crash/power loss)?", "Are page checksums and corruption detection/repair (scrubbing) required?", "Is the replica consistency model (linearizable, snapshot, eventual) specified with a bounded-staleness contract?"]
+    },
+    "reliability": {
+      "emphasis": "critical",
+      "concerns": ["crash recovery via WAL/redo-undo (ARIES-style) with a bounded recovery time and checkpoint cadence", "replication mode (sync/async, quorum, Raft/Paxos) with automatic failover and leader election", "RPO/RTO on node, disk or zone loss", "split-brain prevention, fencing and quorum loss behaviour", "point-in-time recovery (PITR), backup verification and periodic restore drills", "durability fault testing against power-cut, torn writes and fsync-lie storage"],
+      "typical_requirements": ["WAL & crash-recovery guarantee with bounded recovery time", "replication & automatic failover (RPO/RTO)", "PITR & verified backup/restore", "split-brain/fencing behaviour", "durability fault-injection testing"],
+      "questions": ["Is crash recovery (WAL replay/checkpointing) and its bounded recovery time specified?", "Are replication mode, automatic failover and RPO/RTO on node/zone loss defined?", "Is point-in-time recovery with periodic restore-drill verification required?"]
+    },
+    "performance": {
+      "emphasis": "critical",
+      "concerns": ["throughput and latency (p50/p99) under a defined concurrency and lock/latch-contention level", "read/write/space amplification bounds", "index and query-plan efficiency; planner stability", "buffer-pool/cache sizing and hit-ratio targets", "MVCC bloat / GC and background compaction impact on foreground latency", "behaviour when the working set exceeds RAM and at connection-concurrency limits"],
+      "typical_requirements": ["OLTP/OLAP latency & throughput targets under stated concurrency", "read/write/space amplification bounds", "cache/buffer-pool sizing & hit ratio", "compaction/GC/vacuum overhead limits", "concurrency/connection limits"],
+      "questions": ["Are throughput/latency targets stated under a defined concurrency and contention level?", "Are read/write/space amplification and compaction/GC overheads bounded?", "Is behaviour when the working set exceeds memory specified?"]
+    },
+    "functional": {
+      "emphasis": "high",
+      "concerns": ["transaction model (ACID vs BASE) and the exact guarantees of each supported isolation level and the anomalies it permits (dirty/non-repeatable/phantom reads, write skew, lost update)", "query/DML/DDL surface and standard/dialect conformance", "deterministic constraint enforcement (uniqueness, foreign keys, checks, NOT NULL)", "type coercion, NULL, ordering and collation semantics", "atomicity and rollback boundaries of multi-statement and multi-key operations"],
+      "typical_requirements": ["supported isolation levels & anomaly guarantees", "query/DML/DDL surface & standard conformance", "constraint & referential-integrity enforcement", "type/collation/ordering semantics"],
+      "questions": ["Are the supported isolation levels and the anomalies each permits (dirty/non-repeatable/phantom reads, write skew) specified?", "Is the transaction model (ACID vs eventual) and its atomicity/rollback boundaries defined?", "Are constraint enforcement and type/collation semantics specified?"]
+    },
+    "security": {
+      "emphasis": "high",
+      "concerns": ["authentication (password/SCRAM, mutual-TLS certificate, IAM) and the privilege/role model (GRANT/REVOKE, row- and column-level security)", "encryption at rest (TDE) and in transit (TLS) with key management and rotation", "audit logging of DDL, privilege changes and sensitive DML", "injection and untrusted-input handling across the query surface", "secrets/key custody and separation of the data-encryption key from the master key"],
+      "typical_requirements": ["authN & role/privilege model (RBAC, row/column security)", "encryption at rest (TDE) & in transit (TLS)", "audit logging of schema/privilege/data changes", "key management & rotation"],
+      "questions": ["Are authentication and the privilege/role model (including row/column-level access) specified?", "Are encryption at rest and in transit required, with key management and rotation?", "Is audit logging of schema/privilege/data changes defined?"]
+    },
+    "compatibility": {
+      "emphasis": "high",
+      "concerns": ["wire-protocol and client-driver compatibility and versioning", "on-disk format forward/backward compatibility across upgrades, with a defined downgrade path", "query-language dialect / SQL-standard conformance level", "replication and backup compatibility across engine versions", "rolling upgrade in a mixed-version cluster without downtime"],
+      "typical_requirements": ["wire-protocol & driver compatibility", "on-disk format version compatibility & rolling upgrade", "SQL/dialect conformance level", "cross-version replication/restore"],
+      "questions": ["Are wire-protocol and on-disk format compatibility across versions (upgrade and downgrade) specified?", "Is rolling upgrade in a mixed-version cluster supported?", "Is the query-language dialect / standard-conformance level defined?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["backup/PITR operations, retention and periodic restore drills", "observability of replication lag, lock/latch waits, buffer hit ratio, WAL growth and disk headroom", "online (no-downtime) schema change and index build", "capacity planning and storage-growth management", "runbooks for failover, table/index bloat and full-disk conditions"],
+      "typical_requirements": ["backup/PITR & restore-drill schedule", "operational metrics (replication lag, WAL, locks, disk)", "online schema/index change", "capacity/growth management & runbooks"],
+      "questions": ["Are backup/PITR, retention and periodic restore drills specified?", "Are key operational metrics (replication lag, lock waits, WAL/disk growth) exposed and alerted?", "Is online (no-downtime) schema/index change supported?"]
+    },
+    "maintainability": {
+      "emphasis": "medium",
+      "concerns": ["diagnosability: slow-query logs, EXPLAIN/plan visibility and wait-event instrumentation", "a consistency/linearizability fault-injection test suite (e.g. Jepsen-style)", "modular, pluggable storage/index-engine boundaries", "internal metrics and tracing hooks"],
+      "typical_requirements": ["query/plan diagnostics & wait instrumentation", "consistency/fault-injection test suite", "modular storage-engine interface", "metrics/tracing hooks"],
+      "questions": ["Are diagnostics (slow-query log, plan/EXPLAIN, wait events) required?", "Is a consistency/fault-injection test suite (e.g. Jepsen-style) mandated?", "Are internal metrics and tracing exposed?"]
+    },
+    "portability": {
+      "emphasis": "medium",
+      "concerns": ["supported OS/filesystem/architecture matrix and per-filesystem durability (fsync) assumptions", "storage-backend targets (local NVMe, network/EBS-style volumes, object storage)", "data-file portability across endianness and page size", "packaging (containers, OS packages) and resource footprint"],
+      "typical_requirements": ["OS/FS/arch support matrix & fsync assumptions", "storage-backend targets", "data-file portability (endianness/page size)", "packaging & footprint"],
+      "questions": ["Are supported OS/filesystem/architecture and their durability (fsync) assumptions specified?", "Are the storage backends (local, network, object) defined?", "Is data-file portability across endianness/page-size stated?"]
+    }
+  }
+}

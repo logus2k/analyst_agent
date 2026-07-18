@@ -1,0 +1,118 @@
+{
+  "_about": "Coverage domains — the fixed set of quality/constraint areas a requirements SET is assessed for. Each domain maps to one specialized coverage judge. Grounded in ISO/IEC 25010:2023, 25012, 25019, ISO/IEC/IEEE 29148:2018, Volere, and domain oracles (OWASP ASVS, WCAG). Archetypes (catalog/project_types/*) provide per-domain *specifics* that layer on top of these generic baselines.",
+  "version": 1,
+  "domains": [
+    {
+      "id": "functional",
+      "name": "Functional suitability & capability completeness",
+      "standards": ["iso-25010:2023/functional-suitability", "29148:2018"],
+      "concerns": ["all specified tasks and user goals covered", "correctness/precision of results defined", "appropriate (no missing or superfluous functions)", "success and error/exception behaviour both specified"],
+      "questions": ["Is every stated user goal traceable to at least one requirement?", "Are required accuracy/precision levels defined where results matter?", "Are the unwanted/exception behaviours specified, not just the happy path?"]
+    },
+    {
+      "id": "data",
+      "name": "Data & information",
+      "standards": ["iso-25012", "iso-25024", "volere/data"],
+      "concerns": ["data ingestion, schema/structure, formats", "storage, retention, archival, deletion", "data quality (accuracy, completeness, consistency, currentness)", "lineage / provenance / master-data ownership"],
+      "questions": ["Are the data entities, schemas and formats specified?", "Are retention, archival and deletion rules defined?", "Are data-quality thresholds (accuracy/completeness/timeliness) stated?"]
+    },
+    {
+      "id": "performance",
+      "name": "Performance efficiency, scalability & capacity",
+      "standards": ["iso-25010:2023/performance-efficiency"],
+      "concerns": ["time behaviour (latency, response, throughput)", "resource utilisation (CPU, memory, GPU, network, storage)", "capacity limits & headroom", "scalability / elasticity under load and growth"],
+      "questions": ["Are latency/throughput targets quantified for the key operations?", "Are resource-utilisation ceilings specified?", "Is behaviour under peak load and future growth defined (scaling strategy)?"]
+    },
+    {
+      "id": "reliability",
+      "name": "Reliability & resilience",
+      "standards": ["iso-25010:2023/reliability"],
+      "concerns": ["availability targets (SLO/SLA)", "fault tolerance & graceful degradation", "recoverability (RTO/RPO, state restoration, backups)", "maturity (failure rate, MTBF)"],
+      "questions": ["Is an availability target (and its measurement window) stated?", "Is behaviour on dependency/hardware failure specified?", "Are RTO/RPO and backup/restore requirements defined?"]
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "standards": ["iso-25010:2023/security", "owasp-asvs"],
+      "concerns": ["confidentiality (encryption at rest/in transit)", "integrity (tamper protection, input validation)", "authentication & authorization (identity, permissions, sessions)", "accountability & non-repudiation (audit logging)", "secrets, key management, dependency/supply-chain security"],
+      "questions": ["Are authN/authZ, session and password/credential policies specified?", "Is encryption (at rest and in transit) required and scoped?", "Are audit logging and secrets/key management addressed?"]
+    },
+    {
+      "id": "safety",
+      "name": "Safety",
+      "standards": ["iso-25010:2023/safety", "iec-61508", "iso-26262", "do-178c"],
+      "concerns": ["hazard identification & risk analysis", "fail-safe / safe-state behaviour", "operational constraints & hazard warnings", "safe integration with other systems"],
+      "questions": ["Have hazards and their mitigations been identified?", "Is a safe state / fail-safe behaviour defined for faults?", "Are operator hazard warnings and operational limits specified?"]
+    },
+    {
+      "id": "compatibility",
+      "name": "Compatibility & interoperability",
+      "standards": ["iso-25010:2023/compatibility"],
+      "concerns": ["interoperability (protocols, APIs, data exchange formats)", "coexistence (sharing an environment without interference)", "standards/versions to interoperate with", "backward/forward compatibility"],
+      "questions": ["Are the external interfaces/protocols and their versions specified?", "Are data-exchange formats and their compatibility rules defined?", "Is coexistence with other systems on the same host/network addressed?"]
+    },
+    {
+      "id": "usability",
+      "name": "Usability & interaction",
+      "standards": ["iso-25010:2023/interaction-capability", "volere/usability"],
+      "concerns": ["learnability & operability (workflow complexity, training)", "user-error protection (prevent destructive actions)", "UI aesthetics / look-and-feel expectations", "helpfulness (guidance, feedback, discoverability)"],
+      "questions": ["Are acceptable learning time / workflow-complexity targets stated?", "Are safeguards against destructive user actions required?", "Are look-and-feel / interaction expectations specified?"]
+    },
+    {
+      "id": "accessibility",
+      "name": "Accessibility & internationalization",
+      "standards": ["wcag-2.2", "volere/humanity", "en-301-549"],
+      "concerns": ["accessibility conformance (WCAG level)", "assistive-technology support", "localization / internationalization (languages, locales, RTL)", "inclusive design for the target population"],
+      "questions": ["Is a WCAG conformance level required?", "Are localization/i18n requirements (languages, locales) stated?", "Are assistive-technology needs of the user population addressed?"]
+    },
+    {
+      "id": "maintainability",
+      "name": "Maintainability, testability & observability",
+      "standards": ["iso-25010:2023/maintainability"],
+      "concerns": ["modularity & reusability (replaceable components)", "analysability & modifiability", "testability (automated coverage, test hooks)", "observability (logging, metrics, tracing, diagnostics)"],
+      "questions": ["Are architectural boundaries defined so parts can change independently?", "Are automated-test coverage and diagnostic-logging requirements stated?", "Are observability (metrics/tracing) needs specified for operations?"]
+    },
+    {
+      "id": "portability",
+      "name": "Portability & deployment",
+      "standards": ["iso-25010:2023/flexibility"],
+      "concerns": ["installability & packaging", "adaptability across environments/platforms", "replaceability", "deployment model (containers, orchestration, targets)"],
+      "questions": ["Are the target platforms/environments and packaging specified?", "Are installation/upgrade/rollback requirements defined?", "Is the deployment model (e.g. containers, orchestration) stated?"]
+    },
+    {
+      "id": "operational",
+      "name": "Operational & environmental",
+      "standards": ["volere/operational", "iso-25010:2023/flexibility"],
+      "concerns": ["the physical/network reality the system must survive (offline, air-gapped, on-prem, intermittent connectivity)", "runtime operations (monitoring, alerting, on-call, runbooks)", "configuration & environment management", "capacity/cost operations"],
+      "questions": ["Is the operating environment (connectivity, on-prem/air-gapped, edge) specified?", "Are monitoring/alerting/runbook requirements defined?", "Is configuration/secret/environment management addressed?"]
+    },
+    {
+      "id": "legal-privacy",
+      "name": "Legal, compliance & privacy",
+      "standards": ["gdpr", "hipaa", "volere/legal", "iso-27701"],
+      "concerns": ["data protection & privacy (GDPR/HIPAA, PII handling, consent)", "data sovereignty / residency", "regulatory compliance for the domain", "intellectual property & licensing obligations"],
+      "questions": ["Are applicable regulations (GDPR/HIPAA/sector) identified with concrete obligations?", "Are PII handling, consent, and data-subject rights specified?", "Are data-residency/sovereignty constraints stated?"]
+    },
+    {
+      "id": "constraints",
+      "name": "Constraints & mandated solutions",
+      "standards": ["volere/constraints", "volere/mandated"],
+      "concerns": ["mandated technology stack (languages, frameworks, servers)", "open-source licensing limits (permissive vs copyleft)", "budget & cost ceilings", "schedule / timeline / milestone constraints"],
+      "questions": ["Are mandated technologies / prohibited choices stated?", "Are licensing constraints on third-party dependencies defined?", "Are budget and schedule constraints captured as requirements?"]
+    },
+    {
+      "id": "cultural-political",
+      "name": "Cultural, political & organizational",
+      "standards": ["volere/cultural-political"],
+      "concerns": ["organizational policies & governance", "human workflows the system must fit", "geopolitical restrictions (data routing, sanctions)", "change-management & stakeholder buy-in"],
+      "questions": ["Are organizational policies/governance the system must obey captured?", "Are geopolitical constraints (e.g. data routing, sanctions) addressed?", "Does the system fit the existing human workflows and roles?"]
+    },
+    {
+      "id": "quality-in-use",
+      "name": "Quality-in-use & stakeholder outcomes",
+      "standards": ["iso-25019:2023"],
+      "concerns": ["effectiveness (users achieve goals)", "efficiency (effort/time to outcome)", "satisfaction (trust, comfort, usefulness)", "freedom from risk (economic, health, environmental)"],
+      "questions": ["Are the intended user outcomes/success metrics defined?", "Is acceptable effort/time-to-outcome specified?", "Are risks to users (economic/health/environmental) considered?"]
+    }
+  ]
+}

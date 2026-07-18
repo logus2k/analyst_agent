@@ -1,0 +1,72 @@
+{
+  "id": "enterprise-lob",
+  "name": "Enterprise / line-of-business system",
+  "class": "data-dominant",
+  "aliases": ["lob", "line of business", "erp", "crm", "workflow system", "back-office", "internal system", "enterprise application", "case management", "records system"],
+  "summary": "An internal business system (ERP/CRM/workflow/case-management) that automates structured, role-based business processes over a rich, long-lived data model, integrated with the enterprise's identity, legacy systems, and reporting estate. Correctness, auditability, and process fit dominate over aesthetics.",
+  "matching_signals": ["erp", "crm", "workflow", "approval", "back-office", "internal tool", "line of business", "sso", "active directory", "ldap", "audit trail", "role-based", "case management", "records", "reporting", "reconciliation", "legacy integration", "sox"],
+  "salient_domains": ["functional", "data", "security", "legal-privacy", "compatibility", "maintainability", "cultural-political", "reliability", "usability", "operational"],
+  "grounding": ["iso-25010:2023", "iso-25012", "29148:2018", "volere", "owasp-asvs", "iso-27001", "sox"],
+  "domains": {
+    "functional": {
+      "emphasis": "critical",
+      "concerns": ["multi-step, role-based workflows with approvals, delegation, escalation, and SLA timers", "state-machine correctness: valid transitions, guards, reopen/rollback, and exception paths", "business-rule engine and configurable policy (per-org, per-region variation)", "completeness across the long tail of edge cases, overrides, and manual interventions real operations require", "bulk operations, batch jobs, and scheduled processing alongside interactive use"],
+      "typical_requirements": ["workflow & approval definitions", "state-machine transition rules", "business-rule / policy configuration", "delegation & escalation", "bulk/batch operations", "override & exception handling"],
+      "questions": ["Are all workflow states, transitions, guards, and exception/rollback paths specified, not just the happy path?", "Are approval, delegation, and escalation rules (including SLA timers) defined?", "Are configurable business rules and their per-org/region variation captured?"]
+    },
+    "data": {
+      "emphasis": "critical",
+      "concerns": ["complex normalized relational model with referential integrity and transactional consistency", "master-data management, golden records, deduplication, and ownership/stewardship", "reference/lookup data, effective-dated records, and temporal/bitemporal history", "data migration from legacy systems: mapping, cleansing, reconciliation, and cutover validation", "reporting/analytics data model, extracts, and read-model separation from the transactional store", "data quality dimensions (accuracy, completeness, consistency) with validation at entry"],
+      "typical_requirements": ["canonical data model & integrity constraints", "master-data & dedup rules", "effective-dating / temporal history", "legacy migration & reconciliation plan", "reporting/extract model", "data-quality validation rules"],
+      "questions": ["Is the canonical data model, with referential-integrity and transactional-consistency rules, specified?", "Is master-data ownership, deduplication, and effective-dating defined?", "Is the legacy-migration mapping, cleansing, and reconciliation approach specified with cutover validation?"]
+    },
+    "security": {
+      "emphasis": "critical",
+      "concerns": ["fine-grained RBAC/ABAC: roles, entitlements, field-level and record-level (row) security", "segregation of duties (SoD) to prevent toxic permission combinations (e.g. create + approve)", "enterprise identity integration: SSO via SAML/OIDC, SCIM provisioning, directory group mapping", "privileged-access management, break-glass/emergency access with justification and review", "least-privilege on integrations and service accounts; secrets management"],
+      "typical_requirements": ["RBAC/ABAC & entitlement model", "segregation-of-duties rules", "SSO/SCIM & directory integration", "row/field-level security", "privileged & break-glass access"],
+      "questions": ["Is the RBAC/ABAC model specified down to record/field-level where the domain requires it?", "Are segregation-of-duties constraints defined to block toxic permission combinations?", "Is SSO/SCIM directory integration and de-provisioning on leaver events specified?"]
+    },
+    "legal-privacy": {
+      "emphasis": "high",
+      "concerns": ["auditability for financial/regulatory compliance (SOX, internal controls): who did what, when, before/after values, immutable and tamper-evident", "records-retention schedules and legal hold with defensible deletion", "GDPR/sector-specific data-subject rights over long-lived business records", "controls evidence and access-recertification / periodic entitlement review", "data residency for multinational deployments"],
+      "typical_requirements": ["immutable audit trail (who/what/when/before-after)", "retention schedule & legal hold", "access recertification", "controls evidence / reporting", "data residency"],
+      "questions": ["Is a tamper-evident audit trail capturing actor, action, timestamp, and before/after values required for compliance?", "Are records-retention schedules and legal-hold/defensible-deletion rules specified?", "Is periodic access-recertification of entitlements required?"]
+    },
+    "compatibility": {
+      "emphasis": "high",
+      "concerns": ["integration with legacy and adjacent systems (mainframe, ERP, middleware) via APIs, files, message queues, ESB/iPaaS", "canonical exchange formats and versioned contracts; EDI/industry schemas where applicable", "batch file interfaces (SFTP, fixed-width/CSV) alongside real-time APIs", "idempotent, ordered, and replayable integration with reconciliation between systems of record", "backward-compatible API evolution as downstream consumers lag"],
+      "typical_requirements": ["integration interface & protocol specs", "canonical exchange format & versioned contracts", "batch/file interface specs", "reconciliation between systems", "API-version compatibility"],
+      "questions": ["Are the legacy/adjacent-system interfaces, protocols, and versioned contracts specified?", "Are batch/file and real-time integration paths defined with reconciliation between systems of record?", "Is integration idempotent, ordered, and replayable to survive partner outages?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["configurability without code change (workflows, rules, forms, reports) for evolving business policy", "long service life: multi-year support, upgrade paths, and knowledge continuity", "modular boundaries so ERP/CRM modules and integrations evolve independently", "testability of complex business rules; regression coverage for configuration changes", "observability into workflow/job state for support teams"],
+      "typical_requirements": ["config-over-code capability", "upgrade/versioning strategy", "business-rule test coverage", "workflow/job observability", "module boundaries"],
+      "questions": ["Can workflows, rules, and forms be changed by configuration rather than code, and is that scope specified?", "Are automated regression tests for business rules and configuration changes required?", "Is workflow/job-state observability for support defined?"]
+    },
+    "cultural-political": {
+      "emphasis": "high",
+      "concerns": ["fit to existing organizational structure, roles, and approval hierarchies (Conway's law risk)", "change management and adoption: training, phased rollout, resistance from displaced manual processes", "cross-departmental governance and ownership of shared data/processes", "organizational policies and internal-control frameworks the system must enforce", "geopolitical / cross-border constraints for multinational operations"],
+      "typical_requirements": ["organizational role/hierarchy mapping", "change-management & training plan", "cross-department governance", "policy-enforcement requirements"],
+      "questions": ["Does the system fit the existing organizational hierarchy, roles, and approval chains?", "Are change-management, training, and phased-adoption requirements captured?", "Are the organizational policies and internal controls the system must enforce specified?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["transactional integrity across multi-entity updates and long-running workflows (sagas, compensations)", "availability aligned to business-day/close-cycle windows; batch-window guarantees", "backup/restore, RTO/RPO for systems of record; point-in-time recovery", "recoverability of in-flight workflows after failure without duplicate side effects", "data reconciliation and integrity checks after failures"],
+      "typical_requirements": ["transactional-integrity / saga policy", "availability & batch-window SLAs", "backup/restore & RTO/RPO", "workflow recovery", "integrity reconciliation"],
+      "questions": ["Is transactional integrity across multi-entity and long-running workflows specified with compensations?", "Are availability targets aligned to business/close-cycle and batch windows?", "Can in-flight workflows recover after failure without duplicate side effects?"]
+    },
+    "usability": {
+      "emphasis": "medium",
+      "concerns": ["high-throughput data-entry ergonomics for expert power users (keyboard-driven, dense grids, bulk edit)", "error prevention and clear recovery on complex forms and irreversible business actions", "role-tailored views that expose only relevant tasks/fields", "discoverability of infrequent but critical operations across a large feature surface"],
+      "typical_requirements": ["power-user / keyboard-entry ergonomics", "destructive-action safeguards", "role-tailored views", "bulk-edit workflows"],
+      "questions": ["Are data-entry ergonomics for expert power users (keyboard, dense grids, bulk edit) specified?", "Are safeguards and clear recovery required for irreversible business actions?"]
+    },
+    "operational": {
+      "emphasis": "medium",
+      "concerns": ["scheduled-job and batch orchestration with monitoring, alerting, and rerun on failure", "environment management (dev/test/UAT/prod) and configuration promotion", "deployment during maintenance windows with rollback; on-prem/hybrid hosting realities", "operational reporting and admin tooling for support/help-desk tiers"],
+      "typical_requirements": ["batch/job scheduling & monitoring", "environment & config promotion", "maintenance-window deploy/rollback", "admin & support tooling"],
+      "questions": ["Are scheduled/batch jobs monitored with alerting and defined rerun-on-failure behaviour?", "Are environment management and configuration-promotion requirements specified?", "Is the hosting model (on-prem/hybrid/cloud) and its deployment/rollback approach defined?"]
+    }
+  }
+}

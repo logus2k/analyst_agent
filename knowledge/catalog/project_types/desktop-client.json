@@ -1,0 +1,72 @@
+{
+  "id": "desktop-client",
+  "name": "Desktop / rich-client application",
+  "class": "interaction-client",
+  "aliases": ["desktop app", "desktop application", "rich client", "native app", "electron app", "cross-platform desktop", "installed application", "thick client", "fat client", "gui application"],
+  "summary": "An installed graphical application running on a user's own machine (Windows/macOS/Linux), often operating offline or occasionally-connected with local data and background sync. Its distinctive concerns are install/update, OS integration and permissions, local persistence and resource use rather than server-side scaling.",
+  "matching_signals": ["desktop", "installed", "native app", "electron", "windows", "macos", "linux", "offline", "auto-update", "code signing", "system tray", "local storage", "sync", "cross-platform", "installer", "notarization", "rich client"],
+  "salient_domains": ["portability", "operational", "data", "security", "usability", "accessibility", "reliability", "performance", "maintainability", "legal-privacy"],
+  "grounding": ["iso-25010:2023", "wcag-2.2", "en-301-549", "owasp-asvs", "iso-25019:2023", "29148:2018", "volere"],
+  "domains": {
+    "portability": {
+      "emphasis": "high",
+      "concerns": ["cross-platform packaging and installers (MSI/MSIX, .pkg/.dmg, deb/rpm/AppImage/Flatpak/Snap)", "code signing and notarization (Authenticode, Apple notarization/Gatekeeper) and the trust chain", "secure auto-update: signature verification, delta updates, staged rollout and downgrade protection", "per-OS UI toolkit and rendering differences", "supported OS versions and architectures (x64/arm64)"],
+      "typical_requirements": ["per-OS packaging & installer", "code signing / notarization", "secure auto-update (signed, staged, rollback)", "OS/architecture support matrix"],
+      "questions": ["Are per-OS packaging, code signing and notarization specified?", "Is the auto-update mechanism signed, staged and protected against downgrade/MITM?", "Are supported OS versions and architectures stated?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["offline / occasionally-connected operation with clear online/offline/queued status indication", "local configuration and profile management", "enterprise-managed deployment (MDM/GPO/Intune) and update channels (stable/beta)", "offline licensing/activation", "remote config and diagnostics collection"],
+      "typical_requirements": ["offline-operation & connectivity states", "managed/enterprise deployment (MDM/GPO)", "update channels", "activation/licensing behaviour"],
+      "questions": ["Is offline / intermittently-connected operation (with queued-state indicators) specified?", "Are enterprise deployment/management (MDM/GPO) and update channels defined?", "Is offline activation/licensing addressed?"]
+    },
+    "data": {
+      "emphasis": "high",
+      "concerns": ["local persistent storage (embedded SQLite/DB, files) with integrity and at-rest encryption", "sync to server with conflict detection and resolution (CRDT / last-writer-wins / merge)", "offline edit queue and eventual reconciliation", "local schema/data migration across app versions", "cache invalidation and secure deletion of local data"],
+      "typical_requirements": ["local storage & encryption", "sync & conflict-resolution policy", "offline queue / reconciliation", "local schema migration"],
+      "questions": ["Is the local-storage model, its encryption and integrity specified?", "Is the sync conflict-detection/resolution policy defined for offline edits?", "Is local-data migration across versions handled?"]
+    },
+    "security": {
+      "emphasis": "high",
+      "concerns": ["OS permission model and least privilege (filesystem, camera/mic, keychain/credential store)", "protection of local secrets/tokens via OS keystore (Windows DPAPI/Credential Manager, macOS Keychain, libsecret)", "renderer/plugin sandboxing and IPC hardening (e.g. Electron contextIsolation, disabled nodeIntegration)", "protection against local privilege escalation and DLL/dylib hijacking / binary tampering", "update and code-signing integrity verification at launch"],
+      "typical_requirements": ["OS permission / least-privilege model", "secret storage in OS keystore", "sandboxing / IPC hardening", "anti-tampering / signature verification"],
+      "questions": ["Are requested OS permissions minimised and secrets stored in the OS keystore?", "Is the renderer/plugin sandbox and IPC hardened against untrusted content?", "Is protection against binary hijacking/tampering specified?"]
+    },
+    "usability": {
+      "emphasis": "high",
+      "concerns": ["native per-OS look-and-feel and conventions (menus, keyboard shortcuts, window management, dark mode)", "UI-thread responsiveness (no freezes during long operations; background work off the main thread)", "consistent cross-platform behaviour vs native expectations", "user-error protection on destructive local actions", "first-run onboarding and discoverability"],
+      "typical_requirements": ["platform UI conventions & theming", "responsive UI (no main-thread blocking)", "destructive-action safeguards", "onboarding"],
+      "questions": ["Are per-OS UI conventions (menus, shortcuts, dark mode) and theming specified?", "Is UI responsiveness under long operations required (no freezes)?", "Are safeguards for destructive local actions defined?"]
+    },
+    "accessibility": {
+      "emphasis": "high",
+      "concerns": ["exposure of custom controls to the platform accessibility API (UI Automation on Windows, NSAccessibility on macOS, AT-SPI on Linux)", "full keyboard-only operation and focus management", "screen-reader support (Narrator/VoiceOver/Orca)", "WCAG 2.2 / EN 301 549 conformance where mandated (esp. public-sector procurement)", "respect for OS scaling/DPI, high-contrast and reduced-motion settings"],
+      "typical_requirements": ["platform a11y-API exposure", "keyboard operability & focus management", "screen-reader support", "DPI / high-contrast / reduced-motion"],
+      "questions": ["Do custom controls expose the platform accessibility API (UIA/NSAccessibility/AT-SPI)?", "Are full keyboard operation and screen-reader support required?", "Are OS scaling, high-contrast and reduced-motion respected?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["crash reporting and symbolication (minidumps/Crashpad/Sentry) with opt-in consent", "auto-recovery of unsaved work (autosave/journaling)", "clean rollback on failed update", "resilience to connectivity loss mid-operation without data loss", "watchdog for hung UI"],
+      "typical_requirements": ["crash reporting (opt-in) & recovery of unsaved work", "update-failure rollback", "connectivity-loss resilience"],
+      "questions": ["Is crash reporting (with consent) and recovery of unsaved work specified?", "Does a failed update roll back cleanly?", "Is mid-operation connectivity loss handled without data loss?"]
+    },
+    "performance": {
+      "emphasis": "medium",
+      "concerns": ["resource footprint: memory, idle CPU, battery/energy impact and disk usage", "startup / cold-launch time", "responsiveness on modest target hardware", "background-activity limits when idle or on battery"],
+      "typical_requirements": ["memory/CPU/battery footprint budgets", "startup-time target", "idle/background resource limits"],
+      "questions": ["Are memory/CPU/battery and startup budgets specified for the target hardware?", "Are background/idle resource limits defined?"]
+    },
+    "maintainability": {
+      "emphasis": "medium",
+      "concerns": ["privacy-scoped diagnostic logging and telemetry for adoption/error rates", "feature flags and staged rollout of components", "modular in-place update of components", "reproducible and signed builds"],
+      "typical_requirements": ["diagnostic logging & telemetry", "feature flags / staged rollout", "build reproducibility"],
+      "questions": ["Are diagnostic logging and telemetry (privacy-scoped) and feature flags specified?", "Are builds reproducible and signed?"]
+    },
+    "legal-privacy": {
+      "emphasis": "medium",
+      "concerns": ["telemetry/analytics consent (opt-in vs opt-out) and GDPR obligations for a fat client", "local storage of PII and its protection", "crash-dump content scrubbing (dumps may contain PII/secrets)", "bundled third-party/OSS license notices"],
+      "typical_requirements": ["telemetry consent & GDPR handling", "local-PII protection & crash-dump scrubbing", "bundled OSS notices"],
+      "questions": ["Is telemetry consent (opt-in/opt-out) and GDPR handling specified?", "Are crash dumps scrubbed of PII/secrets?", "Are bundled third-party license notices included?"]
+    }
+  }
+}

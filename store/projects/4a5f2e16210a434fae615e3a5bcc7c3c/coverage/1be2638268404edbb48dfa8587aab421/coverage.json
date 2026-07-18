@@ -1,0 +1,2120 @@
+{
+ "problem_statement_version": 2,
+ "requirement_count": 386,
+ "domains": [
+  {
+   "coverage": "partial",
+   "addressed": [
+    "User profile management (Job Seekers/Employers)",
+    "Job posting lifecycle (Creation, Status, Search)",
+    "AI-driven matching (Skill/NLP/Recommender)",
+    "External data synchronization (APIs/Govt DBs)",
+    "Role-Based Access Control (RBAC)",
+    "Multilingual support (Arabic/English)",
+    "Accessibility (WCAG, Disability support)",
+    "Data Privacy & Security (GDPR, Encryption, Auditing)",
+    "System performance and scalability (Load, Response Times)"
+   ],
+   "gaps": [
+    {
+     "title": "Outcome Verification/Acceptance Criteria for Matching",
+     "severity": "high",
+     "detail": "The requirements specify *how* matching is done (scoring, algorithms) but lack explicit acceptance criteria defining what constitutes a 'successful' match or a 'correct' recommendation in the context of labor market efficiency. This is crucial for functional correctness.",
+     "question": "What specific metrics or thresholds must the AI matching engine meet to be considered functionally correct (e.g., precision/recall targets on a test set, or a defined rate of successful job applications resulting from a match)?",
+     "grounding": [
+      "Functional correctness (iso-25010:2023)",
+      "Agent / LLM-orchestration system concerns: outcome evaluation against acceptance criteria"
+     ]
+    },
+    {
+     "title": "Grounding/Hallucination Control for Factual Tasks",
+     "severity": "high",
+     "detail": "The system integrates with government databases and performs data extraction from resumes. There is no explicit requirement defining how the system verifies the factual accuracy of data pulled from external sources or how it mitigates hallucinations during NLP/AI extraction.",
+     "question": "What mechanisms are in place to verify the factual accuracy of data extracted from resumes or retrieved from government databases, and what is the acceptable rate of hallucination or factual error?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns: grounding/retrieval accuracy and hallucination control",
+      "Functional correctness (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Clarification Behaviour for Under-specified Goals",
+     "severity": "medium",
+     "detail": "The problem statement implies complex decision support for MoL/PEF. If a job seeker or employer input is ambiguous or incomplete (e.g., vague skill description), the requirements do not specify the system's required behavior (e.g., prompting the user, flagging for admin review, or making a best-guess recommendation).",
+     "question": "When a user input (job description or profile) is ambiguous or under-specified, what is the required system behavior—should it prompt the user for clarification, flag it for administrative review, or proceed with a probabilistic guess?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns: clarification behaviour when the goal is under-specified",
+      "Functional completeness (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Completeness of Error/Exception Contract for Core Operations",
+     "severity": "medium",
+     "detail": "While many requirements cover happy paths (e.g., job creation), the exception contract for critical functions like 'Real-time job data synchronization' (Req 8, 151) or 'AI matching' (Req 7, 123) is underspecified. We know *what* should happen on success, but not the full range of failure modes (e.g., API timeout, data schema mismatch, service unavailability) and the required response contract for each.",
+     "question": "For critical operations like external data synchronization and AI matching, what are the defined error codes, retry logic, and user-facing messages for specific failure modes (e.g., 4xx vs 5xx errors from external APIs)?",
+     "grounding": [
+      "API / backend microservice concerns: error/exception contract per operation",
+      "Functional correctness (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Scope Definition for 'Labor Market Insights' Granularity",
+     "severity": "medium",
+     "detail": "The capability mentions providing 'labor market insights' and 'custom report generation.' While reporting requirements exist (101, 172), the functional scope of *what* constitutes a 'labor market insight' (e.g., predictive modeling, trend forecasting, gap analysis) is not fully defined, potentially leading to scope creep or insufficient functionality.",
+     "question": "What specific types of predictive or analytical insights (beyond simple aggregation/statistics) are required for the MoL/PEF decision-making process (e.g., predicting future skill shortages, forecasting unemployment rates)?",
+     "grounding": [
+      "Functional completeness (iso-25010:2023)",
+      "Agent / LLM-orchestration system concerns: goal/task specification"
+     ]
+    }
+   ],
+   "enrichments": [
+    "The problem statement should explicitly define the required latency/throughput for the *government database synchronization* (Req 9), as this is critical for real-time efficiency, especially given the context of labor market immediacy.",
+    "Consider adding a requirement for a mechanism to handle data drift or schema changes in external government databases, ensuring the integration framework remains robust over time.",
+    "Given the focus on youth empowerment, explicitly define requirements for tracking the *conversion rate* from 'Job Seeker Profile Completion' to 'Job Application' to measure the effectiveness of the platform's onboarding/engagement features."
+   ],
+   "confidence": "high",
+   "id": "functional",
+   "name": "Functional suitability & capability completeness"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Data ingestion and external synchronization",
+    "Schema/structure (via Schema.org compliance)",
+    "Storage and backup",
+    "Data quality (via matching scores and validation)",
+    "Lineage/provenance (via audit trails and source tagging)"
+   ],
+   "gaps": [
+    {
+     "title": "Data Retention and Deletion Policies",
+     "severity": "high",
+     "detail": "While deletion mechanisms are mentioned (Req 2, 81, 259, 262), specific, enforceable data retention periods (how long data must be kept for legal/business reasons) and the process for archival/deletion beyond simple user request are not defined for all data types (e.g., job postings, activity logs, government data).",
+     "question": "What are the specific data retention periods for job seeker profiles, job postings, and system activity logs, and what is the defined process for archival or permanent deletion once those periods expire?",
+     "grounding": [
+      "SRS: data / logical database requirements (29148:2018)",
+      "Web / SaaS application concerns: retention, export, and deletion (incl. tenant offboarding)"
+     ]
+    },
+    {
+     "title": "Data Quality Thresholds for Ingestion",
+     "severity": "high",
+     "detail": "Data quality is addressed via matching scores (Req 124) and validation (Req 89), but there is no explicit definition of *thresholds* for data completeness or accuracy upon ingestion from external sources (Req 9, 51, 152). For example, what is the acceptable percentage of missing required fields when syncing from an external job site?",
+     "question": "What are the defined data quality thresholds (e.g., minimum completeness percentage, acceptable error rate) that must be met for data ingested from external job sites or government databases to be considered valid and processed?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: data-quality dimensions with enforced thresholds: accuracy, completeness, consistency, uniqueness, validity, timeliness/freshness",
+      "Domain Questions: Are data-quality thresholds (accuracy/completeness/timeliness) stated?"
+     ]
+    },
+    {
+     "title": "Data Lineage and Transformation Documentation",
+     "severity": "medium",
+     "detail": "Lineage is partially covered by source tagging (Req 85, 91) and integration logs (Req 154), but the requirements lack explicit mandates for documenting the *transformation logic* applied to data as it moves from source (external API) to the canonical model, which is crucial for auditing and impact analysis.",
+     "question": "For data flowing from external sources (APIs/Government DBs) into the platform, what level of documentation is required to trace and document every transformation, mapping, and enrichment step applied to the data?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: data lineage and provenance: source-to-target traceability, transformation documentation, impact analysis"
+     ]
+    },
+    {
+     "title": "Master Data Ownership and Governance",
+     "severity": "medium",
+     "detail": "The system allows administrators to manage reference files (Req 98, 99), but there is no formal definition of which entity (MoL, PEF, Platform Admin, or external source) is the authoritative 'Master Data Owner' for core entities like 'Skill' or 'Occupation' when conflicts arise between the platform's internal taxonomy and external data.",
+     "question": "For core reference data (e.g., standardized skills, job categories), which entity (e.g., MoL, PEF, or the platform itself) is designated as the authoritative Master Data Owner, and how are conflicts resolved?",
+     "grounding": [
+      "Domain Concerns: lineage / provenance / master-data ownership",
+      "Data pipeline / analytics / ETL concerns: reference-data and slowly-changing-dimension handling"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining a formal data contract specification for all external integrations (Req 9, 51, 152) that explicitly details expected schemas, acceptable deviations, and error handling protocols beyond just API documentation.",
+    "Given the context of government integration (MoL/PEF), explicitly define the data governance workflow for data enrichment and verification against government databases (Req 157, 160) to ensure compliance and trust.",
+    "Since the system is the core of a future LMIS, consider requirements for data export in standardized, machine-readable formats (e.g., CSV/JSON/XML) suitable for external governmental analysis tools, beyond just user report exports."
+   ],
+   "confidence": "high",
+   "id": "data",
+   "name": "Data & information"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Latency/Throughput targets for key operations (e.g., 227, 228, 229, 230, 231)",
+    "Resource utilization ceilings (e.g., 237, 238)",
+    "Scalability/Elasticity under load and growth (e.g., 232, 233, 234, 235, 236, 242, 247)",
+    "API/Integration performance (e.g., 151, 156, 183)",
+    "Capacity limits (e.g., 244, 245, 246)"
+   ],
+   "gaps": [
+    {
+     "title": "Quantified SLOs for Core Business Flows",
+     "severity": "high",
+     "detail": "While specific performance metrics are provided for general operations (e.g., page load time, search time), there are no explicit, quantified Service Level Objectives (SLOs) for the most critical business workflows, such as 'Job Matching Latency' (end-to-end time from search/profile to ranked results) or 'Data Synchronization Latency' (time from external update to platform reflection).",
+     "question": "What are the target p95/p99 latency SLOs for the AI-driven matching engine (Requirement 7/123) and for real-time job data synchronization (Requirement 8/151)?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "Time behaviour (iso-25010:2023)",
+      "volere"
+     ]
+    },
+    {
+     "title": "Resource Utilization for AI/NLP Components",
+     "severity": "high",
+     "detail": "Requirements specify general resource ceilings (CPU/Memory) (237, 238), but the AI/NLP components (e.g., vector matching, resume parsing - Req 7, 76, 126) are computationally intensive. There is no specification on the required GPU/accelerator capacity or the expected resource consumption *per complex operation* (e.g., per resume parse or per matching run).",
+     "question": "Are there specific resource utilization ceilings or performance budgets defined for the AI/NLP processing tasks (e.g., maximum CPU/GPU time allowed per job match or per resume extraction)?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns",
+      "Resource utilization (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Load Shedding/Throttling Strategy",
+     "severity": "high",
+     "detail": "The system is required to handle peak loads (233, 234), but there is no defined strategy for what happens when capacity is exceeded beyond the defined peak (e.g., what is the behavior when 5,000 concurrent users are exceeded?). Specifically, there is no mention of rate limiting or load shedding mechanisms to protect the core services.",
+     "question": "What is the defined load-shedding or throttling policy when the system exceeds the defined peak capacity (e.g., how are requests rejected or queued)?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "Capacity (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Data Pipeline/Integration Throughput Guarantees",
+     "severity": "medium",
+     "detail": "Requirements cover data synchronization (8, 151, 153) and integration with external sites (51), but they lack throughput guarantees for the data pipeline itself. For example, if 50 external sites push updates, what is the maximum acceptable lag or throughput rate the integration framework must sustain?",
+     "question": "What are the required throughput or maximum acceptable lag bounds for the data synchronization pipeline when ingesting/pushing data from external job sites?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns",
+      "Time behaviour (iso-25010:2023)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the context of limited internet connectivity (Constraint), performance requirements should explicitly define acceptable offline/cached operational modes and the expected synchronization latency once connectivity is restored.",
+    "Since the system is the core of a future LMIS, performance requirements should address the expected growth in data volume (e.g., number of historical records, total stored CVs) beyond the initial 5TB projection, especially concerning query performance on large datasets (e.g., complex historical reporting).",
+    "For the AI Matching Engine, defining a 'cost budget' per matching operation (in terms of computational resources or tokens/API calls if external LLMs are used) is critical for operational cost control, which is a key concern in LLM orchestration."
+   ],
+   "confidence": "high",
+   "id": "performance",
+   "name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Availability targets (SLO/SLA) are defined (Req 275, 276, 352, 353, 354, 355)",
+    "Fault tolerance is addressed via high availability architecture (Req 279, 280, 282, 284)",
+    "Recoverability (RTO/RPO, backup/restore) is defined (Req 285, 286, 287, 288, 289, 362, 363, 364, 365, 366)",
+    "Maturity (failure rate, MTBF) is addressed via performance monitoring (Req 180, 183, 357, 360)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Fault Tolerance/Graceful Degradation for Dependencies",
+     "severity": "high",
+     "detail": "While circuit breakers (Req 284) are mentioned for external dependencies, the requirements lack explicit specification on how the system degrades gracefully when a *critical internal* dependency (e.g., the AI matching engine, or a specific government database API) fails or becomes slow, beyond just general performance degradation.",
+     "question": "What specific fallback or degraded mode behavior must the system exhibit if the AI Matching Engine becomes unavailable or times out?",
+     "grounding": [
+      "API / backend microservice concerns: bulkhead & graceful degradation / fallback when a dependency is slow or down",
+      "iso-25010:2023: Fault tolerance"
+     ]
+    },
+    {
+     "title": "Idempotency for Mutating Operations",
+     "severity": "high",
+     "detail": "The system handles API synchronization (Req 8, 86, 151, 153), which involves mutating external/internal state. There is no explicit requirement mandating idempotency keys or mechanisms to ensure that retries (especially during network instability) do not result in duplicate job postings or profile updates.",
+     "question": "For all API calls that result in state changes (e.g., job submission, profile update), must the system enforce idempotency using unique keys to prevent duplicate processing upon retries?",
+     "grounding": [
+      "API / backend microservice concerns: idempotency keys for mutations",
+      "Web / SaaS application concerns: idempotency of mutating operations and safe retries"
+     ]
+    },
+    {
+     "title": "State Restoration/Checkpointing for Long-Running Processes",
+     "severity": "medium",
+     "detail": "The system has complex, long-running processes (AI matching, data synchronization, agent-like workflows implied by matching). While general backup/restore exists (RPO/RTO), there is no specific requirement for checkpointing or state management within these complex, multi-step processes to allow for mid-process recovery without restarting from the beginning.",
+     "question": "For the AI Matching Engine and data synchronization jobs, what is the required mechanism (e.g., checkpointing, offset tracking) to resume a process exactly where it left off after an interruption?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns: state/checkpoint management for long-running or resumable agent runs",
+      "Data pipeline / analytics / ETL concerns: checkpointing, offset management, and recovery of streaming state after failure"
+     ]
+    },
+    {
+     "title": "Failure Isolation for Data Pipelines/Integrations",
+     "severity": "medium",
+     "detail": "The system integrates with multiple external sources (Req 8, 9, 51). If one external job site API fails or sends malformed data, there is no explicit requirement ensuring that this failure does not block or corrupt the processing of data from other sources or internal system operations.",
+     "question": "How must the system isolate failures originating from a single external job site integration to ensure that data ingestion from other sources or internal functions remains unaffected?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: failure isolation: a bad batch/partition fails without corrupting downstream or blocking unrelated data",
+      "API / backend microservice concerns: behaviour under partial outage of dependencies"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific Service Level Objectives (SLOs) for the core matching functionality (e.g., '95% of job-seeker searches must return ranked results within 3 seconds').",
+    "Given the context of limited internet connectivity (Req 19), consider specifying requirements for offline data caching and synchronization strategies to ensure data integrity when connectivity is restored.",
+    "For the integration with government databases (Req 9, 157), define specific requirements for handling data schema drift or unexpected changes in the external database structure."
+   ],
+   "confidence": "high",
+   "id": "reliability",
+   "name": "Reliability & resilience"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Authentication & Authorization (RBAC, MFA, Session Management)",
+    "Confidentiality (Encryption in transit/at rest, Data Masking)",
+    "Integrity (Input validation, Data integrity checks)",
+    "Accountability & Non-repudiation (Audit logging of admin/security actions)",
+    "Secrets/Key Management (Mentioned, but needs depth)",
+    "API Security (OAuth 2.0, JWT validation implied)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Authorization Granularity (BOLA/IDOR)",
+     "severity": "critical",
+     "detail": "While RBAC is specified (Req 104, 250), the requirements lack explicit protection against Broken Object Level Authorization (BOLA/IDOR), which is critical for multi-tenant/user-specific data access in a platform handling sensitive profiles and job data.",
+     "question": "Are there explicit requirements ensuring that users can only access, modify, or view data (job postings, profiles, applications) that they are explicitly authorized to interact with, preventing IDOR/BOLA?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "OWASP API Security Top 10"
+     ]
+    },
+    {
+     "title": "Input Validation Depth (OWASP Top 10)",
+     "severity": "high",
+     "detail": "Requirements mention input validation (Req 293), but do not specify defense against specific injection types (SQLi, XSS, Command Injection) across all input vectors (e.g., CV uploads, job descriptions, search queries).",
+     "question": "Are there specific requirements detailing input validation rules and output encoding standards (e.g., context-aware encoding) to prevent OWASP Top 10 vulnerabilities like XSS or SQL Injection across all data entry points?",
+     "grounding": [
+      "Web / SaaS application concerns",
+      "V1 Encoding and Sanitization (owasp-asvs)"
+     ]
+    },
+    {
+     "title": "Secrets/Credential Management Specificity",
+     "severity": "high",
+     "detail": "Secrets management is mentioned (Req 258), but there is no specification on *how* secrets for external integrations (Gov databases, external job sites) are managed, rotated, or accessed by the application components.",
+     "question": "What are the specific requirements for managing, rotating, and accessing credentials/API keys used by the Integration Framework (Req 9, 151), ensuring they are never stored in plaintext or configuration files?",
+     "grounding": [
+      "secrets, key management, dependency/supply-chain security",
+      "API / backend microservice concerns"
+     ]
+    },
+    {
+     "title": "LLM/AI Security (Prompt Injection/Data Leakage)",
+     "severity": "high",
+     "detail": "The system heavily relies on AI/NLP (Req 7, 123, 126, 132). There are no explicit security requirements addressing prompt injection, data leakage from LLM outputs, or ensuring the AI engine operates under least privilege regarding the data it processes.",
+     "question": "What are the security requirements to mitigate prompt injection attacks, ensure the AI engine adheres to least privilege when interacting with data/tools, and prevent sensitive data leakage via AI outputs?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns",
+      "OWASP LLM01"
+     ]
+    },
+    {
+     "title": "Data Integrity of Ingested Data",
+     "severity": "medium",
+     "detail": "While data synchronization exists (Req 8, 151), there is no explicit requirement to verify the *integrity* or *authenticity* of data received from external sources (e.g., ensuring a job posting hasn't been maliciously altered in transit or at the source before ingestion).",
+     "question": "What mechanisms are required to verify the integrity and authenticity of job data received from external job sites or government databases to prevent the ingestion of poisoned or malicious data?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns",
+      "Integrity (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Supply Chain Security/Dependency Scanning",
+     "severity": "medium",
+     "detail": "The domain concerns mention dependency/supply-chain security, but the requirements do not mandate scanning or vetting of third-party libraries or components used in the platform.",
+     "question": "Are there requirements mandating the use of Software Composition Analysis (SCA) tools or vulnerability scanning for all third-party dependencies used in the platform?",
+     "grounding": [
+      "secrets, key management, dependency/supply-chain security",
+      "Web / SaaS application concerns"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific requirements for rate limiting and abuse detection on API endpoints (beyond general security monitoring) to protect against automated scraping or enumeration attacks.",
+    "Given the integration with government databases, formalize requirements for data provenance tracking—not just *who* accessed it, but *where* the data originated and *how* it was transformed before being used by the system."
+   ],
+   "confidence": "high",
+   "id": "security",
+   "name": "Security"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Hazard identification and risk analysis (via data privacy/security requirements)",
+    "Fail-safe / safe-state behaviour (via high availability/disaster recovery)",
+    "Operational constraints & hazard warnings (via performance/availability SLAs)",
+    "Safe integration with other systems (via API/data exchange requirements)"
+   ],
+   "gaps": [
+    {
+     "title": "Irreversible/High-Consequence Action Guardrails",
+     "severity": "critical",
+     "detail": "The system handles data (CVs, profiles) and job postings, some of which could be considered high-consequence (e.g., permanent deletion, irreversible data sharing). The requirements lack explicit definition of what constitutes a 'high-consequence' action and the required human-in-the-loop approval gates for such actions, as expected in an Agent/LLM orchestration system.",
+     "question": "For actions like permanent user deletion, mass data export, or critical system configuration changes, what specific human approval gates (e.g., multi-factor authorization, MoL sign-off) must be enforced before execution?",
+     "grounding": [
+      "Agent / LLM-orchestration system: blast radius of autonomous actions",
+      "Agent / LLM-orchestration system: human-in-the-loop approval gates for consequential/irreversible actions"
+     ]
+    },
+    {
+     "title": "Deterministic Policy Enforcement (Guardrails)",
+     "severity": "high",
+     "detail": "While security and privacy are covered, there is no explicit requirement for deterministic, non-model-dependent guardrails to prevent the AI/NLP components from generating or processing harmful, biased, or policy-violating outputs (e.g., discriminatory matching, biased job descriptions).",
+     "question": "What deterministic, non-model-based checks must be implemented to ensure that AI-driven matching or NLP extraction does not produce outputs that violate anti-discrimination policies or platform guidelines?",
+     "grounding": [
+      "Agent / LLM-orchestration system: guardrails and policy enforcement independent of the model"
+     ]
+    },
+    {
+     "title": "Safe Default/Refusal Behavior for Ambiguity",
+     "severity": "high",
+     "detail": "The system must define how it behaves when faced with ambiguous inputs (e.g., a vague job description, a poorly formed query, or a request that falls outside defined operational parameters). The requirements do not specify a safe default or a mandatory refusal mechanism.",
+     "question": "If the AI matching engine encounters an input (job description or profile) that is too ambiguous or violates internal policy constraints, what is the mandated safe default behavior (e.g., refuse to match, flag for manual review, or return a null result)?",
+     "grounding": [
+      "Agent / LLM-orchestration system: safe-default and refusal behaviour for out-of-policy or ambiguous requests"
+     ]
+    },
+    {
+     "title": "Containment of Downstream Effects (Error Handling)",
+     "severity": "medium",
+     "detail": "The requirements cover integration error handling (154), but they lack a specific requirement for containing the 'blast radius' when an AI or integration component fails or provides incorrect data, ensuring that a failure in one module does not corrupt the state or data integrity of another critical module.",
+     "question": "When the AI matching engine fails or provides a highly inaccurate match score, what mechanism ensures that this erroneous data does not propagate or influence downstream systems (like employer shortlists or reporting) without explicit validation?",
+     "grounding": [
+      "Agent / LLM-orchestration system: containment of harmful downstream effects when the agent is wrong or manipulated"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the context of the Palestinian labor market, explicitly define requirements for bias auditing in the matching engine to ensure equitable opportunities are presented across different demographic groups (gender, region, educational background) to prevent systemic discrimination.",
+    "Since the system interacts with government databases (MoL/PEF), requirements should specify the required level of data provenance tracking for every piece of data ingested or modified from these external sources to satisfy governmental accountability standards."
+   ],
+   "confidence": "high",
+   "id": "safety",
+   "name": "Safety"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "API contract definition and documentation (via 52, 165, 376)",
+    "Data exchange formats (JSON, XML specified in 57, 58)",
+    "Versioning strategy (API versioning mentioned in 167)",
+    "Backward compatibility (mentioned in 167)",
+    "Standardized error format (implied via general API documentation, but not explicitly RFC 9457)",
+    "Coexistence with external systems (via 9, 17, 51, 157, 158)",
+    "Interoperability with external systems (via 9, 17, 51, 151, 152, 153)"
+   ],
+   "gaps": [
+    {
+     "title": "Explicit API Contract Specification",
+     "severity": "high",
+     "detail": "While requirements mention API documentation (165, 376) and data formats (57), there is no explicit requirement mandating the use of a formal, machine-readable contract definition language (like OpenAPI/Swagger schema definition) as the single source of truth for all interfaces, which is critical for automated compatibility testing.",
+     "question": "Is the API contract for all external and internal services formally defined using a standard specification like OpenAPI/JSON Schema, and is this contract enforced in CI/CD?",
+     "grounding": [
+      "API / backend microservice concerns: API contract definition (OpenAPI/JSON Schema/Protobuf/GraphQL SDL) as the source of truth"
+     ]
+    },
+    {
+     "title": "Consumer-Driven Contract Testing",
+     "severity": "high",
+     "detail": "The requirements specify API documentation (89, 165) and versioning (167), but they lack any requirement for implementing consumer-driven contract testing or schema-compatibility checks in the CI pipeline to proactively prevent breaking changes.",
+     "question": "Are there requirements to implement consumer-driven contract testing to validate that changes to service providers do not break existing consumers?",
+     "grounding": [
+      "API / backend microservice concerns: consumer-driven contract testing and schema-compatibility checks in CI (breaking-change gate)"
+     ]
+    },
+    {
+     "title": "Coexistence/Interoperability with Specific External Standards",
+     "severity": "medium",
+     "detail": "The system must integrate with MoL/PEF systems (17, 158) and external job sites (51). While protocols (HTTP/HTTPS, WebSockets) are mentioned, there is no requirement to specify the *exact* data exchange protocols, message formats, or versioning expectations of the target MoL/PEF systems, which is crucial for interoperability.",
+     "question": "For the integration with MoL and PEF systems, are the specific interface protocols, data schemas, and versioning requirements documented and agreed upon?",
+     "grounding": [
+      "Interoperability (iso-25010:2023): Can exchange information with other products and mutually use the exchanged information.",
+      "SRS: interface requirements (29148:2018): SRS section specifying external interfaces"
+     ]
+    },
+    {
+     "title": "Backward Compatibility Policy Definition",
+     "severity": "medium",
+     "detail": "Requirement 167 mentions API versioning, but there is no explicit requirement defining the *policy* for backward compatibility (e.g., additive-only evolution, deprecation timelines, or how long old versions must be supported).",
+     "question": "What is the defined backward compatibility policy for the platform's APIs, including rules for additive-only evolution and sunsetting deprecated features?",
+     "grounding": [
+      "API / backend microservice concerns: backward compatibility: additive-only evolution, no breaking changes to existing consumers, tolerant-reader expectations; versioning & deprecation/sunset policy with timelines"
+     ]
+    }
+   ],
+   "enrichments": [
+    "The problem statement should explicitly define the required data exchange schemas (e.g., JSON Schema definitions) for the primary interfaces (Job Posting API, Profile API) to serve as the canonical source of truth for compatibility.",
+    "Consider adding a requirement for a formal 'Interoperability Matrix' detailing every external system/standard the platform must interact with, its required version, and the specific data mapping required for that interaction."
+   ],
+   "confidence": "high",
+   "id": "compatibility",
+   "name": "Compatibility & interoperability"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Learnability (via guides, tutorials, onboarding)",
+    "Operability (via structured forms, clear navigation)",
+    "User-error protection (via profile controls, data validation)",
+    "UI aesthetics / look-and-feel expectations (via responsive design, engaging layout)",
+    "Helpfulness (via context-sensitive help, FAQs, guides)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Learnability/Workflow Complexity Targets",
+     "severity": "medium",
+     "detail": "While documentation (31-34) and guided tours (225) are present, there are no stated targets for acceptable learning time or workflow complexity, which is a key domain concern.",
+     "question": "What are the target metrics for time-to-proficiency or maximum acceptable steps for critical workflows (e.g., job seeker profile completion, employer posting)?",
+     "grounding": [
+      "iso-25010:2023 (Learnability)",
+      "Domain Questions"
+     ]
+    },
+    {
+     "title": "Explicit Safeguards Against Destructive Actions",
+     "severity": "high",
+     "detail": "The requirements mention user deletion (2), but lack explicit, granular safeguards (e.g., confirmation dialogues, mandatory review steps) specifically for destructive actions like deleting a tenant/employer account or bulk data deletion, which is critical for SaaS/Web applications.",
+     "question": "Are there specific requirements detailing confirmation steps, mandatory review periods, or multi-step confirmations before executing irreversible actions (e.g., deleting a job posting, deleting an account)?",
+     "grounding": [
+      "iso-25010:2023 (User error protection)",
+      "Archetype Priors for this domain (error prevention on destructive actions)"
+     ]
+    },
+    {
+     "title": "Specific Look-and-Feel/Interaction Expectations",
+     "severity": "medium",
+     "detail": "Requirements mention 'visually engaging' (44, 47) and 'consistent' (299), but do not specify concrete aesthetic or interaction design constraints (e.g., required color palette, brand guidelines, specific interaction patterns beyond standard UI elements) needed to meet 'Look and feel' expectations.",
+     "question": "Are there defined visual design specifications, branding guidelines, or specific interaction patterns (e.g., micro-interactions, state changes) that must be adhered to for the UI/UX?",
+     "grounding": [
+      "volere (Look and feel requirements)",
+      "Domain Questions"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific performance targets for the AI matching engine (e.g., latency for the top 100 shortlist generation) beyond the general 5-second requirement (229), as this directly impacts user satisfaction and operability.",
+    "Given the context of the Palestinian labor market, explicitly define requirements for cultural sensitivity beyond general 'cultural appropriateness' (67) to ensure UI/UX elements respect local customs regarding gender representation, imagery, and professional norms.",
+    "Since the system is the core of a future LMIS, consider adding requirements for data export formats that align with standard governmental reporting schemas, not just general CSV/Excel (191)."
+   ],
+   "confidence": "high",
+   "id": "usability",
+   "name": "Usability & interaction"
+  },
+  {
+   "coverage": "strong",
+   "addressed": [
+    "WCAG conformance (WCAG 2.1 AA specified)",
+    "Assistive-technology support (Screen readers, keyboard navigation)",
+    "Localization/i18n (Arabic/English, RTL, locale/format support)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific WCAG Conformance Level",
+     "severity": "medium",
+     "detail": "While WCAG 2.1 AA is mentioned (Req 46, 303), the problem statement implies a need for high inclusivity for a government-backed program, and the standard expectation is often WCAG 2.2 AA. The specific target level should be explicitly stated.",
+     "question": "Is WCAG 2.2 AA the required conformance level, or is WCAG 2.1 AA sufficient for this project?",
+     "grounding": [
+      "Conformance level (wcag-2.2)"
+     ]
+    },
+    {
+     "title": "Target Population Specificity",
+     "severity": "low",
+     "detail": "The problem statement mentions serving 'youth in the Palestinian labor market' and 'people with disability' (Req 20). The requirements address general disability access (Req 303, 304, 305), but there is no explicit requirement to tailor the design or functionality to the specific needs of youth (e.g., digital literacy levels, specific educational backgrounds) or the unique socio-cultural context beyond general cultural appropriateness.",
+     "question": "Are there specific accessibility or usability requirements tailored to the digital literacy levels or unique needs of the target youth demographic?",
+     "grounding": [
+      "Usability and humanity requirements (volere)",
+      "Inclusivity (iso-25010:2023)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the context of the Palestinian labor market, explicitly defining requirements for data sovereignty and local data residency compliance, beyond general GDPR principles, should be considered.",
+    "Since the system supports both Arabic and English, consider adding requirements for bidirectional text input handling (e.g., mixed-language fields) to ensure seamless user experience when inputting data that mixes languages."
+   ],
+   "confidence": "high",
+   "id": "accessibility",
+   "name": "Accessibility & internationalization"
+  },
+  {
+   "coverage": "strong",
+   "addressed": [
+    "Modularity and Reusability (via architectural design, API versioning, and component separation)",
+    "Analysability (via audit trails, logging, and monitoring)",
+    "Modifiability (via configuration management, version control, and documentation)",
+    "Testability (via automated testing requirements, coverage goals, and defined environments)",
+    "Observability (via logging, metrics, tracing, and performance monitoring)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Tracing/Correlation ID Requirements",
+     "severity": "high",
+     "detail": "While logging and metrics are mentioned (356, 360), the requirements lack explicit mandates for distributed tracing (e.g., OpenTelemetry adoption) and the propagation of correlation IDs across service boundaries, which is crucial for analyzing complex workflows like the matching engine or data synchronization.",
+     "question": "Are distributed tracing standards (e.g., OpenTelemetry) mandated, and is there a requirement to propagate correlation/trace IDs across all microservices/components?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "Standard Expectations for this Domain"
+     ]
+    },
+    {
+     "title": "Testability for AI/ML Components",
+     "severity": "high",
+     "detail": "The system relies heavily on AI/NLP matching (7, 123, 126, 132). The requirements specify performance (229), but lack specific requirements for testing the *correctness* and *bias* of the matching algorithms (e.g., unit tests for scoring logic, adversarial testing, or regression testing against known datasets).",
+     "question": "What specific requirements exist for testing the accuracy, fairness, and robustness of the AI matching engine (e.g., defining acceptable error rates for skill extraction or match score variance)?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns",
+      "Testability (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Reproducibility for AI/ML Runs",
+     "severity": "medium",
+     "detail": "For debugging the complex matching and parsing processes, the ability to replay a specific run with the exact same inputs (prompts, data, model versions) is vital. This is missing, especially given the reliance on NLP/AI.",
+     "question": "Are there requirements to version control the specific NLP models, prompt templates, and configuration parameters used by the matching engine to ensure run reproducibility for debugging?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns",
+      "Testability (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Modularity for Business Logic Isolation",
+     "severity": "medium",
+     "detail": "While modularity is mentioned (324), the requirements do not explicitly define bounded contexts or clear separation between the core business logic (e.g., Job Matching Engine) and infrastructure concerns (e.g., API Gateway, Data Sync Adapters). This is key to achieving independent changeability.",
+     "question": "Are there architectural requirements defining clear, isolated bounded contexts for the core domains (e.g., User Profile, Job Posting, Matching Service) to ensure changes in one do not ripple unexpectedly into others?",
+     "grounding": [
+      "API / backend microservice concerns",
+      "Modularity (iso-25010:2023)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific Service Level Objectives (SLOs) for the core business functions (e.g., '99.9% of job searches must return results within 2 seconds') rather than just general performance metrics, to drive observability requirements.",
+    "Given the context of government integration, explicitly define requirements for data lineage tracking—not just *that* data was exchanged (161), but *where* it originated, *how* it was transformed, and *where* it ended up, to satisfy auditability needs.",
+    "Since the system must support limited connectivity, consider specifying requirements for offline data synchronization capabilities (e.g., queuing mechanisms, local caching strategies) beyond just 'functioning effectively' (19)."
+   ],
+   "confidence": "high",
+   "id": "maintainability",
+   "name": "Maintainability, testability & observability"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Adaptability across environments (web browsers, mobile)",
+    "Deployment model (implied by web-based nature)",
+    "Installability (implied by web-based nature, but not explicitly defined)",
+    "Replaceability (not explicitly covered)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Target Platform/Environment Specification",
+     "severity": "high",
+     "detail": "While the requirements mention web browsers and limited connectivity, they do not specify the required operating systems, specific cloud/on-premise targets, or the exact deployment environment constraints (e.g., specific OS versions, required hardware profiles beyond general capacity).",
+     "question": "What are the definitive target operating systems (OS) and hardware environments (e.g., specific Linux distribution, Windows Server version, or cloud provider) that the platform must be deployable on?",
+     "grounding": [
+      "SRS: portability (29148:2018): SRS system-quality topic covering portability and installation requirements.",
+      "Adaptability (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Formal Installation/Upgrade/Rollback Procedures",
+     "severity": "high",
+     "detail": "The requirements mention deployment procedures (335) and automated deployment (336), but they lack formal, documented requirements for the installation process itself, including prerequisites, installation steps, and, critically, defined rollback mechanisms for failed deployments or upgrades.",
+     "question": "What are the defined procedures, acceptance criteria, and automated mechanisms for installing, upgrading, and rolling back the system across different environments?",
+     "grounding": [
+      "SRS: portability (29148:2018): SRS system-quality topic covering portability and installation requirements.",
+      "Installability (iso-25010:2023)"
+     ]
+    },
+    {
+     "title": "Containerization/Orchestration Specification",
+     "severity": "medium",
+     "detail": "Requirement 332 mentions containerization, but it does not specify the required container runtime (e.g., Docker, Podman) or the orchestration platform (e.g., Kubernetes, Docker Swarm) that must be used for deployment, which is crucial for portability.",
+     "question": "Which specific container runtime and orchestration platform (e.g., Kubernetes version X.Y) must be used to ensure consistent deployment across environments?",
+     "grounding": [
+      "DOMAIN CONCERNS: deployment model (containers, orchestration, targets)",
+      "SRS: portability (29148:2018:2018)"
+     ]
+    },
+    {
+     "title": "Replaceability Definition",
+     "severity": "medium",
+     "detail": "The concept of 'Replaceability' is a domain concern, but there are no requirements defining what it means for this system to be replaceable (e.g., replacing a specific component, or replacing the entire system with a successor product).",
+     "question": "Are there specific requirements defining how the system must be replaceable by a successor system or component without significant disruption to the MoL/PEF operations?",
+     "grounding": [
+      "Replaceability (iso-25010:2023)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the context of operating in areas with limited internet connectivity (Constraint), the requirements should specify the required offline synchronization/caching strategy (e.g., local data persistence, eventual consistency model) to ensure data integrity when connectivity is restored.",
+    "Since the system is intended to be the core of a future LMIS, the requirements should explicitly define the interface contract (API/data model) for future integration points *beyond* the currently specified MoL/PEF systems, to ensure future-proofing of the core architecture."
+   ],
+   "confidence": "high",
+   "id": "portability",
+   "name": "Portability & deployment"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Monitoring and Alerting (System Health, Performance, Security)",
+    "Configuration and Environment Management (Externalized Config, Multiple Environments)",
+    "Operational Resilience (High Availability, Backup/Recovery, Graceful Shutdown)",
+    "Connectivity/Environment (Limited Connectivity Support, Web Access)",
+    "Capacity/Cost Operations (Scalability, Resource Limits, Usage Tracking)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Offline/Intermittent Connectivity Behavior",
+     "severity": "high",
+     "detail": "The requirements state the system 'Must function effectively in areas with limited internet connectivity' (Req 19), but do not specify *how* this is achieved (e.g., local caching, offline data entry, synchronization queues, data queuing mechanisms). This is critical for operational survival in the specified context.",
+     "question": "What specific mechanisms (e.g., local data storage, synchronization logic, queuing) are required for the system to function effectively when connectivity is intermittent or unavailable?",
+     "grounding": [
+      "SRS: operational / environmental (29148:2018)",
+      "Volere type 13"
+     ]
+    },
+    {
+     "title": "Agent/LLM Specific Operational Monitoring",
+     "severity": "high",
+     "detail": "Given the use of AI-driven matching (Req 7, 123, 126, 132), the system needs specific operational monitoring for the AI components (e.g., inference latency, cost per match, anomalous behavior in NLP/Recommender systems). This is a key concern for LLM/Agent systems.",
+     "question": "Are there specific requirements for monitoring the performance, cost, and anomalous behavior of the AI-driven matching and NLP services (e.g., inference latency, cost per match, loop detection)?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns"
+     ]
+    },
+    {
+     "title": "Agent/LLM Emergency Stop/Kill Switch",
+     "severity": "critical",
+     "detail": "For systems involving autonomous agents (like the matching engine), a mechanism to immediately halt runaway processes or malicious activity is a standard operational requirement.",
+     "question": "Is there a defined 'kill switch' or emergency stop mechanism to halt active agent processes or revoke external tool access in flight?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns"
+     ]
+    },
+    {
+     "title": "Rate Limiting/Concurrency Control on External Actions",
+     "severity": "high",
+     "detail": "The system interacts with external job sites and government databases (Req 8, 9, 151). Operational requirements must define limits on how frequently the system can call these external APIs to prevent being blocked or incurring excessive costs.",
+     "question": "Are there requirements defining rate limiting and concurrency controls for the system's outbound API calls to external job sites and government databases?",
+     "grounding": [
+      "Agent / LLM-orchestration system concerns",
+      "API / backend microservice concerns"
+     ]
+    },
+    {
+     "title": "Runbooks for Core Operational Failures",
+     "severity": "medium",
+     "detail": "While general documentation (Req 373) exists, specific operational runbooks for critical failures (e.g., 'Job Sync Failure,' 'AI Service Timeout,' 'Database Replication Lag') are missing, which is essential for MoL technical staff.",
+     "question": "Are there specific operational runbooks defined for handling critical system failures, such as external API synchronization failures, AI service outages, or database replication issues?",
+     "grounding": [
+      "Web / SaaS application concerns",
+      "Data pipeline / analytics / ETL concerns"
+     ]
+    },
+    {
+     "title": "Capacity/Cost Operations for AI/ML Services",
+     "severity": "medium",
+     "detail": "While general capacity is addressed (Req 14, 15), the specific cost implications of running NLP/AI services (which can be highly variable) are not addressed from an operational/financial perspective.",
+     "question": "Are there requirements to monitor and report on the operational cost associated with running the AI/NLP services (e.g., per-inference cost, GPU utilization)?",
+     "grounding": [
+      "Web / SaaS application concerns"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Consider defining specific Service Level Objectives (SLOs) for the AI matching engine (e.g., 95% of matches returned within 5 seconds) rather than just performance metrics.",
+    "Given the context of government integration, define requirements for data lineage tracking—not just *what* data was exchanged, but *why* it was exchanged and *who* authorized it, beyond standard audit logs."
+   ],
+   "confidence": "high",
+   "id": "operational",
+   "name": "Operational & environmental"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "PII handling and data subject rights (deletion, visibility control)",
+    "Data residency/sovereignty (implied by local compliance)",
+    "Regulatory compliance (GDPR principles, Palestinian laws)",
+    "Data protection (encryption, access control, logging)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Data Sovereignty/Residency Requirements",
+     "severity": "high",
+     "detail": "The constraints mention complying with Palestinian data privacy regulations, but do not specify *where* the data must be stored or processed (e.g., must data remain within Palestinian borders?). This is critical for data sovereignty.",
+     "question": "Are there specific geographic or jurisdictional requirements dictating where the data (especially PII) must be stored and processed (Data Residency/Sovereignty)?",
+     "grounding": [
+      "Data sovereignty / residency",
+      "Archetype: Web / SaaS application"
+     ]
+    },
+    {
+     "title": "Lawful Basis and Consent Specificity",
+     "severity": "high",
+     "detail": "While consent banners are mentioned (Req 43), the requirements lack specification on the *lawful basis* for processing different types of data (e.g., consent, legitimate interest, legal obligation) as required by GDPR/similar frameworks, especially for data collected from government databases.",
+     "question": "For each type of data processing (e.g., matching, analytics, storage), what is the defined lawful basis (e.g., explicit consent, necessity for contract, legal obligation) according to Palestinian/GDPR principles?",
+     "grounding": [
+      "GDPR/CCPA: lawful basis, consent",
+      "Standard Expectations for this Domain: SRS"
+     ]
+    },
+    {
+     "title": "Data Minimization Enforcement in Practice",
+     "severity": "medium",
+     "detail": "Req 264 states the principle of data minimization, but there is no requirement detailing *how* the system enforces this during data ingestion (e.g., automatic filtering of non-essential fields from government database syncs) or during AI processing.",
+     "question": "What specific mechanisms ensure that only the minimum necessary PII is collected, processed, or retained for each defined purpose (e.g., during AI extraction or API synchronization)?",
+     "grounding": [
+      "Data protection & privacy (PII handling)",
+      "Archetype: Data pipeline / analytics / ETL"
+     ]
+    },
+    {
+     "title": "Handling of Derived/Aggregated Data Rights",
+     "severity": "high",
+     "detail": "The system generates analytics and insights (Req 172, 174). The requirements do not specify how a data subject's 'right to erasure' propagates to these derived datasets or aggregated reports.",
+     "question": "How is the 'right to be forgotten' or erasure request applied to derived data, aggregated statistics, and historical reports generated by the system?",
+     "grounding": [
+      "GDPR/CCPA: data-subject rights (erasure)",
+      "Archetype: Data pipeline / analytics / ETL"
+     ]
+    },
+    {
+     "title": "PII Classification and Masking Granularity",
+     "severity": "medium",
+     "detail": "Req 257 mentions data masking, but it is not specified *what* constitutes PII in this context (e.g., is a specific combination of location + age considered PII?), nor is there a requirement for automated PII classification upon ingestion from external sources.",
+     "question": "What is the defined classification schema for PII within the system, and what automated processes ensure PII is classified, masked, or tokenized immediately upon entry from external sources?",
+     "grounding": [
+      "PII handling",
+      "Archetype: Data pipeline / analytics / ETL"
+     ]
+    },
+    {
+     "title": "Accountability for AI/Automated Actions",
+     "severity": "medium",
+     "detail": "The system uses AI for matching and parsing (Req 76, 123). There is no explicit requirement defining accountability or auditability for decisions made solely by the AI (e.g., why a specific candidate was ranked highly or rejected).",
+     "question": "What level of auditability and attribution is required for decisions made by the AI matching engine (e.g., providing the specific features/weights that led to a match score)?",
+     "grounding": [
+      "Archetype: Agent / LLM-orchestration system",
+      "Accountability and attribution for actions the agent takes"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the integration with government databases (Req 9, 157), the system should explicitly define the required data sharing agreements (DSAs) and data processing agreements (DPAs) with MoL and PEF.",
+    "Since the system serves a specific national context (Palestine), the requirements should explicitly mandate a review process to ensure all data handling practices align with specific Palestinian labor/employment regulations beyond general privacy principles."
+   ],
+   "confidence": "high",
+   "id": "legal-privacy",
+   "name": "Legal, compliance & privacy"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Mandated technology stack (web browsers, standard protocols)",
+    "Licensing constraints (general mention of compliance)",
+    "Budget & cost ceilings (implied via performance/resource limits)",
+    "Schedule/timeline constraints (phased implementation)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Technology Stack Mandates",
+     "severity": "high",
+     "detail": "The requirements specify *what* the system must do (e.g., use RESTful APIs, JSON), but they do not mandate *how* it must be built (e.g., specific programming languages, frameworks, database technologies, or cloud providers). This is a core concern of the 'Constraints' domain.",
+     "question": "Are there mandated technologies (e.g., specific programming languages, frameworks, database systems, or cloud platforms) that the solution *must* use or *must not* use?",
+     "grounding": [
+      "SRS: design constraints (29148:2018)",
+      "Mandated / off-the-shelf solutions (volere)"
+     ]
+    },
+    {
+     "title": "Financial/Budgetary Constraints",
+     "severity": "high",
+     "detail": "While performance requirements (e.g., 80% CPU utilization, 5TB storage) imply cost ceilings, there is no explicit, quantified budget ceiling or cost constraint defined for development, operational expenditure (OpEx), or infrastructure (e.g., cloud service credits).",
+     "question": "What is the defined budget ceiling for the development and operational lifespan of this platform?",
+     "grounding": [
+      "Project constraints (volere)",
+      "Data pipeline / analytics / ETL concerns: compute/storage cost ceilings and budget as a first-class constraint"
+     ]
+    },
+    {
+     "title": "Licensing Constraints on Dependencies",
+     "severity": "medium",
+     "detail": "Requirement 349 mentions licensing third-party components, but it does not specify *which* licenses are acceptable (e.g., permissive like MIT vs. copyleft like GPL) or prohibit specific license types, which is crucial for legal compliance in a government-adjacent system.",
+     "question": "Are there specific restrictions on the types of open-source licenses (e.g., must be permissive, must avoid copyleft) that third-party dependencies can carry?",
+     "grounding": [
+      "Data pipeline / analytics / ETL concerns: open-source licensing of pipeline components",
+      "Standard Expectations for This Domain: open-source licensing limits"
+     ]
+    },
+    {
+     "title": "External System Integration Constraints",
+     "severity": "medium",
+     "detail": "The requirements state the system *must* integrate with MoL/PEF systems (Req 17, 158), but they lack constraints on the *interface* or *protocol* limitations of those legacy systems (e.g., required data formats, maximum latency tolerance for the legacy system, specific authentication methods required by them).",
+     "question": "What are the specific technical constraints (e.g., required protocols, data formats, latency limits) imposed by the existing MoL and PEF systems that the Integration Framework must adhere to?",
+     "grounding": [
+      "Standard Expectations for This Domain: SRS section specifying design and implementation constraints",
+      "Mandated / off-the-shelf solutions (volere)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "Given the context of government databases and data privacy, the problem statement should explicitly define the required data residency and sovereignty requirements for the data stored within Palestine.",
+    "Since the system is the core of a future LMIS, the problem statement should define the expected data governance model (who owns the data, who is the ultimate data steward) to constrain future architectural decisions."
+   ],
+   "confidence": "high",
+   "id": "constraints",
+   "name": "Constraints & mandated solutions"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "Organizational policies & governance (RBAC, Admin controls, Auditing)",
+    "Geopolitical restrictions (Data privacy, GDPR compliance, Local regulations)",
+    "Human workflows (User registration, Job posting, Matching, User guides)"
+   ],
+   "gaps": [
+    {
+     "title": "Specific Organizational Governance/Policy Capture",
+     "severity": "high",
+     "detail": "While RBAC and auditing are present, the requirements lack explicit capture of the *organizational policies* themselves that the system must enforce (e.g., specific MoL/PEF hiring protocols, data sharing agreements, internal approval workflows beyond basic admin functions).",
+     "question": "What specific organizational policies, workflows, or internal governance rules from the MoL or PEF must the system enforce or adhere to beyond general data privacy and access control?",
+     "grounding": [
+      "organizational policies & governance",
+      "Volere type 16"
+     ]
+    },
+    {
+     "title": "Geopolitical Data Routing/Sanctions Compliance",
+     "severity": "critical",
+     "detail": "The requirements mention data privacy and GDPR, but they do not address the specific geopolitical constraints relevant to Palestine, such as restrictions on data routing, sanctions compliance for external integrations, or specific jurisdictional data residency requirements mandated by Palestinian authorities.",
+     "question": "Are there specific geopolitical restrictions (e.g., data routing limitations, sanctions compliance requirements for external APIs/databases) that the system must adhere to regarding data flow in the Palestinian context?",
+     "grounding": [
+      "geopolitical restrictions (data routing, sanctions)",
+      "Volere type 16"
+     ]
+    },
+    {
+     "title": "Cultural Sensitivity in Content Moderation/Bias",
+     "severity": "high",
+     "detail": "The requirements touch upon cultural appropriateness (Req 67, 379), but they lack explicit mechanisms or policies for proactively managing bias in the AI matching engine or content moderation to ensure equitable representation and avoid cultural/political bias in job recommendations or candidate scoring.",
+     "question": "How must the AI matching engine and content moderation policies be specifically designed to mitigate cultural, gender, or political bias inherent in the Palestinian labor market context?",
+     "grounding": [
+      "Cultural and political requirements (Volere type 16)",
+      "Cultural norms and sensitivities"
+     ]
+    },
+    {
+     "title": "Workflow Integration with Existing Human Processes",
+     "severity": "medium",
+     "detail": "The system must fit human workflows. While it integrates with databases (Req 9, 17), it doesn't specify how the system supports the *human decision-making* process within MoL/PEF (e.g., specific approval gates, review cycles, or reporting formats required by human stakeholders).",
+     "question": "What are the specific human workflows (e.g., MoL review/approval cycles for job postings or candidate shortlists) that the system must support or integrate with, beyond simple data submission?",
+     "grounding": [
+      "human workflows the system must fit",
+      "Volere type 16"
+     ]
+    }
+   ],
+   "enrichments": [
+    "The problem statement should explicitly define the required level of data sovereignty and residency for sensitive personal data (e.g., must data remain within specific geographic boundaries within Palestine?).",
+    "Consider adding a requirement for a formal mechanism to handle disputes or appeals regarding automated matching scores or profile data extraction, involving human oversight.",
+    "Specify the required level of integration detail for government databases—is it read-only verification, or does the system need to initiate transactions/updates in those systems?"
+   ],
+   "confidence": "high",
+   "id": "cultural-political",
+   "name": "Cultural, political & organizational"
+  },
+  {
+   "coverage": "partial",
+   "addressed": [
+    "User profile management and data collection",
+    "Job posting creation, searching, and management",
+    "AI-driven matching and recommendations",
+    "External and government data integration",
+    "Security, privacy, and compliance (GDPR/local laws)",
+    "Multilingual and accessibility support (WCAG)",
+    "System performance and scalability metrics",
+    "Reporting and analytics for stakeholders"
+   ],
+   "gaps": [
+    {
+     "title": "Defined User Success Metrics (Effectiveness)",
+     "severity": "high",
+     "detail": "While the system tracks metrics (168, 170, 173), the requirements do not specify *what* constitutes a successful outcome for the primary stakeholders (MoL/PEF) or the end-users (job seekers/employers) in terms of goal achievement (Effectiveness).",
+     "question": "What are the measurable success metrics (e.g., job placement rate, time-to-hire, successful application rate) that the MoL and PEF expect the platform to achieve?",
+     "grounding": [
+      "Effectiveness (iso-25019:2023)",
+      "Archetype Priors for this Domain (task-success metrics)"
+     ]
+    },
+    {
+     "title": "Specified Effort/Time-to-Outcome (Efficiency)",
+     "severity": "high",
+     "detail": "The requirements specify performance targets (e.g., 227, 228, 229), but they lack explicit requirements defining the *acceptable effort or time* for key user workflows (e.g., time taken for a job seeker to complete profile setup, time taken for an employer to find a suitable candidate).",
+     "question": "What is the target time-to-value for a new job seeker or employer to achieve a meaningful outcome (e.g., first match, first application)?",
+     "grounding": [
+      "Efficiency (iso-25019:2023)",
+      "Archetype Priors for this Domain (time-to-value)"
+     ]
+    },
+    {
+     "title": "Risk Mitigation for Stakeholders (Economic/Health/Environmental)",
+     "severity": "high",
+     "detail": "The requirements cover data privacy (261, 344), but they do not explicitly address broader risks to stakeholders, such as economic risks (e.g., bias in matching leading to exclusion from opportunities) or health/safety risks associated with the jobs listed.",
+     "question": "How will the system mitigate risks related to algorithmic bias in matching, ensuring equitable access to opportunities across different demographics, and how are health/safety risks associated with job roles flagged or managed?",
+     "grounding": [
+      "Freedom from risk (iso-25019:2023)",
+      "Domain Questions (Are risks to users... considered?)"
+     ]
+    },
+    {
+     "title": "Transparency of AI/Agent Actions and Limits (Trust/Control)",
+     "severity": "high",
+     "detail": "The system uses AI matching (123, 126, 132), but there is no explicit requirement detailing how the system communicates *why* a match was made, what the confidence score means in practical terms, or how a user can challenge or override an AI recommendation.",
+     "question": "How will the system provide transparency regarding the AI matching process, allowing users to understand the factors contributing to a match score, and what mechanisms exist for users to override or correct AI-driven suggestions?",
+     "grounding": [
+      "Archetype Priors for this Domain (action transparency to user; user steering / undo controls)",
+      "Satisfaction (iso-25019:2023)"
+     ]
+    },
+    {
+     "title": "User Control over Recommendations and Data Usage",
+     "severity": "medium",
+     "detail": "While profile visibility controls exist (81), there is no explicit requirement detailing user control over *recommendations* (e.g., 'I do not want to see jobs in this sector' or 'De-prioritize this skill in my recommendations').",
+     "question": "What level of granular control do job seekers have over the inputs and weighting of their personalized recommendations (e.g., ability to explicitly tell the system to down-weight certain factors)?",
+     "grounding": [
+      "Archetype Priors for this Domain (user control: ability to steer, pause, correct)",
+      "Satisfaction (iso-25019:2023)"
+     ]
+    }
+   ],
+   "enrichments": [
+    "The problem statement should explicitly define the target demographic profile (e.g., age range, specific skill gaps) for the 'Youth' segment to guide the design of the matching engine and reporting.",
+    "Consider defining a 'Trust Score' or 'Reliability Metric' for external job sources integrated via API, allowing MoL/PEF to prioritize data from more reliable partners.",
+    "Given the context of a future LMIS, requirements should address data interoperability standards beyond basic API documentation (e.g., specific national data exchange protocols if they exist)."
+   ],
+   "confidence": "high",
+   "id": "quality-in-use",
+   "name": "Quality-in-use & stakeholder outcomes"
+  }
+ ],
+ "gaps": [
+  {
+   "title": "Specific Authorization Granularity (BOLA/IDOR)",
+   "severity": "critical",
+   "detail": "While RBAC is specified (Req 104, 250), the requirements lack explicit protection against Broken Object Level Authorization (BOLA/IDOR), which is critical for multi-tenant/user-specific data access in a platform handling sensitive profiles and job data.",
+   "question": "Are there explicit requirements ensuring that users can only access, modify, or view data (job postings, profiles, applications) that they are explicitly authorized to interact with, preventing IDOR/BOLA?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "OWASP API Security Top 10"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Irreversible/High-Consequence Action Guardrails",
+   "severity": "critical",
+   "detail": "The system handles data (CVs, profiles) and job postings, some of which could be considered high-consequence (e.g., permanent deletion, irreversible data sharing). The requirements lack explicit definition of what constitutes a 'high-consequence' action and the required human-in-the-loop approval gates for such actions, as expected in an Agent/LLM orchestration system.",
+   "question": "For actions like permanent user deletion, mass data export, or critical system configuration changes, what specific human approval gates (e.g., multi-factor authorization, MoL sign-off) must be enforced before execution?",
+   "grounding": [
+    "Agent / LLM-orchestration system: blast radius of autonomous actions",
+    "Agent / LLM-orchestration system: human-in-the-loop approval gates for consequential/irreversible actions"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Agent/LLM Emergency Stop/Kill Switch",
+   "severity": "critical",
+   "detail": "For systems involving autonomous agents (like the matching engine), a mechanism to immediately halt runaway processes or malicious activity is a standard operational requirement.",
+   "question": "Is there a defined 'kill switch' or emergency stop mechanism to halt active agent processes or revoke external tool access in flight?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Geopolitical Data Routing/Sanctions Compliance",
+   "severity": "critical",
+   "detail": "The requirements mention data privacy and GDPR, but they do not address the specific geopolitical constraints relevant to Palestine, such as restrictions on data routing, sanctions compliance for external integrations, or specific jurisdictional data residency requirements mandated by Palestinian authorities.",
+   "question": "Are there specific geopolitical restrictions (e.g., data routing limitations, sanctions compliance requirements for external APIs/databases) that the system must adhere to regarding data flow in the Palestinian context?",
+   "grounding": [
+    "geopolitical restrictions (data routing, sanctions)",
+    "Volere type 16"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "Outcome Verification/Acceptance Criteria for Matching",
+   "severity": "high",
+   "detail": "The requirements specify *how* matching is done (scoring, algorithms) but lack explicit acceptance criteria defining what constitutes a 'successful' match or a 'correct' recommendation in the context of labor market efficiency. This is crucial for functional correctness.",
+   "question": "What specific metrics or thresholds must the AI matching engine meet to be considered functionally correct (e.g., precision/recall targets on a test set, or a defined rate of successful job applications resulting from a match)?",
+   "grounding": [
+    "Functional correctness (iso-25010:2023)",
+    "Agent / LLM-orchestration system concerns: outcome evaluation against acceptance criteria"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Grounding/Hallucination Control for Factual Tasks",
+   "severity": "high",
+   "detail": "The system integrates with government databases and performs data extraction from resumes. There is no explicit requirement defining how the system verifies the factual accuracy of data pulled from external sources or how it mitigates hallucinations during NLP/AI extraction.",
+   "question": "What mechanisms are in place to verify the factual accuracy of data extracted from resumes or retrieved from government databases, and what is the acceptable rate of hallucination or factual error?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns: grounding/retrieval accuracy and hallucination control",
+    "Functional correctness (iso-25010:2023)"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Data Retention and Deletion Policies",
+   "severity": "high",
+   "detail": "While deletion mechanisms are mentioned (Req 2, 81, 259, 262), specific, enforceable data retention periods (how long data must be kept for legal/business reasons) and the process for archival/deletion beyond simple user request are not defined for all data types (e.g., job postings, activity logs, government data).",
+   "question": "What are the specific data retention periods for job seeker profiles, job postings, and system activity logs, and what is the defined process for archival or permanent deletion once those periods expire?",
+   "grounding": [
+    "SRS: data / logical database requirements (29148:2018)",
+    "Web / SaaS application concerns: retention, export, and deletion (incl. tenant offboarding)"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Data Quality Thresholds for Ingestion",
+   "severity": "high",
+   "detail": "Data quality is addressed via matching scores (Req 124) and validation (Req 89), but there is no explicit definition of *thresholds* for data completeness or accuracy upon ingestion from external sources (Req 9, 51, 152). For example, what is the acceptable percentage of missing required fields when syncing from an external job site?",
+   "question": "What are the defined data quality thresholds (e.g., minimum completeness percentage, acceptable error rate) that must be met for data ingested from external job sites or government databases to be considered valid and processed?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: data-quality dimensions with enforced thresholds: accuracy, completeness, consistency, uniqueness, validity, timeliness/freshness",
+    "Domain Questions: Are data-quality thresholds (accuracy/completeness/timeliness) stated?"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Quantified SLOs for Core Business Flows",
+   "severity": "high",
+   "detail": "While specific performance metrics are provided for general operations (e.g., page load time, search time), there are no explicit, quantified Service Level Objectives (SLOs) for the most critical business workflows, such as 'Job Matching Latency' (end-to-end time from search/profile to ranked results) or 'Data Synchronization Latency' (time from external update to platform reflection).",
+   "question": "What are the target p95/p99 latency SLOs for the AI-driven matching engine (Requirement 7/123) and for real-time job data synchronization (Requirement 8/151)?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "Time behaviour (iso-25010:2023)",
+    "volere"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Resource Utilization for AI/NLP Components",
+   "severity": "high",
+   "detail": "Requirements specify general resource ceilings (CPU/Memory) (237, 238), but the AI/NLP components (e.g., vector matching, resume parsing - Req 7, 76, 126) are computationally intensive. There is no specification on the required GPU/accelerator capacity or the expected resource consumption *per complex operation* (e.g., per resume parse or per matching run).",
+   "question": "Are there specific resource utilization ceilings or performance budgets defined for the AI/NLP processing tasks (e.g., maximum CPU/GPU time allowed per job match or per resume extraction)?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns",
+    "Resource utilization (iso-25010:2023)"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Load Shedding/Throttling Strategy",
+   "severity": "high",
+   "detail": "The system is required to handle peak loads (233, 234), but there is no defined strategy for what happens when capacity is exceeded beyond the defined peak (e.g., what is the behavior when 5,000 concurrent users are exceeded?). Specifically, there is no mention of rate limiting or load shedding mechanisms to protect the core services.",
+   "question": "What is the defined load-shedding or throttling policy when the system exceeds the defined peak capacity (e.g., how are requests rejected or queued)?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "Capacity (iso-25010:2023)"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "Specific Fault Tolerance/Graceful Degradation for Dependencies",
+   "severity": "high",
+   "detail": "While circuit breakers (Req 284) are mentioned for external dependencies, the requirements lack explicit specification on how the system degrades gracefully when a *critical internal* dependency (e.g., the AI matching engine, or a specific government database API) fails or becomes slow, beyond just general performance degradation.",
+   "question": "What specific fallback or degraded mode behavior must the system exhibit if the AI Matching Engine becomes unavailable or times out?",
+   "grounding": [
+    "API / backend microservice concerns: bulkhead & graceful degradation / fallback when a dependency is slow or down",
+    "iso-25010:2023: Fault tolerance"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Idempotency for Mutating Operations",
+   "severity": "high",
+   "detail": "The system handles API synchronization (Req 8, 86, 151, 153), which involves mutating external/internal state. There is no explicit requirement mandating idempotency keys or mechanisms to ensure that retries (especially during network instability) do not result in duplicate job postings or profile updates.",
+   "question": "For all API calls that result in state changes (e.g., job submission, profile update), must the system enforce idempotency using unique keys to prevent duplicate processing upon retries?",
+   "grounding": [
+    "API / backend microservice concerns: idempotency keys for mutations",
+    "Web / SaaS application concerns: idempotency of mutating operations and safe retries"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Input Validation Depth (OWASP Top 10)",
+   "severity": "high",
+   "detail": "Requirements mention input validation (Req 293), but do not specify defense against specific injection types (SQLi, XSS, Command Injection) across all input vectors (e.g., CV uploads, job descriptions, search queries).",
+   "question": "Are there specific requirements detailing input validation rules and output encoding standards (e.g., context-aware encoding) to prevent OWASP Top 10 vulnerabilities like XSS or SQL Injection across all data entry points?",
+   "grounding": [
+    "Web / SaaS application concerns",
+    "V1 Encoding and Sanitization (owasp-asvs)"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Secrets/Credential Management Specificity",
+   "severity": "high",
+   "detail": "Secrets management is mentioned (Req 258), but there is no specification on *how* secrets for external integrations (Gov databases, external job sites) are managed, rotated, or accessed by the application components.",
+   "question": "What are the specific requirements for managing, rotating, and accessing credentials/API keys used by the Integration Framework (Req 9, 151), ensuring they are never stored in plaintext or configuration files?",
+   "grounding": [
+    "secrets, key management, dependency/supply-chain security",
+    "API / backend microservice concerns"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "LLM/AI Security (Prompt Injection/Data Leakage)",
+   "severity": "high",
+   "detail": "The system heavily relies on AI/NLP (Req 7, 123, 126, 132). There are no explicit security requirements addressing prompt injection, data leakage from LLM outputs, or ensuring the AI engine operates under least privilege regarding the data it processes.",
+   "question": "What are the security requirements to mitigate prompt injection attacks, ensure the AI engine adheres to least privilege when interacting with data/tools, and prevent sensitive data leakage via AI outputs?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns",
+    "OWASP LLM01"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Deterministic Policy Enforcement (Guardrails)",
+   "severity": "high",
+   "detail": "While security and privacy are covered, there is no explicit requirement for deterministic, non-model-dependent guardrails to prevent the AI/NLP components from generating or processing harmful, biased, or policy-violating outputs (e.g., discriminatory matching, biased job descriptions).",
+   "question": "What deterministic, non-model-based checks must be implemented to ensure that AI-driven matching or NLP extraction does not produce outputs that violate anti-discrimination policies or platform guidelines?",
+   "grounding": [
+    "Agent / LLM-orchestration system: guardrails and policy enforcement independent of the model"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Safe Default/Refusal Behavior for Ambiguity",
+   "severity": "high",
+   "detail": "The system must define how it behaves when faced with ambiguous inputs (e.g., a vague job description, a poorly formed query, or a request that falls outside defined operational parameters). The requirements do not specify a safe default or a mandatory refusal mechanism.",
+   "question": "If the AI matching engine encounters an input (job description or profile) that is too ambiguous or violates internal policy constraints, what is the mandated safe default behavior (e.g., refuse to match, flag for manual review, or return a null result)?",
+   "grounding": [
+    "Agent / LLM-orchestration system: safe-default and refusal behaviour for out-of-policy or ambiguous requests"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Explicit API Contract Specification",
+   "severity": "high",
+   "detail": "While requirements mention API documentation (165, 376) and data formats (57), there is no explicit requirement mandating the use of a formal, machine-readable contract definition language (like OpenAPI/Swagger schema definition) as the single source of truth for all interfaces, which is critical for automated compatibility testing.",
+   "question": "Is the API contract for all external and internal services formally defined using a standard specification like OpenAPI/JSON Schema, and is this contract enforced in CI/CD?",
+   "grounding": [
+    "API / backend microservice concerns: API contract definition (OpenAPI/JSON Schema/Protobuf/GraphQL SDL) as the source of truth"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Consumer-Driven Contract Testing",
+   "severity": "high",
+   "detail": "The requirements specify API documentation (89, 165) and versioning (167), but they lack any requirement for implementing consumer-driven contract testing or schema-compatibility checks in the CI pipeline to proactively prevent breaking changes.",
+   "question": "Are there requirements to implement consumer-driven contract testing to validate that changes to service providers do not break existing consumers?",
+   "grounding": [
+    "API / backend microservice concerns: consumer-driven contract testing and schema-compatibility checks in CI (breaking-change gate)"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Explicit Safeguards Against Destructive Actions",
+   "severity": "high",
+   "detail": "The requirements mention user deletion (2), but lack explicit, granular safeguards (e.g., confirmation dialogues, mandatory review steps) specifically for destructive actions like deleting a tenant/employer account or bulk data deletion, which is critical for SaaS/Web applications.",
+   "question": "Are there specific requirements detailing confirmation steps, mandatory review periods, or multi-step confirmations before executing irreversible actions (e.g., deleting a job posting, deleting an account)?",
+   "grounding": [
+    "iso-25010:2023 (User error protection)",
+    "Archetype Priors for this domain (error prevention on destructive actions)"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "Specific Tracing/Correlation ID Requirements",
+   "severity": "high",
+   "detail": "While logging and metrics are mentioned (356, 360), the requirements lack explicit mandates for distributed tracing (e.g., OpenTelemetry adoption) and the propagation of correlation IDs across service boundaries, which is crucial for analyzing complex workflows like the matching engine or data synchronization.",
+   "question": "Are distributed tracing standards (e.g., OpenTelemetry) mandated, and is there a requirement to propagate correlation/trace IDs across all microservices/components?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "Standard Expectations for this Domain"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Testability for AI/ML Components",
+   "severity": "high",
+   "detail": "The system relies heavily on AI/NLP matching (7, 123, 126, 132). The requirements specify performance (229), but lack specific requirements for testing the *correctness* and *bias* of the matching algorithms (e.g., unit tests for scoring logic, adversarial testing, or regression testing against known datasets).",
+   "question": "What specific requirements exist for testing the accuracy, fairness, and robustness of the AI matching engine (e.g., defining acceptable error rates for skill extraction or match score variance)?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns",
+    "Testability (iso-25010:2023)"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Specific Target Platform/Environment Specification",
+   "severity": "high",
+   "detail": "While the requirements mention web browsers and limited connectivity, they do not specify the required operating systems, specific cloud/on-premise targets, or the exact deployment environment constraints (e.g., specific OS versions, required hardware profiles beyond general capacity).",
+   "question": "What are the definitive target operating systems (OS) and hardware environments (e.g., specific Linux distribution, Windows Server version, or cloud provider) that the platform must be deployable on?",
+   "grounding": [
+    "SRS: portability (29148:2018): SRS system-quality topic covering portability and installation requirements.",
+    "Adaptability (iso-25010:2023)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Formal Installation/Upgrade/Rollback Procedures",
+   "severity": "high",
+   "detail": "The requirements mention deployment procedures (335) and automated deployment (336), but they lack formal, documented requirements for the installation process itself, including prerequisites, installation steps, and, critically, defined rollback mechanisms for failed deployments or upgrades.",
+   "question": "What are the defined procedures, acceptance criteria, and automated mechanisms for installing, upgrading, and rolling back the system across different environments?",
+   "grounding": [
+    "SRS: portability (29148:2018): SRS system-quality topic covering portability and installation requirements.",
+    "Installability (iso-25010:2023)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Specific Offline/Intermittent Connectivity Behavior",
+   "severity": "high",
+   "detail": "The requirements state the system 'Must function effectively in areas with limited internet connectivity' (Req 19), but do not specify *how* this is achieved (e.g., local caching, offline data entry, synchronization queues, data queuing mechanisms). This is critical for operational survival in the specified context.",
+   "question": "What specific mechanisms (e.g., local data storage, synchronization logic, queuing) are required for the system to function effectively when connectivity is intermittent or unavailable?",
+   "grounding": [
+    "SRS: operational / environmental (29148:2018)",
+    "Volere type 13"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Agent/LLM Specific Operational Monitoring",
+   "severity": "high",
+   "detail": "Given the use of AI-driven matching (Req 7, 123, 126, 132), the system needs specific operational monitoring for the AI components (e.g., inference latency, cost per match, anomalous behavior in NLP/Recommender systems). This is a key concern for LLM/Agent systems.",
+   "question": "Are there specific requirements for monitoring the performance, cost, and anomalous behavior of the AI-driven matching and NLP services (e.g., inference latency, cost per match, loop detection)?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Rate Limiting/Concurrency Control on External Actions",
+   "severity": "high",
+   "detail": "The system interacts with external job sites and government databases (Req 8, 9, 151). Operational requirements must define limits on how frequently the system can call these external APIs to prevent being blocked or incurring excessive costs.",
+   "question": "Are there requirements defining rate limiting and concurrency controls for the system's outbound API calls to external job sites and government databases?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns",
+    "API / backend microservice concerns"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Specific Data Sovereignty/Residency Requirements",
+   "severity": "high",
+   "detail": "The constraints mention complying with Palestinian data privacy regulations, but do not specify *where* the data must be stored or processed (e.g., must data remain within Palestinian borders?). This is critical for data sovereignty.",
+   "question": "Are there specific geographic or jurisdictional requirements dictating where the data (especially PII) must be stored and processed (Data Residency/Sovereignty)?",
+   "grounding": [
+    "Data sovereignty / residency",
+    "Archetype: Web / SaaS application"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Lawful Basis and Consent Specificity",
+   "severity": "high",
+   "detail": "While consent banners are mentioned (Req 43), the requirements lack specification on the *lawful basis* for processing different types of data (e.g., consent, legitimate interest, legal obligation) as required by GDPR/similar frameworks, especially for data collected from government databases.",
+   "question": "For each type of data processing (e.g., matching, analytics, storage), what is the defined lawful basis (e.g., explicit consent, necessity for contract, legal obligation) according to Palestinian/GDPR principles?",
+   "grounding": [
+    "GDPR/CCPA: lawful basis, consent",
+    "Standard Expectations for this Domain: SRS"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Handling of Derived/Aggregated Data Rights",
+   "severity": "high",
+   "detail": "The system generates analytics and insights (Req 172, 174). The requirements do not specify how a data subject's 'right to erasure' propagates to these derived datasets or aggregated reports.",
+   "question": "How is the 'right to be forgotten' or erasure request applied to derived data, aggregated statistics, and historical reports generated by the system?",
+   "grounding": [
+    "GDPR/CCPA: data-subject rights (erasure)",
+    "Archetype: Data pipeline / analytics / ETL"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Specific Technology Stack Mandates",
+   "severity": "high",
+   "detail": "The requirements specify *what* the system must do (e.g., use RESTful APIs, JSON), but they do not mandate *how* it must be built (e.g., specific programming languages, frameworks, database technologies, or cloud providers). This is a core concern of the 'Constraints' domain.",
+   "question": "Are there mandated technologies (e.g., specific programming languages, frameworks, database systems, or cloud platforms) that the solution *must* use or *must not* use?",
+   "grounding": [
+    "SRS: design constraints (29148:2018)",
+    "Mandated / off-the-shelf solutions (volere)"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Financial/Budgetary Constraints",
+   "severity": "high",
+   "detail": "While performance requirements (e.g., 80% CPU utilization, 5TB storage) imply cost ceilings, there is no explicit, quantified budget ceiling or cost constraint defined for development, operational expenditure (OpEx), or infrastructure (e.g., cloud service credits).",
+   "question": "What is the defined budget ceiling for the development and operational lifespan of this platform?",
+   "grounding": [
+    "Project constraints (volere)",
+    "Data pipeline / analytics / ETL concerns: compute/storage cost ceilings and budget as a first-class constraint"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Specific Organizational Governance/Policy Capture",
+   "severity": "high",
+   "detail": "While RBAC and auditing are present, the requirements lack explicit capture of the *organizational policies* themselves that the system must enforce (e.g., specific MoL/PEF hiring protocols, data sharing agreements, internal approval workflows beyond basic admin functions).",
+   "question": "What specific organizational policies, workflows, or internal governance rules from the MoL or PEF must the system enforce or adhere to beyond general data privacy and access control?",
+   "grounding": [
+    "organizational policies & governance",
+    "Volere type 16"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "Cultural Sensitivity in Content Moderation/Bias",
+   "severity": "high",
+   "detail": "The requirements touch upon cultural appropriateness (Req 67, 379), but they lack explicit mechanisms or policies for proactively managing bias in the AI matching engine or content moderation to ensure equitable representation and avoid cultural/political bias in job recommendations or candidate scoring.",
+   "question": "How must the AI matching engine and content moderation policies be specifically designed to mitigate cultural, gender, or political bias inherent in the Palestinian labor market context?",
+   "grounding": [
+    "Cultural and political requirements (Volere type 16)",
+    "Cultural norms and sensitivities"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "Defined User Success Metrics (Effectiveness)",
+   "severity": "high",
+   "detail": "While the system tracks metrics (168, 170, 173), the requirements do not specify *what* constitutes a successful outcome for the primary stakeholders (MoL/PEF) or the end-users (job seekers/employers) in terms of goal achievement (Effectiveness).",
+   "question": "What are the measurable success metrics (e.g., job placement rate, time-to-hire, successful application rate) that the MoL and PEF expect the platform to achieve?",
+   "grounding": [
+    "Effectiveness (iso-25019:2023)",
+    "Archetype Priors for this Domain (task-success metrics)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Specified Effort/Time-to-Outcome (Efficiency)",
+   "severity": "high",
+   "detail": "The requirements specify performance targets (e.g., 227, 228, 229), but they lack explicit requirements defining the *acceptable effort or time* for key user workflows (e.g., time taken for a job seeker to complete profile setup, time taken for an employer to find a suitable candidate).",
+   "question": "What is the target time-to-value for a new job seeker or employer to achieve a meaningful outcome (e.g., first match, first application)?",
+   "grounding": [
+    "Efficiency (iso-25019:2023)",
+    "Archetype Priors for this Domain (time-to-value)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Risk Mitigation for Stakeholders (Economic/Health/Environmental)",
+   "severity": "high",
+   "detail": "The requirements cover data privacy (261, 344), but they do not explicitly address broader risks to stakeholders, such as economic risks (e.g., bias in matching leading to exclusion from opportunities) or health/safety risks associated with the jobs listed.",
+   "question": "How will the system mitigate risks related to algorithmic bias in matching, ensuring equitable access to opportunities across different demographics, and how are health/safety risks associated with job roles flagged or managed?",
+   "grounding": [
+    "Freedom from risk (iso-25019:2023)",
+    "Domain Questions (Are risks to users... considered?)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Transparency of AI/Agent Actions and Limits (Trust/Control)",
+   "severity": "high",
+   "detail": "The system uses AI matching (123, 126, 132), but there is no explicit requirement detailing how the system communicates *why* a match was made, what the confidence score means in practical terms, or how a user can challenge or override an AI recommendation.",
+   "question": "How will the system provide transparency regarding the AI matching process, allowing users to understand the factors contributing to a match score, and what mechanisms exist for users to override or correct AI-driven suggestions?",
+   "grounding": [
+    "Archetype Priors for this Domain (action transparency to user; user steering / undo controls)",
+    "Satisfaction (iso-25019:2023)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Clarification Behaviour for Under-specified Goals",
+   "severity": "medium",
+   "detail": "The problem statement implies complex decision support for MoL/PEF. If a job seeker or employer input is ambiguous or incomplete (e.g., vague skill description), the requirements do not specify the system's required behavior (e.g., prompting the user, flagging for admin review, or making a best-guess recommendation).",
+   "question": "When a user input (job description or profile) is ambiguous or under-specified, what is the required system behavior—should it prompt the user for clarification, flag it for administrative review, or proceed with a probabilistic guess?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns: clarification behaviour when the goal is under-specified",
+    "Functional completeness (iso-25010:2023)"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Completeness of Error/Exception Contract for Core Operations",
+   "severity": "medium",
+   "detail": "While many requirements cover happy paths (e.g., job creation), the exception contract for critical functions like 'Real-time job data synchronization' (Req 8, 151) or 'AI matching' (Req 7, 123) is underspecified. We know *what* should happen on success, but not the full range of failure modes (e.g., API timeout, data schema mismatch, service unavailability) and the required response contract for each.",
+   "question": "For critical operations like external data synchronization and AI matching, what are the defined error codes, retry logic, and user-facing messages for specific failure modes (e.g., 4xx vs 5xx errors from external APIs)?",
+   "grounding": [
+    "API / backend microservice concerns: error/exception contract per operation",
+    "Functional correctness (iso-25010:2023)"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Scope Definition for 'Labor Market Insights' Granularity",
+   "severity": "medium",
+   "detail": "The capability mentions providing 'labor market insights' and 'custom report generation.' While reporting requirements exist (101, 172), the functional scope of *what* constitutes a 'labor market insight' (e.g., predictive modeling, trend forecasting, gap analysis) is not fully defined, potentially leading to scope creep or insufficient functionality.",
+   "question": "What specific types of predictive or analytical insights (beyond simple aggregation/statistics) are required for the MoL/PEF decision-making process (e.g., predicting future skill shortages, forecasting unemployment rates)?",
+   "grounding": [
+    "Functional completeness (iso-25010:2023)",
+    "Agent / LLM-orchestration system concerns: goal/task specification"
+   ],
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness"
+  },
+  {
+   "title": "Data Lineage and Transformation Documentation",
+   "severity": "medium",
+   "detail": "Lineage is partially covered by source tagging (Req 85, 91) and integration logs (Req 154), but the requirements lack explicit mandates for documenting the *transformation logic* applied to data as it moves from source (external API) to the canonical model, which is crucial for auditing and impact analysis.",
+   "question": "For data flowing from external sources (APIs/Government DBs) into the platform, what level of documentation is required to trace and document every transformation, mapping, and enrichment step applied to the data?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: data lineage and provenance: source-to-target traceability, transformation documentation, impact analysis"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Master Data Ownership and Governance",
+   "severity": "medium",
+   "detail": "The system allows administrators to manage reference files (Req 98, 99), but there is no formal definition of which entity (MoL, PEF, Platform Admin, or external source) is the authoritative 'Master Data Owner' for core entities like 'Skill' or 'Occupation' when conflicts arise between the platform's internal taxonomy and external data.",
+   "question": "For core reference data (e.g., standardized skills, job categories), which entity (e.g., MoL, PEF, or the platform itself) is designated as the authoritative Master Data Owner, and how are conflicts resolved?",
+   "grounding": [
+    "Domain Concerns: lineage / provenance / master-data ownership",
+    "Data pipeline / analytics / ETL concerns: reference-data and slowly-changing-dimension handling"
+   ],
+   "domain": "data",
+   "domain_name": "Data & information"
+  },
+  {
+   "title": "Data Pipeline/Integration Throughput Guarantees",
+   "severity": "medium",
+   "detail": "Requirements cover data synchronization (8, 151, 153) and integration with external sites (51), but they lack throughput guarantees for the data pipeline itself. For example, if 50 external sites push updates, what is the maximum acceptable lag or throughput rate the integration framework must sustain?",
+   "question": "What are the required throughput or maximum acceptable lag bounds for the data synchronization pipeline when ingesting/pushing data from external job sites?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns",
+    "Time behaviour (iso-25010:2023)"
+   ],
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity"
+  },
+  {
+   "title": "State Restoration/Checkpointing for Long-Running Processes",
+   "severity": "medium",
+   "detail": "The system has complex, long-running processes (AI matching, data synchronization, agent-like workflows implied by matching). While general backup/restore exists (RPO/RTO), there is no specific requirement for checkpointing or state management within these complex, multi-step processes to allow for mid-process recovery without restarting from the beginning.",
+   "question": "For the AI Matching Engine and data synchronization jobs, what is the required mechanism (e.g., checkpointing, offset tracking) to resume a process exactly where it left off after an interruption?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns: state/checkpoint management for long-running or resumable agent runs",
+    "Data pipeline / analytics / ETL concerns: checkpointing, offset management, and recovery of streaming state after failure"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Failure Isolation for Data Pipelines/Integrations",
+   "severity": "medium",
+   "detail": "The system integrates with multiple external sources (Req 8, 9, 51). If one external job site API fails or sends malformed data, there is no explicit requirement ensuring that this failure does not block or corrupt the processing of data from other sources or internal system operations.",
+   "question": "How must the system isolate failures originating from a single external job site integration to ensure that data ingestion from other sources or internal functions remains unaffected?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: failure isolation: a bad batch/partition fails without corrupting downstream or blocking unrelated data",
+    "API / backend microservice concerns: behaviour under partial outage of dependencies"
+   ],
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience"
+  },
+  {
+   "title": "Data Integrity of Ingested Data",
+   "severity": "medium",
+   "detail": "While data synchronization exists (Req 8, 151), there is no explicit requirement to verify the *integrity* or *authenticity* of data received from external sources (e.g., ensuring a job posting hasn't been maliciously altered in transit or at the source before ingestion).",
+   "question": "What mechanisms are required to verify the integrity and authenticity of job data received from external job sites or government databases to prevent the ingestion of poisoned or malicious data?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns",
+    "Integrity (iso-25010:2023)"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Supply Chain Security/Dependency Scanning",
+   "severity": "medium",
+   "detail": "The domain concerns mention dependency/supply-chain security, but the requirements do not mandate scanning or vetting of third-party libraries or components used in the platform.",
+   "question": "Are there requirements mandating the use of Software Composition Analysis (SCA) tools or vulnerability scanning for all third-party dependencies used in the platform?",
+   "grounding": [
+    "secrets, key management, dependency/supply-chain security",
+    "Web / SaaS application concerns"
+   ],
+   "domain": "security",
+   "domain_name": "Security"
+  },
+  {
+   "title": "Containment of Downstream Effects (Error Handling)",
+   "severity": "medium",
+   "detail": "The requirements cover integration error handling (154), but they lack a specific requirement for containing the 'blast radius' when an AI or integration component fails or provides incorrect data, ensuring that a failure in one module does not corrupt the state or data integrity of another critical module.",
+   "question": "When the AI matching engine fails or provides a highly inaccurate match score, what mechanism ensures that this erroneous data does not propagate or influence downstream systems (like employer shortlists or reporting) without explicit validation?",
+   "grounding": [
+    "Agent / LLM-orchestration system: containment of harmful downstream effects when the agent is wrong or manipulated"
+   ],
+   "domain": "safety",
+   "domain_name": "Safety"
+  },
+  {
+   "title": "Coexistence/Interoperability with Specific External Standards",
+   "severity": "medium",
+   "detail": "The system must integrate with MoL/PEF systems (17, 158) and external job sites (51). While protocols (HTTP/HTTPS, WebSockets) are mentioned, there is no requirement to specify the *exact* data exchange protocols, message formats, or versioning expectations of the target MoL/PEF systems, which is crucial for interoperability.",
+   "question": "For the integration with MoL and PEF systems, are the specific interface protocols, data schemas, and versioning requirements documented and agreed upon?",
+   "grounding": [
+    "Interoperability (iso-25010:2023): Can exchange information with other products and mutually use the exchanged information.",
+    "SRS: interface requirements (29148:2018): SRS section specifying external interfaces"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Backward Compatibility Policy Definition",
+   "severity": "medium",
+   "detail": "Requirement 167 mentions API versioning, but there is no explicit requirement defining the *policy* for backward compatibility (e.g., additive-only evolution, deprecation timelines, or how long old versions must be supported).",
+   "question": "What is the defined backward compatibility policy for the platform's APIs, including rules for additive-only evolution and sunsetting deprecated features?",
+   "grounding": [
+    "API / backend microservice concerns: backward compatibility: additive-only evolution, no breaking changes to existing consumers, tolerant-reader expectations; versioning & deprecation/sunset policy with timelines"
+   ],
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability"
+  },
+  {
+   "title": "Specific Learnability/Workflow Complexity Targets",
+   "severity": "medium",
+   "detail": "While documentation (31-34) and guided tours (225) are present, there are no stated targets for acceptable learning time or workflow complexity, which is a key domain concern.",
+   "question": "What are the target metrics for time-to-proficiency or maximum acceptable steps for critical workflows (e.g., job seeker profile completion, employer posting)?",
+   "grounding": [
+    "iso-25010:2023 (Learnability)",
+    "Domain Questions"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "Specific Look-and-Feel/Interaction Expectations",
+   "severity": "medium",
+   "detail": "Requirements mention 'visually engaging' (44, 47) and 'consistent' (299), but do not specify concrete aesthetic or interaction design constraints (e.g., required color palette, brand guidelines, specific interaction patterns beyond standard UI elements) needed to meet 'Look and feel' expectations.",
+   "question": "Are there defined visual design specifications, branding guidelines, or specific interaction patterns (e.g., micro-interactions, state changes) that must be adhered to for the UI/UX?",
+   "grounding": [
+    "volere (Look and feel requirements)",
+    "Domain Questions"
+   ],
+   "domain": "usability",
+   "domain_name": "Usability & interaction"
+  },
+  {
+   "title": "Specific WCAG Conformance Level",
+   "severity": "medium",
+   "detail": "While WCAG 2.1 AA is mentioned (Req 46, 303), the problem statement implies a need for high inclusivity for a government-backed program, and the standard expectation is often WCAG 2.2 AA. The specific target level should be explicitly stated.",
+   "question": "Is WCAG 2.2 AA the required conformance level, or is WCAG 2.1 AA sufficient for this project?",
+   "grounding": [
+    "Conformance level (wcag-2.2)"
+   ],
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization"
+  },
+  {
+   "title": "Reproducibility for AI/ML Runs",
+   "severity": "medium",
+   "detail": "For debugging the complex matching and parsing processes, the ability to replay a specific run with the exact same inputs (prompts, data, model versions) is vital. This is missing, especially given the reliance on NLP/AI.",
+   "question": "Are there requirements to version control the specific NLP models, prompt templates, and configuration parameters used by the matching engine to ensure run reproducibility for debugging?",
+   "grounding": [
+    "Agent / LLM-orchestration system concerns",
+    "Testability (iso-25010:2023)"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Modularity for Business Logic Isolation",
+   "severity": "medium",
+   "detail": "While modularity is mentioned (324), the requirements do not explicitly define bounded contexts or clear separation between the core business logic (e.g., Job Matching Engine) and infrastructure concerns (e.g., API Gateway, Data Sync Adapters). This is key to achieving independent changeability.",
+   "question": "Are there architectural requirements defining clear, isolated bounded contexts for the core domains (e.g., User Profile, Job Posting, Matching Service) to ensure changes in one do not ripple unexpectedly into others?",
+   "grounding": [
+    "API / backend microservice concerns",
+    "Modularity (iso-25010:2023)"
+   ],
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability"
+  },
+  {
+   "title": "Containerization/Orchestration Specification",
+   "severity": "medium",
+   "detail": "Requirement 332 mentions containerization, but it does not specify the required container runtime (e.g., Docker, Podman) or the orchestration platform (e.g., Kubernetes, Docker Swarm) that must be used for deployment, which is crucial for portability.",
+   "question": "Which specific container runtime and orchestration platform (e.g., Kubernetes version X.Y) must be used to ensure consistent deployment across environments?",
+   "grounding": [
+    "DOMAIN CONCERNS: deployment model (containers, orchestration, targets)",
+    "SRS: portability (29148:2018:2018)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Replaceability Definition",
+   "severity": "medium",
+   "detail": "The concept of 'Replaceability' is a domain concern, but there are no requirements defining what it means for this system to be replaceable (e.g., replacing a specific component, or replacing the entire system with a successor product).",
+   "question": "Are there specific requirements defining how the system must be replaceable by a successor system or component without significant disruption to the MoL/PEF operations?",
+   "grounding": [
+    "Replaceability (iso-25010:2023)"
+   ],
+   "domain": "portability",
+   "domain_name": "Portability & deployment"
+  },
+  {
+   "title": "Runbooks for Core Operational Failures",
+   "severity": "medium",
+   "detail": "While general documentation (Req 373) exists, specific operational runbooks for critical failures (e.g., 'Job Sync Failure,' 'AI Service Timeout,' 'Database Replication Lag') are missing, which is essential for MoL technical staff.",
+   "question": "Are there specific operational runbooks defined for handling critical system failures, such as external API synchronization failures, AI service outages, or database replication issues?",
+   "grounding": [
+    "Web / SaaS application concerns",
+    "Data pipeline / analytics / ETL concerns"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Capacity/Cost Operations for AI/ML Services",
+   "severity": "medium",
+   "detail": "While general capacity is addressed (Req 14, 15), the specific cost implications of running NLP/AI services (which can be highly variable) are not addressed from an operational/financial perspective.",
+   "question": "Are there requirements to monitor and report on the operational cost associated with running the AI/NLP services (e.g., per-inference cost, GPU utilization)?",
+   "grounding": [
+    "Web / SaaS application concerns"
+   ],
+   "domain": "operational",
+   "domain_name": "Operational & environmental"
+  },
+  {
+   "title": "Data Minimization Enforcement in Practice",
+   "severity": "medium",
+   "detail": "Req 264 states the principle of data minimization, but there is no requirement detailing *how* the system enforces this during data ingestion (e.g., automatic filtering of non-essential fields from government database syncs) or during AI processing.",
+   "question": "What specific mechanisms ensure that only the minimum necessary PII is collected, processed, or retained for each defined purpose (e.g., during AI extraction or API synchronization)?",
+   "grounding": [
+    "Data protection & privacy (PII handling)",
+    "Archetype: Data pipeline / analytics / ETL"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "PII Classification and Masking Granularity",
+   "severity": "medium",
+   "detail": "Req 257 mentions data masking, but it is not specified *what* constitutes PII in this context (e.g., is a specific combination of location + age considered PII?), nor is there a requirement for automated PII classification upon ingestion from external sources.",
+   "question": "What is the defined classification schema for PII within the system, and what automated processes ensure PII is classified, masked, or tokenized immediately upon entry from external sources?",
+   "grounding": [
+    "PII handling",
+    "Archetype: Data pipeline / analytics / ETL"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Accountability for AI/Automated Actions",
+   "severity": "medium",
+   "detail": "The system uses AI for matching and parsing (Req 76, 123). There is no explicit requirement defining accountability or auditability for decisions made solely by the AI (e.g., why a specific candidate was ranked highly or rejected).",
+   "question": "What level of auditability and attribution is required for decisions made by the AI matching engine (e.g., providing the specific features/weights that led to a match score)?",
+   "grounding": [
+    "Archetype: Agent / LLM-orchestration system",
+    "Accountability and attribution for actions the agent takes"
+   ],
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy"
+  },
+  {
+   "title": "Licensing Constraints on Dependencies",
+   "severity": "medium",
+   "detail": "Requirement 349 mentions licensing third-party components, but it does not specify *which* licenses are acceptable (e.g., permissive like MIT vs. copyleft like GPL) or prohibit specific license types, which is crucial for legal compliance in a government-adjacent system.",
+   "question": "Are there specific restrictions on the types of open-source licenses (e.g., must be permissive, must avoid copyleft) that third-party dependencies can carry?",
+   "grounding": [
+    "Data pipeline / analytics / ETL concerns: open-source licensing of pipeline components",
+    "Standard Expectations for This Domain: open-source licensing limits"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "External System Integration Constraints",
+   "severity": "medium",
+   "detail": "The requirements state the system *must* integrate with MoL/PEF systems (Req 17, 158), but they lack constraints on the *interface* or *protocol* limitations of those legacy systems (e.g., required data formats, maximum latency tolerance for the legacy system, specific authentication methods required by them).",
+   "question": "What are the specific technical constraints (e.g., required protocols, data formats, latency limits) imposed by the existing MoL and PEF systems that the Integration Framework must adhere to?",
+   "grounding": [
+    "Standard Expectations for This Domain: SRS section specifying design and implementation constraints",
+    "Mandated / off-the-shelf solutions (volere)"
+   ],
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions"
+  },
+  {
+   "title": "Workflow Integration with Existing Human Processes",
+   "severity": "medium",
+   "detail": "The system must fit human workflows. While it integrates with databases (Req 9, 17), it doesn't specify how the system supports the *human decision-making* process within MoL/PEF (e.g., specific approval gates, review cycles, or reporting formats required by human stakeholders).",
+   "question": "What are the specific human workflows (e.g., MoL review/approval cycles for job postings or candidate shortlists) that the system must support or integrate with, beyond simple data submission?",
+   "grounding": [
+    "human workflows the system must fit",
+    "Volere type 16"
+   ],
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational"
+  },
+  {
+   "title": "User Control over Recommendations and Data Usage",
+   "severity": "medium",
+   "detail": "While profile visibility controls exist (81), there is no explicit requirement detailing user control over *recommendations* (e.g., 'I do not want to see jobs in this sector' or 'De-prioritize this skill in my recommendations').",
+   "question": "What level of granular control do job seekers have over the inputs and weighting of their personalized recommendations (e.g., ability to explicitly tell the system to down-weight certain factors)?",
+   "grounding": [
+    "Archetype Priors for this Domain (user control: ability to steer, pause, correct)",
+    "Satisfaction (iso-25019:2023)"
+   ],
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes"
+  },
+  {
+   "title": "Target Population Specificity",
+   "severity": "low",
+   "detail": "The problem statement mentions serving 'youth in the Palestinian labor market' and 'people with disability' (Req 20). The requirements address general disability access (Req 303, 304, 305), but there is no explicit requirement to tailor the design or functionality to the specific needs of youth (e.g., digital literacy levels, specific educational backgrounds) or the unique socio-cultural context beyond general cultural appropriateness.",
+   "question": "Are there specific accessibility or usability requirements tailored to the digital literacy levels or unique needs of the target youth demographic?",
+   "grounding": [
+    "Usability and humanity requirements (volere)",
+    "Inclusivity (iso-25010:2023)"
+   ],
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization"
+  }
+ ],
+ "summary": {
+  "partial": 14,
+  "strong": 2
+ },
+ "enrichments": [
+  {
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness",
+   "text": "The problem statement should explicitly define the required latency/throughput for the *government database synchronization* (Req 9), as this is critical for real-time efficiency, especially given the context of labor market immediacy."
+  },
+  {
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness",
+   "text": "Consider adding a requirement for a mechanism to handle data drift or schema changes in external government databases, ensuring the integration framework remains robust over time."
+  },
+  {
+   "domain": "functional",
+   "domain_name": "Functional suitability & capability completeness",
+   "text": "Given the focus on youth empowerment, explicitly define requirements for tracking the *conversion rate* from 'Job Seeker Profile Completion' to 'Job Application' to measure the effectiveness of the platform's onboarding/engagement features."
+  },
+  {
+   "domain": "data",
+   "domain_name": "Data & information",
+   "text": "Consider defining a formal data contract specification for all external integrations (Req 9, 51, 152) that explicitly details expected schemas, acceptable deviations, and error handling protocols beyond just API documentation."
+  },
+  {
+   "domain": "data",
+   "domain_name": "Data & information",
+   "text": "Given the context of government integration (MoL/PEF), explicitly define the data governance workflow for data enrichment and verification against government databases (Req 157, 160) to ensure compliance and trust."
+  },
+  {
+   "domain": "data",
+   "domain_name": "Data & information",
+   "text": "Since the system is the core of a future LMIS, consider requirements for data export in standardized, machine-readable formats (e.g., CSV/JSON/XML) suitable for external governmental analysis tools, beyond just user report exports."
+  },
+  {
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity",
+   "text": "Given the context of limited internet connectivity (Constraint), performance requirements should explicitly define acceptable offline/cached operational modes and the expected synchronization latency once connectivity is restored."
+  },
+  {
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity",
+   "text": "Since the system is the core of a future LMIS, performance requirements should address the expected growth in data volume (e.g., number of historical records, total stored CVs) beyond the initial 5TB projection, especially concerning query performance on large datasets (e.g., complex historical reporting)."
+  },
+  {
+   "domain": "performance",
+   "domain_name": "Performance efficiency, scalability & capacity",
+   "text": "For the AI Matching Engine, defining a 'cost budget' per matching operation (in terms of computational resources or tokens/API calls if external LLMs are used) is critical for operational cost control, which is a key concern in LLM orchestration."
+  },
+  {
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience",
+   "text": "Consider defining specific Service Level Objectives (SLOs) for the core matching functionality (e.g., '95% of job-seeker searches must return ranked results within 3 seconds')."
+  },
+  {
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience",
+   "text": "Given the context of limited internet connectivity (Req 19), consider specifying requirements for offline data caching and synchronization strategies to ensure data integrity when connectivity is restored."
+  },
+  {
+   "domain": "reliability",
+   "domain_name": "Reliability & resilience",
+   "text": "For the integration with government databases (Req 9, 157), define specific requirements for handling data schema drift or unexpected changes in the external database structure."
+  },
+  {
+   "domain": "security",
+   "domain_name": "Security",
+   "text": "Consider defining specific requirements for rate limiting and abuse detection on API endpoints (beyond general security monitoring) to protect against automated scraping or enumeration attacks."
+  },
+  {
+   "domain": "security",
+   "domain_name": "Security",
+   "text": "Given the integration with government databases, formalize requirements for data provenance tracking—not just *who* accessed it, but *where* the data originated and *how* it was transformed before being used by the system."
+  },
+  {
+   "domain": "safety",
+   "domain_name": "Safety",
+   "text": "Given the context of the Palestinian labor market, explicitly define requirements for bias auditing in the matching engine to ensure equitable opportunities are presented across different demographic groups (gender, region, educational background) to prevent systemic discrimination."
+  },
+  {
+   "domain": "safety",
+   "domain_name": "Safety",
+   "text": "Since the system interacts with government databases (MoL/PEF), requirements should specify the required level of data provenance tracking for every piece of data ingested or modified from these external sources to satisfy governmental accountability standards."
+  },
+  {
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability",
+   "text": "The problem statement should explicitly define the required data exchange schemas (e.g., JSON Schema definitions) for the primary interfaces (Job Posting API, Profile API) to serve as the canonical source of truth for compatibility."
+  },
+  {
+   "domain": "compatibility",
+   "domain_name": "Compatibility & interoperability",
+   "text": "Consider adding a requirement for a formal 'Interoperability Matrix' detailing every external system/standard the platform must interact with, its required version, and the specific data mapping required for that interaction."
+  },
+  {
+   "domain": "usability",
+   "domain_name": "Usability & interaction",
+   "text": "Consider defining specific performance targets for the AI matching engine (e.g., latency for the top 100 shortlist generation) beyond the general 5-second requirement (229), as this directly impacts user satisfaction and operability."
+  },
+  {
+   "domain": "usability",
+   "domain_name": "Usability & interaction",
+   "text": "Given the context of the Palestinian labor market, explicitly define requirements for cultural sensitivity beyond general 'cultural appropriateness' (67) to ensure UI/UX elements respect local customs regarding gender representation, imagery, and professional norms."
+  },
+  {
+   "domain": "usability",
+   "domain_name": "Usability & interaction",
+   "text": "Since the system is the core of a future LMIS, consider adding requirements for data export formats that align with standard governmental reporting schemas, not just general CSV/Excel (191)."
+  },
+  {
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization",
+   "text": "Given the context of the Palestinian labor market, explicitly defining requirements for data sovereignty and local data residency compliance, beyond general GDPR principles, should be considered."
+  },
+  {
+   "domain": "accessibility",
+   "domain_name": "Accessibility & internationalization",
+   "text": "Since the system supports both Arabic and English, consider adding requirements for bidirectional text input handling (e.g., mixed-language fields) to ensure seamless user experience when inputting data that mixes languages."
+  },
+  {
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability",
+   "text": "Consider defining specific Service Level Objectives (SLOs) for the core business functions (e.g., '99.9% of job searches must return results within 2 seconds') rather than just general performance metrics, to drive observability requirements."
+  },
+  {
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability",
+   "text": "Given the context of government integration, explicitly define requirements for data lineage tracking—not just *that* data was exchanged (161), but *where* it originated, *how* it was transformed, and *where* it ended up, to satisfy auditability needs."
+  },
+  {
+   "domain": "maintainability",
+   "domain_name": "Maintainability, testability & observability",
+   "text": "Since the system must support limited connectivity, consider specifying requirements for offline data synchronization capabilities (e.g., queuing mechanisms, local caching strategies) beyond just 'functioning effectively' (19)."
+  },
+  {
+   "domain": "portability",
+   "domain_name": "Portability & deployment",
+   "text": "Given the context of operating in areas with limited internet connectivity (Constraint), the requirements should specify the required offline synchronization/caching strategy (e.g., local data persistence, eventual consistency model) to ensure data integrity when connectivity is restored."
+  },
+  {
+   "domain": "portability",
+   "domain_name": "Portability & deployment",
+   "text": "Since the system is intended to be the core of a future LMIS, the requirements should explicitly define the interface contract (API/data model) for future integration points *beyond* the currently specified MoL/PEF systems, to ensure future-proofing of the core architecture."
+  },
+  {
+   "domain": "operational",
+   "domain_name": "Operational & environmental",
+   "text": "Consider defining specific Service Level Objectives (SLOs) for the AI matching engine (e.g., 95% of matches returned within 5 seconds) rather than just performance metrics."
+  },
+  {
+   "domain": "operational",
+   "domain_name": "Operational & environmental",
+   "text": "Given the context of government integration, define requirements for data lineage tracking—not just *what* data was exchanged, but *why* it was exchanged and *who* authorized it, beyond standard audit logs."
+  },
+  {
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy",
+   "text": "Given the integration with government databases (Req 9, 157), the system should explicitly define the required data sharing agreements (DSAs) and data processing agreements (DPAs) with MoL and PEF."
+  },
+  {
+   "domain": "legal-privacy",
+   "domain_name": "Legal, compliance & privacy",
+   "text": "Since the system serves a specific national context (Palestine), the requirements should explicitly mandate a review process to ensure all data handling practices align with specific Palestinian labor/employment regulations beyond general privacy principles."
+  },
+  {
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions",
+   "text": "Given the context of government databases and data privacy, the problem statement should explicitly define the required data residency and sovereignty requirements for the data stored within Palestine."
+  },
+  {
+   "domain": "constraints",
+   "domain_name": "Constraints & mandated solutions",
+   "text": "Since the system is the core of a future LMIS, the problem statement should define the expected data governance model (who owns the data, who is the ultimate data steward) to constrain future architectural decisions."
+  },
+  {
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational",
+   "text": "The problem statement should explicitly define the required level of data sovereignty and residency for sensitive personal data (e.g., must data remain within specific geographic boundaries within Palestine?)."
+  },
+  {
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational",
+   "text": "Consider adding a requirement for a formal mechanism to handle disputes or appeals regarding automated matching scores or profile data extraction, involving human oversight."
+  },
+  {
+   "domain": "cultural-political",
+   "domain_name": "Cultural, political & organizational",
+   "text": "Specify the required level of integration detail for government databases—is it read-only verification, or does the system need to initiate transactions/updates in those systems?"
+  },
+  {
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes",
+   "text": "The problem statement should explicitly define the target demographic profile (e.g., age range, specific skill gaps) for the 'Youth' segment to guide the design of the matching engine and reporting."
+  },
+  {
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes",
+   "text": "Consider defining a 'Trust Score' or 'Reliability Metric' for external job sources integrated via API, allowing MoL/PEF to prioritize data from more reliable partners."
+  },
+  {
+   "domain": "quality-in-use",
+   "domain_name": "Quality-in-use & stakeholder outcomes",
+   "text": "Given the context of a future LMIS, requirements should address data interoperability standards beyond basic API documentation (e.g., specific national data exchange protocols if they exist)."
+  }
+ ],
+ "synthesis": {
+  "overall_coverage": "partial",
+  "confidence": "medium",
+  "headline": "Critical gaps exist across security, safety, and operational controls, demanding immediate focus on authorization, emergency stops, and compliance.",
+  "top_priorities": [
+   {
+    "title": "Authorization and Access Control (BOLA/IDOR)",
+    "severity": "critical",
+    "domains": [
+     "security"
+    ],
+    "why": "Failure here allows unauthorized data access or manipulation, representing a direct breach of core system integrity.",
+    "question": "Are all access controls granular enough to prevent unauthorized resource access (BOLA/IDOR)?"
+   },
+   {
+    "title": "High-Consequence Action Guardrails and Safety",
+    "severity": "critical",
+    "domains": [
+     "safety"
+    ],
+    "why": "Lack of guardrails for irreversible actions poses an existential risk to users or the system's integrity.",
+    "question": "Are there robust, non-bypassable guardrails for all high-consequence or irreversible system actions?"
+   },
+   {
+    "title": "Emergency Stop and Operational Control",
+    "severity": "critical",
+    "domains": [
+     "operational"
+    ],
+    "why": "The absence of a kill switch means the system cannot be safely halted or controlled during catastrophic failure.",
+    "question": "Is there a clearly defined, accessible, and functional emergency stop/kill switch for the Agent/LLM?"
+   },
+   {
+    "title": "Geopolitical and Regulatory Compliance",
+    "severity": "critical",
+    "domains": [
+     "cultural-political"
+    ],
+    "why": "Failure to comply with international sanctions or data routing laws can lead to severe legal and financial penalties.",
+    "question": "Are data routing and processing strictly compliant with all relevant geopolitical sanctions and data sovereignty laws?"
+   },
+   {
+    "title": "LLM/AI Security and Data Leakage",
+    "severity": "high",
+    "domains": [
+     "security"
+    ],
+    "why": "Prompt injection and data leakage represent a direct threat to proprietary data and user privacy via the AI layer.",
+    "question": "How are prompt injection attacks mitigated, and what controls prevent sensitive data leakage from the LLM interaction layer?"
+   },
+   {
+    "title": "Data Governance: Retention, Quality, and Lineage",
+    "severity": "high",
+    "domains": [
+     "data"
+    ],
+    "why": "Poor data governance risks regulatory non-compliance (GDPR, etc.) and degrades the reliability of all downstream functions.",
+    "question": "Are policies defined and enforced for data retention/deletion, and are ingestion quality thresholds met?"
+   },
+   {
+    "title": "Deterministic Policy Enforcement and Safe Defaults",
+    "severity": "high",
+    "domains": [
+     "safety"
+    ],
+    "why": "Ambiguity or unpredictable behavior in safety policies can lead to unsafe or non-compliant outcomes.",
+    "question": "How are safety policies enforced deterministically, and what is the defined safe default/refusal behavior when ambiguity arises?"
+   },
+   {
+    "title": "Input Validation and Credential Management",
+    "severity": "high",
+    "domains": [
+     "security"
+    ],
+    "why": "Weak input validation and poor secret management are foundational vulnerabilities that expose the entire system.",
+    "question": "Is input validation comprehensive against OWASP Top 10, and are all secrets managed with high specificity?"
+   },
+   {
+    "title": "Outcome Verification and Functional Acceptance",
+    "severity": "high",
+    "domains": [
+     "functional"
+    ],
+    "why": "Without clear acceptance criteria, the system cannot be proven to meet its intended business goals.",
+    "question": "Are there quantifiable verification steps to confirm that the system's output meets the required acceptance criteria?"
+   },
+   {
+    "title": "Performance and Scalability Guarantees",
+    "severity": "high",
+    "domains": [
+     "performance"
+    ],
+    "why": "Lack of quantified SLOs and throttling risks system collapse or unacceptable user experience under load.",
+    "question": "Are there quantified Service Level Objectives (SLOs) for core flows, and is a load shedding strategy in place?"
+   }
+  ]
+ }
+}

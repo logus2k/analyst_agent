@@ -1,0 +1,66 @@
+{
+  "id": "agent-system",
+  "name": "Agent / LLM-orchestration system",
+  "class": "computation-dominant",
+  "aliases": ["agent", "ai agent", "agentic system", "llm agent", "autonomous agent", "multi-agent", "agent orchestration", "tool-use", "function calling", "rpa", "robotic process automation", "workflow automation", "copilot", "assistant", "llm orchestration"],
+  "summary": "A system in which one or more LLM-driven agents autonomously plan and take multi-step actions using tools/APIs to accomplish goals, choosing which actions to invoke based on model output. Its risk profile is dominated by the blast radius of delegated actions, non-determinism, and susceptibility to prompt injection.",
+  "matching_signals": ["agent", "autonomous", "tool use", "function calling", "orchestration", "planner", "reasoning loop", "ReAct", "multi-agent", "workflow", "RPA", "automation", "guardrails", "human-in-the-loop", "approval", "prompt", "token budget", "MCP", "tool call"],
+  "salient_domains": ["security", "safety", "reliability", "functional", "maintainability", "operational", "performance", "legal-privacy", "quality-in-use"],
+  "grounding": ["owasp-llm-top-10:2025", "owasp-agentic-threats:2025", "iso-42001:2023", "iso-23894:2023", "iso-25010:2023", "29148:2018"],
+  "domains": {
+    "security": {
+      "emphasis": "critical",
+      "concerns": ["direct and indirect prompt injection via tool outputs, retrieved documents, and web content (OWASP LLM01)", "excessive agency (OWASP LLM06): least-privilege scoping of tools, permissions, and reachable systems", "tool/action allow-listing and per-tool authorization; preventing confused-deputy and privilege escalation through tools", "secrets and credential handling for tools; isolation so a compromised step cannot exfiltrate credentials or data", "sandboxing of code-execution / shell / browser tools and egress control on agent-initiated network calls"],
+      "typical_requirements": ["prompt-injection defenses (input/content isolation)", "least-privilege tool permissions & allow-list", "per-tool authZ & confused-deputy prevention", "credential isolation / secrets handling", "code-exec sandboxing & egress control"],
+      "questions": ["Is each tool scoped to least privilege, with an allow-list and per-action authorization?", "Are direct and indirect prompt-injection defenses required across all untrusted content the agent ingests?", "Are code-execution/browser tools sandboxed with controlled network egress, and are credentials isolated from model context?"]
+    },
+    "safety": {
+      "emphasis": "high",
+      "concerns": ["blast radius of autonomous actions: which actions are irreversible, destructive, or high-consequence", "human-in-the-loop approval gates for consequential/irreversible actions (spend, deletion, external comms, code merge)", "guardrails and policy enforcement independent of the model (deterministic checks, not just prompt instructions)", "safe-default and refusal behaviour for out-of-policy or ambiguous requests", "containment of harmful downstream effects when the agent is wrong or manipulated"],
+      "typical_requirements": ["action risk classification & irreversibility", "human-approval gates for high-risk actions", "out-of-model policy enforcement", "safe-default / refusal behaviour", "action confirmation & dry-run"],
+      "questions": ["Are high-consequence/irreversible actions gated behind human approval or dry-run confirmation?", "Are guardrails enforced deterministically outside the model, not only via prompt instructions?", "Is the blast radius of each tool classified, and is a safe default defined for ambiguous requests?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["error and loop containment: max-step/iteration caps, recursion limits, and detection of unproductive loops", "timeouts, retries with backoff, and idempotency of side-effecting tool calls to avoid duplicate actions", "graceful handling of tool failures, malformed tool output, and partial progress", "state/checkpoint management for long-running or resumable agent runs", "deadlock/livelock avoidance in multi-agent coordination"],
+      "typical_requirements": ["step/iteration & recursion caps", "timeout, retry & idempotency policy", "tool-failure & malformed-output handling", "run state / checkpointing", "loop-detection & termination"],
+      "questions": ["Are max-step/iteration caps and loop detection required to bound runaway execution?", "Are side-effecting tool calls idempotent, with defined timeout/retry behaviour?", "Is behaviour on tool failure or malformed tool output specified rather than left to the model?"]
+    },
+    "functional": {
+      "emphasis": "high",
+      "concerns": ["goal/task specification: what the agent is allowed to attempt and what is explicitly out of scope", "correctness of planning and tool selection; verification that the intended outcome was actually achieved", "outcome evaluation against acceptance criteria (task success, not just plausible-looking output)", "grounding/retrieval accuracy and hallucination control for factual tasks", "clarification behaviour when the goal is under-specified"],
+      "typical_requirements": ["task scope & out-of-scope boundaries", "outcome verification / success criteria", "planning & tool-selection correctness", "grounding / hallucination control", "clarification-request behaviour"],
+      "questions": ["Is task success defined by verifiable outcome criteria rather than plausible output?", "Is the agent's allowed scope (and explicit out-of-scope) specified?", "Is grounding/hallucination control required for factual or high-stakes tasks?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["observability of agent decisions: full traces of prompts, tool calls, arguments, outputs, and reasoning steps", "reproducibility/determinism controls (fixed seeds/temperature, versioned prompts and tool schemas) for debugging", "an evaluation harness / regression suite over representative tasks with scored outcomes", "prompt and agent-config versioning and change management", "replay/debugging of a past run from its trace"],
+      "typical_requirements": ["end-to-end decision tracing", "prompt/config versioning", "eval harness & task regression suite", "run replay / debuggability", "determinism controls for testing"],
+      "questions": ["Is every agent run fully traceable (prompts, tool calls, arguments, outputs) for audit and debugging?", "Is there an evaluation harness with scored task outcomes to catch regressions?", "Are prompts and tool schemas versioned, with runs replayable from their traces?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["monitoring of agent runs: success rate, cost, latency, action counts, and intervention rate", "a kill switch / emergency stop to halt agents and revoke tool access in flight", "rate limiting and concurrency control on agent-initiated actions against external systems", "alerting on anomalous behaviour (cost spikes, action loops, repeated failures, policy hits)", "runbooks for stuck, looping, or misbehaving agents"],
+      "typical_requirements": ["agent run monitoring & metrics", "kill switch / emergency stop", "action rate limiting & concurrency caps", "anomaly alerting", "intervention runbooks"],
+      "questions": ["Is there a kill switch to stop agents and revoke tool access mid-run?", "Are success rate, cost, and intervention rate monitored with anomaly alerting?", "Are rate limits on agent-initiated external actions defined?"]
+    },
+    "performance": {
+      "emphasis": "medium",
+      "concerns": ["token and cost budgets per task/run and enforcement when exceeded", "end-to-end task latency across multi-step tool chains and model calls", "context-window management, truncation, and summarisation strategy for long runs", "parallelism of independent tool calls / sub-agents vs cost"],
+      "typical_requirements": ["per-run token/cost budget & cutoff", "end-to-end latency target", "context-window management strategy", "tool-call parallelism policy"],
+      "questions": ["Are per-run token/cost budgets defined with enforced cutoffs?", "Is an end-to-end task-latency target set across the multi-step chain?", "Is context-window/truncation strategy specified for long-running tasks?"]
+    },
+    "legal-privacy": {
+      "emphasis": "medium",
+      "concerns": ["data exposure to third-party models and tools; what context/PII may leave the trust boundary", "data-residency and retention of prompts, traces, and tool outputs that may contain personal data", "accountability and attribution for actions the agent takes on a user's behalf", "compliance of automated actions (consent, record-keeping) and applicable AI-regulation classification"],
+      "typical_requirements": ["data-egress / PII-to-model policy", "prompt & trace retention/residency", "action attribution & accountability", "AI-regulation classification"],
+      "questions": ["Is it specified what data (incl. PII) may be sent to external models/tools and retained in traces?", "Is accountability/attribution defined for actions the agent performs on a user's behalf?", "Is the applicable AI-regulation risk tier for autonomous actions addressed?"]
+    },
+    "quality-in-use": {
+      "emphasis": "medium",
+      "concerns": ["appropriate user trust and transparency: making the agent's actions and limits visible, avoiding over-reliance", "task-completion effectiveness and how much human effort/oversight the outcome actually requires", "user control: ability to steer, pause, correct, and undo agent actions", "satisfaction and perceived reliability over repeated use"],
+      "typical_requirements": ["action transparency to user", "human effort / oversight target", "user steering / undo controls", "task-success outcome metrics"],
+      "questions": ["Are the agent's actions and limits made transparent to keep user trust calibrated?", "Can the user steer, pause, correct, or undo the agent's actions?", "Is task-completion effectiveness (with acceptable oversight effort) measured?"]
+    }
+  }
+}

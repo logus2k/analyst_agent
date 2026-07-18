@@ -1,0 +1,287 @@
+{
+ "version": 2,
+ "ratified": true,
+ "updated_at": "2026-07-11T14:00:00+00:00",
+ "statement": {
+  "purpose": {
+   "value": "To function as a digital medical prescription application (Lootify) that manages users (patients, doctors, staff), catalogs medical entities (specialties, medications), and facilitates the creation, issuance, and secure delivery of legally signed medical prescriptions.",
+   "provenance": "stated",
+   "confidence": "high",
+   "source_quote": "Lootify é uma aplicação de prescrição médica digital. Permite o cadastro de usuários, médicos, especialidades, medicamentos e a emissão de prescrições com assinatura digital ICP-Brasil."
+  },
+  "stakeholders": [
+   {
+    "value": "Admin (System Manager)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Doctor (Physician)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Patient (User)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Attendant (Staff/Registrar)",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "context": {
+   "value": "The system operates within a regulated medical domain, requiring strict control over user roles, data integrity (especially prescriptions), and legal compliance for document signing (ICP-Brasil). It manages a lifecycle for users, specialties, medications, and prescriptions, with a focus on auditability and non-destructive data handling (no hard deletes).",
+   "provenance": "inferred",
+   "confidence": "high",
+   "source_quote": "Permite o cadastro de usuários, médicos, especialidades, medicamentos e a emissão de prescrições com assinatura digital ICP-Brasil."
+  },
+  "scope": {
+   "in": [
+    "User/Identity Management (Admin, Attendant, Doctor, Patient)",
+    "Catalog Management (Specialties, Medications)",
+    "Doctor Profile Management (Activation, Specialty Association)",
+    "Prescription Lifecycle Management (Draft, Issued, Cancelled)",
+    "Digital Document Generation and Signing (ICP-Brasil PDF)",
+    "Scheduling/Appointment Management (Attendant/Doctor linkage)"
+   ],
+   "out": [
+    "Hard deletion of core entities",
+    "Direct patient-facing interaction outside of the prescribed workflow (e.g., complex patient portal features beyond viewing prescriptions)"
+   ],
+   "provenance": "inferred",
+   "confidence": "medium",
+   "source_quote": "Sem hard delete... PDF só pode ser gerado para prescrições no estado ISSUED."
+  },
+  "capabilities": [
+   {
+    "value": "Manage User Identities and Roles (Admin, Attendant, Doctor, Patient) with granular access control.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Manage and govern the catalog of medical Specialties (creation, editing, deactivation by Admin).",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Manage and govern the catalog of Medications (creation, editing, deactivation by Admin).",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Manage Doctor eligibility by tracking Specialty associations, requiring Admin approval.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Allow Doctors to create, edit, and issue prescriptions for registered patients, respecting state transitions (DRAFT -> ISSUED).",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Generate immutable, digitally signed PDF documents for issued prescriptions using ICP-Brasil standards.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Manage Doctor schedules and appointments, linking Attendants to specific Doctors.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Provide secure, time-limited access for patients to download issued prescriptions.",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "data_entities": [
+   {
+    "value": "User (Base Identity)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "AuthAccount (Credentials/Tokens)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Doctor (Specialized User Profile)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Patient (Role derived from User)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Specialty (Medical Category)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Medication (Drug Catalog)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "DoctorSpecialty (Association/Approval Status)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Prescription (Clinical Record)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "PrescriptionSnapshot (Immutable clinical content)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Document (Signed PDF)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Appointment/Slot (Scheduling Data)",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "external_interfaces": [
+   {
+    "value": "ICP-Brasil Digital Signature Service (for signing PDFs)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "OAuth Providers (e.g., Google via 'goth')",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Email Service (for invitation tokens)",
+    "provenance": "inferred",
+    "confidence": "medium",
+    "source_quote": "O attendant usa o token para criar seu AuthAccount — escolhe entre senha ou OAuth Google."
+   }
+  ],
+  "constraints": [
+   {
+    "value": "All core entities must maintain a lifecycle via status/deleted_at, prohibiting hard deletes.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Prescription issuance requires the Doctor to have an active profile AND an approved Specialty association.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Prescription PDF generation is strictly limited to prescriptions in the 'ISSUED' state.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "System must enforce role-based access control (RBAC) explicitly for every action.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Data persistence must use PostgreSQL as the source of truth.",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "success_criteria": [
+   {
+    "value": "A Doctor can successfully register, be activated by Admin, and be eligible to prescribe.",
+    "provenance": "inferred",
+    "confidence": "high"
+   },
+   {
+    "value": "An Attendant can successfully register new users (Patients/Staff) and link them to a Doctor's schedule.",
+    "provenance": "inferred",
+    "confidence": "high"
+   },
+   {
+    "value": "A Doctor can generate a legally valid, signed PDF for an issued prescription, accessible via a temporary link.",
+    "provenance": "inferred",
+    "confidence": "high"
+   }
+  ],
+  "assumptions": [
+   "The system's primary interface will be a web-based SaaS application, given the nature of the modules (API, web-saas archetype fit).",
+   "The 'Attendant' role's future access to agenda/patients will be implemented via a dedicated linkage mechanism, as described.",
+   "The 'snapshot' of clinical content stored upon issuance is sufficient for the PDF generation, meaning no further real-time data retrieval is needed for the final document.",
+   "The MVP implementation of ICP-Brasil signing is assumed to be a black-box service integration, not requiring deep cryptographic implementation details."
+  ],
+  "clarifying_questions": [
+   "What is the expected volume/scale for the number of Patients and Doctors? (To gauge performance/scalability needs)",
+   "What are the specific requirements for the 'Attendant' role's future access to the Doctor's agenda and patients? (Is it read-only, or does it require write access to appointments?)",
+   "What is the required retention period for audit logs related to prescription status changes (Draft, Issued, Cancelled)?",
+   "Are there specific regulatory requirements (beyond ICP-Brasil) regarding data residency or patient data handling (e.g., HIPAA, LGPD) that must be enforced by the system?",
+   "What is the expected latency for prescription issuance (from Doctor action to PDF generation)? (To assess real-time vs. batch needs)"
+  ],
+  "candidate_archetypes": [
+   {
+    "id": "web-saas",
+    "confidence": "high",
+    "why": "It is a multi-tenant, browser-delivered transactional application with server-side business logic, managing user accounts and complex workflows."
+   },
+   {
+    "id": "enterprise-lob",
+    "confidence": "high",
+    "why": "It automates structured, role-based business processes (prescribing, managing specialties) over a rich, long-lived data model, fitting the definition of an internal business system."
+   },
+   {
+    "id": "api-microservice",
+    "confidence": "medium",
+    "why": "The architecture is designed modularly (DDD), suggesting it will be composed of several network-exposed services, even if currently deployed as a monolith."
+   }
+  ],
+  "salient_domains": [
+   {
+    "id": "security",
+    "confidence": "high",
+    "why": "Handling sensitive medical data, authentication, and digital signatures (ICP-Brasil) makes security paramount."
+   },
+   {
+    "id": "legal-privacy",
+    "confidence": "high",
+    "why": "Medical records and digital signatures are subject to strict legal and privacy compliance."
+   },
+   {
+    "id": "functional",
+    "confidence": "high",
+    "why": "The core purpose is defined by its functional capabilities: prescribing, cataloging, and managing roles."
+   },
+   {
+    "id": "reliability",
+    "confidence": "high",
+    "why": "Prescriptions must be accurate and immutable once issued; data integrity is critical."
+   },
+   {
+    "id": "data",
+    "confidence": "high",
+    "why": "The system revolves around complex, interconnected entities (User, Prescription, Specialty, Medication)."
+   },
+   {
+    "id": "constraints",
+    "confidence": "high",
+    "why": "Specific constraints like 'no hard delete' and 'ICP-Brasil signing' dictate architectural choices."
+   },
+   {
+    "id": "usability",
+    "confidence": "medium",
+    "why": "While the focus is on backend correctness, the system must be usable by Doctors and Attendants to perform their roles."
+   }
+  ],
+  "overall_confidence": "medium"
+ }
+}

@@ -1,0 +1,61 @@
+{
+ "version": 1,
+ "updated_at": "2026-07-11T14:00:00+00:00",
+ "profile": {
+  "archetypes": [
+   {
+    "id": "web-saas",
+    "confidence": "high",
+    "why": "It is a multi-tenant, browser-delivered transactional application with server-side business logic, managing user accounts and complex workflows."
+   },
+   {
+    "id": "enterprise-lob",
+    "confidence": "high",
+    "why": "It automates structured, role-based business processes (prescribing, managing specialties) over a rich, long-lived data model, fitting the definition of an internal business system."
+   },
+   {
+    "id": "api-microservice",
+    "confidence": "medium",
+    "why": "The architecture is designed modularly (DDD), suggesting it will be composed of several network-exposed services, even if currently deployed as a monolith."
+   }
+  ],
+  "salient_domains": [
+   {
+    "id": "security",
+    "confidence": "high",
+    "why": "Handling sensitive medical data, authentication, and digital signatures (ICP-Brasil) makes security paramount."
+   },
+   {
+    "id": "legal-privacy",
+    "confidence": "high",
+    "why": "Medical records and digital signatures are subject to strict legal and privacy compliance."
+   },
+   {
+    "id": "functional",
+    "confidence": "high",
+    "why": "The core purpose is defined by its functional capabilities: prescribing, cataloging, and managing roles."
+   },
+   {
+    "id": "reliability",
+    "confidence": "high",
+    "why": "Prescriptions must be accurate and immutable once issued; data integrity is critical."
+   },
+   {
+    "id": "data",
+    "confidence": "high",
+    "why": "The system revolves around complex, interconnected entities (User, Prescription, Specialty, Medication)."
+   },
+   {
+    "id": "constraints",
+    "confidence": "high",
+    "why": "Specific constraints like 'no hard delete' and 'ICP-Brasil signing' dictate architectural choices."
+   },
+   {
+    "id": "usability",
+    "confidence": "medium",
+    "why": "While the focus is on backend correctness, the system must be usable by Doctors and Attendants to perform their roles."
+   }
+  ],
+  "domain_overrides": {}
+ }
+}

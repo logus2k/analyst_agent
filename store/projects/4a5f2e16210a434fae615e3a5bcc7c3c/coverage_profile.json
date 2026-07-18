@@ -1,0 +1,71 @@
+{
+ "version": 1,
+ "updated_at": "2026-07-08T21:43:51+00:00",
+ "profile": {
+  "archetypes": [
+   {
+    "id": "web-saas",
+    "confidence": "high",
+    "why": "It is a multi-tenant, browser-delivered transactional application with server-side business logic (job matching, user management) and a persistent datastore."
+   },
+   {
+    "id": "agent-system",
+    "confidence": "medium",
+    "why": "The AI-Driven Matching Engine uses NLP and recommender systems, suggesting autonomous, complex decision-making capabilities, though it is currently framed as a service, not a fully autonomous agent."
+   },
+   {
+    "id": "api-microservice",
+    "confidence": "medium",
+    "why": "It must expose APIs for external job sites and government databases, suggesting a strong microservice component."
+   },
+   {
+    "id": "data-pipeline",
+    "confidence": "medium",
+    "why": "It involves ingesting, transforming (via AI), and delivering data (job postings, analytics) across stages."
+   }
+  ],
+  "salient_domains": [
+   {
+    "id": "functional",
+    "confidence": "high",
+    "why": "The core purpose is defined by its functional capabilities (matching, posting, registration)."
+   },
+   {
+    "id": "data",
+    "confidence": "high",
+    "why": "It manages complex entities like Job Seekers and Job Postings, requiring data integrity and structure."
+   },
+   {
+    "id": "security",
+    "confidence": "high",
+    "why": "Explicit requirements for authentication, authorization (RBAC), and data protection are critical."
+   },
+   {
+    "id": "legal-privacy",
+    "confidence": "high",
+    "why": "Compliance with Palestinian and GDPR-like data privacy regulations is a stated constraint."
+   },
+   {
+    "id": "performance",
+    "confidence": "medium",
+    "why": "It requires high performance for AI processing and scalability for future LMIS integration."
+   },
+   {
+    "id": "usability",
+    "confidence": "high",
+    "why": "Must accommodate users with varying technical proficiency and support accessibility standards (WCAG)."
+   },
+   {
+    "id": "compatibility",
+    "confidence": "high",
+    "why": "Must integrate with existing MoL/PEF systems and external job sites."
+   },
+   {
+    "id": "reliability",
+    "confidence": "medium",
+    "why": "Requires high availability and disaster recovery capabilities for a critical government/employment system."
+   }
+  ],
+  "domain_overrides": {}
+ }
+}

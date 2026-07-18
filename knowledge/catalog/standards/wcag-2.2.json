@@ -1,0 +1,18 @@
+{
+  "id": "wcag-2.2",
+  "name": "Web Content Accessibility Guidelines (WCAG) 2.2 (W3C Recommendation, 2023)",
+  "source": "WCAG 2.2",
+  "summary": "The W3C accessibility guidelines organized under four principles (Perceivable, Operable, Understandable, Robust — 'POUR'), with testable success criteria at conformance levels A, AA and AAA. Serves as the accessibility coverage oracle — whether requirements state an accessibility conformance target and address each POUR principle.",
+  "leaves": [
+    { "id":"wcag-2.2/perceivable", "name":"Perceivable", "domain":"accessibility",
+      "description":"Information and UI components must be presentable to users in ways they can perceive — text alternatives, captions, adaptable and distinguishable content (color contrast, resize).", "signals":["text alternative","alt text","captions","color contrast","screen reader","resize text","perceivable"] },
+    { "id":"wcag-2.2/operable", "name":"Operable", "domain":"accessibility",
+      "description":"UI components and navigation must be operable — keyboard accessible, enough time, no seizures, navigable, and 2.2 additions like target size and dragging alternatives.", "signals":["keyboard accessible","focus visible","target size","no keyboard trap","navigable","dragging alternative","operable"] },
+    { "id":"wcag-2.2/understandable", "name":"Understandable", "domain":"accessibility",
+      "description":"Information and operation of the UI must be understandable — readable, predictable, and input assistance (labels, error identification, consistent help).", "signals":["readable","predictable","error identification","labels","input assistance","consistent help","understandable"] },
+    { "id":"wcag-2.2/robust", "name":"Robust", "domain":"accessibility",
+      "description":"Content must be robust enough to be interpreted reliably by user agents and assistive technologies — valid markup, name/role/value, status messages.", "signals":["assistive technology","name role value","valid markup","ARIA","status messages","compatible","robust"] },
+    { "id":"wcag-2.2/conformance-level", "name":"Conformance level (A / AA / AAA)", "domain":"accessibility",
+      "description":"A stated WCAG conformance target — Level A (minimum), AA (typical legal/procurement baseline), or AAA (highest) — that scopes which success criteria apply.", "signals":["WCAG 2.2","Level AA","Level A","Level AAA","conformance level","accessibility standard","EN 301 549"] }
+  ]
+}

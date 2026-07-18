@@ -1,0 +1,72 @@
+{
+  "id": "content-platform",
+  "name": "Content / media / publishing platform",
+  "class": "data-dominant",
+  "aliases": ["cms", "content platform", "publishing", "media platform", "streaming", "vod", "video platform", "news site", "blog platform", "ugc platform", "digital media"],
+  "summary": "A read-heavy platform that ingests, manages, and delivers content (articles, images, audio, video) to a large audience, spanning editorial or user-generated content lifecycles, media processing, and CDN-scale distribution. Read scale, delivery performance, content governance, and rights dominate.",
+  "matching_signals": ["cms", "content", "article", "publish", "editorial", "media", "video", "streaming", "vod", "encoding", "transcode", "cdn", "drm", "comments", "moderation", "ugc", "seo", "subscription", "paywall", "feed", "catalog"],
+  "salient_domains": ["performance", "data", "functional", "operational", "legal-privacy", "security", "usability", "accessibility", "reliability", "quality-in-use"],
+  "grounding": ["iso-25010:2023", "iso-25019:2023", "wcag-2.2", "gdpr", "owasp-asvs", "volere", "dsa"],
+  "domains": {
+    "performance": {
+      "emphasis": "critical",
+      "concerns": ["very high read-to-write ratio; multi-tier caching (CDN edge, origin shield, application cache) and cache-invalidation correctness", "cache-key/variant strategy (device, geo, personalization, A/B) without cache fragmentation or stale leaks", "traffic spikes from virality, breaking news, or scheduled releases; origin protection and stampede/dogpile control", "media delivery: adaptive-bitrate streaming (HLS/DASH), startup time, rebuffer ratio, CDN egress cost", "image/asset optimization (responsive sizes, modern formats, lazy loading) and Core Web Vitals"],
+      "typical_requirements": ["CDN/caching & invalidation strategy", "cache-key/variant design", "spike/stampede protection", "adaptive-bitrate streaming QoE", "asset optimization & CWV budgets"],
+      "questions": ["Is the CDN/multi-tier caching and invalidation strategy specified, including variant/cache-key design?", "Is behaviour under viral/breaking-news spikes defined (origin shielding, stampede control)?", "For media, are streaming QoE targets (startup, rebuffer ratio) and egress-cost limits stated?"]
+    },
+    "data": {
+      "emphasis": "critical",
+      "concerns": ["content model: structured content types, fields, taxonomies, tags, and relationships (headless/API-first)", "versioning, drafts, scheduled publish/unpublish, and content history/rollback", "media asset management: originals, renditions/derivatives, metadata, and storage tiering", "localization/translation of content variants and fallbacks", "search/recommendation index consistency with published content; denormalized read models", "structured/SEO metadata (schema.org, Open Graph, sitemaps, canonical URLs)"],
+      "typical_requirements": ["structured content model & taxonomy", "versioning / draft / scheduled publish", "media asset & rendition management", "localized content variants", "search/recommendation index", "SEO/structured metadata"],
+      "questions": ["Is the structured content model, taxonomy, versioning, and scheduled publish/unpublish specified?", "Is media asset management (originals, renditions, metadata, tiering) defined?", "Are search-index consistency and SEO/structured-metadata requirements stated?"]
+    },
+    "functional": {
+      "emphasis": "high",
+      "concerns": ["editorial workflow: authoring, review, approval, embargo, and multi-role publishing pipeline", "content moderation for UGC: pre/post-moderation, automated classifiers, human review queues, appeals", "comments/social features and abuse handling (spam, harassment, brigading)", "content lifecycle: publish, update, syndicate, archive, takedown/depublish, and expiry", "personalization/feeds/recommendation ranking and its editorial controls"],
+      "typical_requirements": ["editorial workflow & approval", "UGC moderation pipeline & appeals", "comment/abuse handling", "content lifecycle & takedown", "feed/recommendation ranking"],
+      "questions": ["Is the editorial authoring/review/approval and embargo workflow specified?", "Is the UGC moderation pipeline (automated + human review + appeals) defined?", "Are content-lifecycle operations including takedown/depublish and archival specified?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["publishing pipeline and cache/CDN purge orchestration on publish/update/takedown", "media processing pipeline: ingest, transcode/encode farm, packaging, and failure/retry", "content-delivery monitoring (cache hit ratio, CDN health, QoE) and multi-CDN failover", "cost operations for storage and CDN egress at scale", "scheduled/embargoed release automation and rollback of a bad publish"],
+      "typical_requirements": ["publish & cache-purge orchestration", "media transcode pipeline & retry", "CDN/QoE monitoring & multi-CDN failover", "egress/storage cost ops", "scheduled-release automation"],
+      "questions": ["Is cache/CDN purge orchestration on publish/update/takedown specified?", "Is the media transcode pipeline with failure/retry and monitoring defined?", "Is multi-CDN failover and egress-cost operation addressed?"]
+    },
+    "legal-privacy": {
+      "emphasis": "high",
+      "concerns": ["content rights/licensing: DRM, geo-restriction/geoblocking, licensing windows and expiry, watermarking", "copyright/DMCA and EU DSA notice-and-takedown, repeat-infringer, and transparency-reporting obligations", "content moderation legal duties (illegal content, minors' safety, CSAM reporting, age assurance)", "UGC liability, terms of service, and creator/rights-holder agreements", "GDPR/CCPA consent, ad/tracking consent, and audience-data handling"],
+      "typical_requirements": ["DRM / rights-window / geoblocking", "DMCA & DSA notice-and-takedown", "moderation legal duties & reporting", "UGC ToS & rights agreements", "consent & audience-data privacy"],
+      "questions": ["Are content rights (DRM, licensing windows, geoblocking) and their enforcement specified?", "Are notice-and-takedown (DMCA/DSA) and illegal-content/minor-safety obligations captured?", "Are consent and audience-data privacy requirements defined?"]
+    },
+    "security": {
+      "emphasis": "high",
+      "concerns": ["protection of premium/paywalled content: entitlement checks, signed URLs, token-based media access, DRM key handling", "anti-piracy: leech/hotlink protection, session/stream-sharing limits, forensic watermarking", "CMS/admin security: RBAC for editorial roles, protection against defacement and malicious publish", "UGC as an attack surface: stored XSS, malicious uploads, SSRF via remote media fetch", "bot/scraping abuse and content-theft protection"],
+      "typical_requirements": ["entitlement / signed-URL media access", "anti-piracy & stream-share limits", "editorial RBAC & publish integrity", "UGC upload sanitization", "bot/scraping protection"],
+      "questions": ["Are paywalled/premium content entitlements enforced (signed URLs, DRM, token access)?", "Is UGC upload/embedding sanitized against stored XSS, malicious files, and SSRF?", "Is editorial RBAC and protection against unauthorized/malicious publish specified?"]
+    },
+    "usability": {
+      "emphasis": "high",
+      "concerns": ["reading/viewing experience: typography, responsive layout, media playback controls, continuity/resume", "content discovery: search, navigation, related content, and personalization", "creator/editor authoring ergonomics (rich editor, preview, media embedding)", "engagement features (save, share, follow, subscribe) and clear paywall/registration walls"],
+      "typical_requirements": ["reading/playback experience", "discovery & navigation", "authoring/editor ergonomics", "engagement & paywall UX"],
+      "questions": ["Is the reading/viewing experience (responsive layout, playback controls, resume) specified?", "Are content-discovery and navigation expectations defined?", "Is the authoring/editor experience for creators specified?"]
+    },
+    "accessibility": {
+      "emphasis": "high",
+      "concerns": ["media accessibility: captions/subtitles, audio description, transcripts (and legal mandates for broadcast/public bodies)", "WCAG 2.2 AA for reading and player UI; keyboard-operable custom media players", "localization/i18n of content and UI, including RTL and locale formats", "readable typography, contrast, and reflow for long-form content"],
+      "typical_requirements": ["captions/transcripts/audio description", "accessible media player", "WCAG 2.2 AA conformance", "i18n/localization scope"],
+      "questions": ["Are captions/subtitles, transcripts, and audio-description requirements specified for media?", "Is the media player keyboard-operable and WCAG 2.2 AA conformant?", "Are localization/i18n requirements for content and UI stated?"]
+    },
+    "reliability": {
+      "emphasis": "medium",
+      "concerns": ["read availability decoupled from the authoring/publishing plane (a CMS outage must not take the site down)", "graceful serving of stale content on origin failure (stale-while-revalidate)", "durability of media originals and content history; backup and restore", "resilience of the media pipeline to partial encode failures"],
+      "typical_requirements": ["read/delivery availability target", "stale-serve on origin failure", "content/media durability & backup", "pipeline fault tolerance"],
+      "questions": ["Is delivery availability decoupled from the publishing plane, with stale-serve on origin failure?", "Are durability and backup of media originals and content history specified?"]
+    },
+    "quality-in-use": {
+      "emphasis": "medium",
+      "concerns": ["audience engagement outcomes (retention, watch/read time, return visits) and subscriber conversion", "content-discovery effectiveness (users find relevant content)", "trust and brand safety (moderation quality, ad adjacency)"],
+      "typical_requirements": ["engagement & retention metrics", "discovery effectiveness", "brand-safety / trust outcomes"],
+      "questions": ["Are audience-engagement and conversion outcome metrics defined?", "Are content-discovery effectiveness and brand-safety outcomes specified?"]
+    }
+  }
+}

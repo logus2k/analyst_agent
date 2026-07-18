@@ -1,0 +1,42 @@
+{
+ "id": "4a5f2e16210a434fae615e3a5bcc7c3c",
+ "name": "AI-Driven Job Matching Platform",
+ "created_at": "2026-07-08T21:42:40+00:00",
+ "documents": [
+  {
+   "id": "3c4b3c67841e40fba1ecde72b28e44ae",
+   "project_id": "4a5f2e16210a434fae615e3a5bcc7c3c",
+   "filename": "AI-Driven Job Matching Platform for Palestine.pdf",
+   "ext": ".pdf",
+   "ingested_at": "2026-07-08T21:42:48+00:00",
+   "size": 6590449
+  }
+ ],
+ "quality_runs": [
+  {
+   "run_id": "5755e967b29042b98d850de0352afca9",
+   "project_id": "4a5f2e16210a434fae615e3a5bcc7c3c",
+   "kind": "quality",
+   "finished_at": "2026-07-08T22:22:02+00:00",
+   "source_file": "AI-Driven Job Matching Platform",
+   "total": 386,
+   "produced_in_s": 2288,
+   "documents": [
+    {
+     "document_id": "3c4b3c67841e40fba1ecde72b28e44ae",
+     "filename": "AI-Driven Job Matching Platform for Palestine.pdf"
+    }
+   ]
+  }
+ ],
+ "coverage_runs": [
+  {
+   "run_id": "1be2638268404edbb48dfa8587aab421",
+   "project_id": "4a5f2e16210a434fae615e3a5bcc7c3c",
+   "kind": "coverage",
+   "finished_at": "2026-07-08T22:23:43+00:00",
+   "requirement_count": 386,
+   "gap_count": 69
+  }
+ ]
+}

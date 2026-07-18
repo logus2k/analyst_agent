@@ -1,0 +1,291 @@
+{
+ "version": 2,
+ "ratified": true,
+ "updated_at": "2026-07-08T21:43:54+00:00",
+ "statement": {
+  "purpose": {
+   "value": "To enhance labor market efficiency in Palestine by providing a platform that integrates multiple job sources and government databases to optimize job matching, provide analytics, and support decision-making for the Ministry of Labor (MoL) and Palestinian Employment Fund (PEF).",
+   "provenance": "stated",
+   "confidence": "high",
+   "source_quote": "The AI-Driven Job Matching Platform... aims to enhance labor market efficiency by providing real-time data integration, standardizing job postings, and facilitating employment for job seekers."
+  },
+  "stakeholders": [
+   {
+    "value": "Ministry of Labor (MoL)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Palestinian Employment Fund (PEF)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Enabel and its consultants",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Development team",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Technical evaluators",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "System administrators (MoL)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Integration partners (External job sites, Government databases)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Job Seekers (Youth 15-29, including vulnerable groups)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Employers (Private sector enterprises)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Government Officials (MoL, PEF decision-makers)",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "context": {
+   "value": "The platform is part of the 'Youth Economic Empowerment in Palestine (YEP)' program and is intended to serve as the core component of a future Labor Market Information System (LMIS). It operates in a context requiring multilingual support (Arabic/English) and must address the specific needs of youth in the Palestinian labor market.",
+   "provenance": "stated",
+   "confidence": "high",
+   "source_quote": "The AI-Driven Job Matching Platform is part of the \"Youth Economic Empowerment in Palestine (YEP)\" program... The platform will serve as the core component of the future Labor Market Information System (LMIS)..."
+  },
+  "scope": {
+   "in": [
+    "User Management System (Job seekers, employers, admins)",
+    "Job Posting Management System (Creation, publishing, search)",
+    "AI-Driven Matching Engine (Skill-based, NLP, recommender systems)",
+    "Integration Framework (APIs/adapters for external job sites and government databases)",
+    "Reporting and Analytics (Dashboards, employment statistics)",
+    "Security Framework (Authentication, authorization, data protection)",
+    "Multilingual Support (Arabic and English)",
+    "Basic functionality implementation in phases"
+   ],
+   "out": [
+    "Implementation of the full Labor Market Information System (LMIS)",
+    "Hardware procurement for hosting",
+    "Integration with systems beyond those specified",
+    "End-user training",
+    "Long-term support and maintenance",
+    "Mobile application development"
+   ],
+   "provenance": "stated",
+   "confidence": "high"
+  },
+  "capabilities": [
+   {
+    "value": "Allow job seekers to self-register and manage detailed profiles, including CV/resume upload and AI-driven data extraction.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Facilitate job posting creation, classification, and searching by employers.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Perform skill-based and behavioral matching between job seekers and job postings using NLP and recommender systems.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Synchronize job data in real-time with external job sites via APIs, supporting updates and status tracking.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Provide labor market insights through system monitoring, user activity tracking, and custom report generation for government officials.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Manage user access and data privacy through Role-Based Access Control (RBAC) and configurable visibility settings.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Support system operation in environments with limited internet connectivity.",
+    "provenance": "stated",
+    "confidence": "medium"
+   }
+  ],
+  "data_entities": [
+   {
+    "value": "Job Seeker Profile (including personal data, education, skills, preferences, uploaded documents)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Employer Profile (Company details, recruitment needs)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Job Posting (including source platform tag and backlink)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "System Metrics/Analytics Data (User activity, employment trends)",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "external_interfaces": [
+   {
+    "value": "Existing MoL and PEF databases and systems",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "External job sites (via API for data exchange)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Government databases (for verification and data enrichment)",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "constraints": [
+   {
+    "value": "Must comply with Palestinian data privacy and protection regulations and adhere to GDPR principles.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Must be accessible via standard web browsers without special plugins.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Must function effectively in areas with limited internet connectivity.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Must support multilingual interface in Arabic and English.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Must be scalable to accommodate future expansion (designed to be core of LMIS).",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "success_criteria": [
+   {
+    "value": "Successful implementation of core functionality (Phase 1) as defined in the SRS.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Accurate and timely job matching based on defined criteria.",
+    "provenance": "inferred",
+    "confidence": "medium"
+   },
+   {
+    "value": "Successful integration and synchronization with specified external and government systems.",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "assumptions": [
+   "MoL and PEF will provide timely access to existing systems and databases for integration.",
+   "External job sites will cooperate in the integration process.",
+   "Adequate infrastructure (hosting, network) will be available for system deployment.",
+   "Stakeholders will participate actively in the requirements validation process.",
+   "The system will be implemented in phases, prioritizing basic functionality first."
+  ],
+  "clarifying_questions": [
+   "What are the specific data fields and validation rules required for integration with the existing MoL and PEF databases?",
+   "What are the defined Service Level Objectives (SLOs) or performance targets for the AI matching engine (e.g., latency for a match recommendation)?",
+   "What specific Palestinian data privacy regulations must be adhered to beyond general GDPR principles?",
+   "What is the expected volume/scale of job postings and job seekers the system must handle in the initial phase?"
+  ],
+  "candidate_archetypes": [
+   {
+    "id": "web-saas",
+    "confidence": "high",
+    "why": "It is a multi-tenant, browser-delivered transactional application with server-side business logic (job matching, user management) and a persistent datastore."
+   },
+   {
+    "id": "agent-system",
+    "confidence": "medium",
+    "why": "The AI-Driven Matching Engine uses NLP and recommender systems, suggesting autonomous, complex decision-making capabilities, though it is currently framed as a service, not a fully autonomous agent."
+   },
+   {
+    "id": "api-microservice",
+    "confidence": "medium",
+    "why": "It must expose APIs for external job sites and government databases, suggesting a strong microservice component."
+   },
+   {
+    "id": "data-pipeline",
+    "confidence": "medium",
+    "why": "It involves ingesting, transforming (via AI), and delivering data (job postings, analytics) across stages."
+   }
+  ],
+  "salient_domains": [
+   {
+    "id": "functional",
+    "confidence": "high",
+    "why": "The core purpose is defined by its functional capabilities (matching, posting, registration)."
+   },
+   {
+    "id": "data",
+    "confidence": "high",
+    "why": "It manages complex entities like Job Seekers and Job Postings, requiring data integrity and structure."
+   },
+   {
+    "id": "security",
+    "confidence": "high",
+    "why": "Explicit requirements for authentication, authorization (RBAC), and data protection are critical."
+   },
+   {
+    "id": "legal-privacy",
+    "confidence": "high",
+    "why": "Compliance with Palestinian and GDPR-like data privacy regulations is a stated constraint."
+   },
+   {
+    "id": "performance",
+    "confidence": "medium",
+    "why": "It requires high performance for AI processing and scalability for future LMIS integration."
+   },
+   {
+    "id": "usability",
+    "confidence": "high",
+    "why": "Must accommodate users with varying technical proficiency and support accessibility standards (WCAG)."
+   },
+   {
+    "id": "compatibility",
+    "confidence": "high",
+    "why": "Must integrate with existing MoL/PEF systems and external job sites."
+   },
+   {
+    "id": "reliability",
+    "confidence": "medium",
+    "why": "Requires high availability and disaster recovery capabilities for a critical government/employment system."
+   }
+  ],
+  "overall_confidence": "high"
+ }
+}

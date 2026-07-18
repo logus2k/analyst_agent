@@ -1,0 +1,15 @@
+{
+ "run_id": "5755e967b29042b98d850de0352afca9",
+ "project_id": "4a5f2e16210a434fae615e3a5bcc7c3c",
+ "kind": "quality",
+ "finished_at": "2026-07-08T22:22:02+00:00",
+ "source_file": "AI-Driven Job Matching Platform",
+ "total": 386,
+ "produced_in_s": 2288,
+ "documents": [
+  {
+   "document_id": "3c4b3c67841e40fba1ecde72b28e44ae",
+   "filename": "AI-Driven Job Matching Platform for Palestine.pdf"
+  }
+ ]
+}

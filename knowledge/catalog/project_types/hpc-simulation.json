@@ -1,0 +1,60 @@
+{
+  "id": "hpc-simulation",
+  "name": "Scientific simulation / HPC application",
+  "class": "computation-dominant",
+  "aliases": ["hpc", "high performance computing", "scientific computing", "simulation", "numerical simulation", "solver", "cfd", "finite element", "molecular dynamics", "monte carlo", "cluster job", "batch compute", "parallel computing", "supercomputer"],
+  "summary": "A compute-intensive application that numerically solves scientific/engineering models over large datasets, typically as parallel batch jobs on clusters or supercomputers. Correctness is a matter of numerical accuracy and validation against reference/experimental results, and value is dominated by parallel-scaling efficiency within a finite compute allocation.",
+  "matching_signals": ["simulation", "solver", "numerical", "mesh", "grid", "parallel", "MPI", "OpenMP", "CUDA", "cluster", "supercomputer", "HPC", "batch job", "scheduler", "Slurm", "scaling", "FLOPS", "checkpoint", "convergence", "double precision", "petascale"],
+  "salient_domains": ["functional", "performance", "reliability", "data", "maintainability", "operational", "portability", "constraints"],
+  "grounding": ["iso-25010:2023", "ieee-754", "iso-25012", "29148:2018"],
+  "domains": {
+    "functional": {
+      "emphasis": "critical",
+      "concerns": ["numerical accuracy: required precision, error bounds, convergence criteria, and tolerance on residuals", "verification & validation (V&V): verification against analytic/method-of-manufactured-solutions, validation against experimental/reference data", "numerical stability, conditioning, and controlled error propagation across the solution", "the physical/mathematical model, its assumptions, boundary/initial conditions, and its domain of validity", "uncertainty quantification and sensitivity of outputs to inputs and discretisation"],
+      "typical_requirements": ["accuracy / error-bound & convergence criteria", "V&V plan & reference cases", "numerical-stability requirements", "model assumptions & validity domain", "uncertainty quantification"],
+      "questions": ["Are required numerical accuracy, error bounds, and convergence criteria quantified?", "Is a verification & validation plan defined against analytic or experimental reference results?", "Are the model's assumptions, boundary conditions, and domain of validity stated?"]
+    },
+    "performance": {
+      "emphasis": "critical",
+      "concerns": ["parallel scaling efficiency: strong- and weak-scaling targets and the node/core count they hold to", "arithmetic throughput (FLOPS) vs memory-bandwidth / communication bound; roofline positioning", "load balancing across ranks/threads and minimisation of MPI communication and synchronisation overhead", "I/O performance for large reads/writes (parallel file systems, collective I/O)", "accelerator (GPU) utilisation, host-device transfer overhead, and memory-hierarchy efficiency"],
+      "typical_requirements": ["strong/weak scaling targets", "FLOPS / node-hour efficiency", "communication & load-balance limits", "parallel-I/O throughput", "GPU utilisation targets"],
+      "questions": ["Are strong- and weak-scaling efficiency targets specified with the core/node counts they hold at?", "Are communication, load-balance, and I/O throughput bounds defined for the target scale?", "Is target accelerator utilisation and memory-bandwidth efficiency stated?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["checkpoint/restart to survive node failures and walltime limits on long-running jobs", "fault tolerance at scale where the aggregate MTBF of thousands of nodes is short relative to runtime", "detection and handling of silent data corruption and non-convergence / solver divergence", "recoverability without loss of days of compute; restart consistency and determinism of resumed runs", "resource-exhaustion behaviour (out-of-memory, disk-full, walltime kill)"],
+      "typical_requirements": ["checkpoint/restart interval & policy", "node-failure tolerance at scale", "divergence / non-convergence handling", "restart consistency", "resource-exhaustion behaviour"],
+      "questions": ["Is checkpoint/restart required, with a defined interval balancing overhead against expected node MTBF?", "Is behaviour on solver divergence, silent corruption, or resource exhaustion specified?", "Is a resumed run required to be consistent (and, where needed, bit-reproducible)?"]
+    },
+    "data": {
+      "emphasis": "high",
+      "concerns": ["very large input/output datasets: scientific formats (HDF5, NetCDF, ADIOS) and their schemas", "output data volume, in-situ processing / reduction, and retention of raw vs derived results", "provenance/metadata linking results to code version, inputs, parameters, and hardware for reproducibility", "data staging between long-term storage, parallel scratch, and node-local storage", "data integrity (checksums) for petabyte-scale transfers and archives"],
+      "typical_requirements": ["scientific I/O formats & schemas", "output volume & retention policy", "provenance metadata", "data-staging strategy", "integrity / checksumming"],
+      "questions": ["Are the scientific data formats, schemas, and expected output volumes specified?", "Is provenance metadata (code version, inputs, parameters) captured to make results reproducible?", "Are data staging, retention, and integrity requirements defined for the dataset scale?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["reproducibility and determinism: pinned compilers, libraries (BLAS/LAPACK/MPI), flags, and controlled floating-point behaviour", "bit-for-bit vs statistical reproducibility policy across runs, core counts, and platforms", "regression testing of numerical results (tolerance-based comparison, not exact equality)", "modularity separating physics/model, numerics, and parallel infrastructure", "verification test suites (MMS, conservation checks) integrated into CI"],
+      "typical_requirements": ["pinned toolchain & FP-control", "reproducibility policy (bit vs statistical)", "numerical regression tests", "modular solver architecture", "verification test suite in CI"],
+      "questions": ["Is the required level of reproducibility (bit-exact vs within-tolerance) stated across platforms and core counts?", "Are the toolchain, libraries, and floating-point settings pinned for reproducible builds?", "Are tolerance-based numerical regression tests part of the verification suite?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["batch scheduler integration (Slurm/PBS/LSF): job scripts, queues, partitions, and dependencies", "resource requests and limits (nodes, cores, GPUs, memory, walltime) and fit to queue policy", "allocation/quota accounting and fair-share consumption within a compute grant", "job monitoring, failure detection, and automatic resubmission of preempted/failed jobs", "environment/module management on the target cluster (modules, containers, Spack/EasyBuild)"],
+      "typical_requirements": ["scheduler job specification", "resource request & walltime limits", "allocation/quota accounting", "job monitoring & resubmission", "cluster environment/module setup"],
+      "questions": ["Are scheduler resource requests (nodes, GPUs, memory, walltime) and queue constraints specified?", "Is allocation/quota consumption accounted for against the compute grant?", "Is automatic detection and resubmission of failed/preempted jobs defined?"]
+    },
+    "portability": {
+      "emphasis": "medium",
+      "concerns": ["portability across HPC platforms, CPU/GPU architectures, and interconnects without correctness change", "performance portability: acceptable efficiency across vendors (e.g. via Kokkos/SYCL/OpenMP-offload) vs vendor-locked kernels", "build/packaging on target clusters (Spack, EasyBuild, containers such as Apptainer/Singularity)", "dependence on specific vendor libraries, compilers, or MPI implementations"],
+      "typical_requirements": ["target-platform / architecture matrix", "performance-portability approach", "cluster build & container packaging", "vendor-dependency constraints"],
+      "questions": ["Are the target platforms, CPU/GPU architectures, and interconnects the code must run on specified?", "Is a performance-portability expectation stated, or is vendor lock-in acceptable?", "Is the build/packaging path for target clusters (Spack/containers) defined?"]
+    },
+    "constraints": {
+      "emphasis": "medium",
+      "concerns": ["finite compute allocation / node-hour budget as a hard project constraint", "licensing of commercial solvers, compilers, or libraries and concurrent-license limits", "mandated facility software stack, MPI/compiler versions, and container policy", "storage quota on scratch and long-term filesystems"],
+      "typical_requirements": ["node-hour / allocation budget", "solver & compiler licensing limits", "mandated facility software stack", "storage quotas"],
+      "questions": ["Is the compute allocation (node-hour) budget captured as a constraint on runs?", "Are commercial-solver/library licensing and concurrency limits accounted for?", "Are mandated facility software versions and storage quotas specified?"]
+    }
+  }
+}

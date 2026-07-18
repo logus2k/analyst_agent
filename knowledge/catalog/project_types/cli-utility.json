@@ -1,0 +1,48 @@
+{
+  "id": "cli-utility",
+  "name": "CLI / batch / automation utility",
+  "class": "interaction-client",
+  "aliases": ["cli", "command-line tool", "command line utility", "console app", "batch job", "automation script", "shell tool", "unix tool", "cron job", "pipeline tool"],
+  "summary": "A command-line or batch program driven by arguments, environment and stdin, emitting results to stdout/stderr with meaningful exit codes. Its distinctive concerns are scriptability, deterministic behaviour and a stable stream/flag contract rather than a graphical interface.",
+  "matching_signals": ["cli", "command-line", "command line", "terminal", "console", "shell", "stdin", "stdout", "exit code", "flag", "argument", "pipe", "batch", "cron", "script", "automation", "posix", "argv"],
+  "salient_domains": ["usability", "functional", "compatibility", "portability", "maintainability", "security"],
+  "grounding": ["iso-25010:2023", "posix", "clig", "29148:2018", "volere", "spdx-licenses"],
+  "domains": {
+    "usability": {
+      "emphasis": "critical",
+      "concerns": ["argument/flag design following POSIX/GNU conventions (short + long forms) with required --help and --version", "discoverability: usage on error, worked examples, man page", "clear, actionable error messages on stderr with remediation guidance", "safe defaults for destructive operations (no destructive default; confirmation, --dry-run or explicit --force)", "progress/feedback for long operations; TTY- and NO_COLOR-aware output"],
+      "typical_requirements": ["flag/argument conventions & --help/--version", "actionable errors on stderr", "destructive-op safeguards (--dry-run/--force/confirm)", "TTY / NO_COLOR-aware output"],
+      "questions": ["Are flag/argument conventions, --help and --version specified per POSIX/GNU norms?", "Are destructive operations guarded (confirmation, --dry-run, no destructive default)?", "Are errors actionable, on stderr, with clear remediation?"]
+    },
+    "functional": {
+      "emphasis": "high",
+      "concerns": ["deterministic, reproducible output for identical inputs", "idempotent operations where applicable (safe re-run after interruption)", "a documented exit-code taxonomy (0 success, distinct non-zero classes; 2 for usage errors by convention)", "signal handling (SIGINT/SIGTERM) with safe interruption and no partial-state corruption", "well-defined partial-failure semantics in batch mode"],
+      "typical_requirements": ["exit-code contract", "deterministic / idempotent behaviour", "signal handling & safe interruption", "batch partial-failure semantics"],
+      "questions": ["Is the exit-code taxonomy defined (success vs distinct failure classes)?", "Are operations deterministic and idempotent (safe to re-run after interruption)?", "Is signal handling / safe interruption specified so no partial state is corrupted?"]
+    },
+    "compatibility": {
+      "emphasis": "high",
+      "concerns": ["stdio contract: machine-readable data on stdout, logs and errors on stderr", "pipeline composability (reads stdin, honours SIGPIPE, no interactive prompts polluting stdout)", "a stable, parseable machine-readable output mode (--json/plain) that scripts can depend on across versions", "config precedence (flag > env > config file > default) and XDG base directories", "stability of the flag/output contract for downstream scripts"],
+      "typical_requirements": ["stdio / stream contract", "machine-readable (JSON) output mode & stability", "config precedence (flag/env/file, XDG)", "scriptable stable interface"],
+      "questions": ["Are stdout (data) vs stderr (logs) roles and pipeline composability (SIGPIPE) specified?", "Is a stable machine-readable (JSON) output mode provided for scripts?", "Is config/flag/env precedence (and XDG dirs) defined?"]
+    },
+    "portability": {
+      "emphasis": "high",
+      "concerns": ["cross-platform and cross-shell behaviour (bash/zsh/PowerShell; path, line-ending and quoting differences)", "packaging and distribution (single static binary, Homebrew/apt/winget/pip/npm) with checksums and signing", "minimal runtime dependencies / self-contained build", "locale-independent parsing and output for machine use (stable under LC_ALL=C)"],
+      "typical_requirements": ["OS/shell support matrix", "packaging & distribution channels (signed, checksummed)", "minimal-dependency / self-contained build", "locale-independent output"],
+      "questions": ["Are the supported OSes/shells and packaging/distribution channels specified?", "Is the tool self-contained with minimal runtime dependencies?", "Is machine output locale-independent (stable under LC_ALL=C)?"]
+    },
+    "maintainability": {
+      "emphasis": "medium",
+      "concerns": ["verbosity/log-level controls (-v/-q, --log-level) directed to stderr", "testability via scriptable I/O and golden-output tests", "structured/leveled logging kept separate from data output", "reproducible, versioned release artifacts"],
+      "typical_requirements": ["verbosity / log-level controls", "golden-output / CLI integration tests", "reproducible versioned builds"],
+      "questions": ["Are verbosity/log-level controls and structured logging (to stderr) specified?", "Are CLI behaviours covered by golden-output / integration tests?", "Are release builds reproducible and versioned?"]
+    },
+    "security": {
+      "emphasis": "medium",
+      "concerns": ["no secrets on the command line (visible in ps/shell history) — prefer env, file or stdin", "safe handling of untrusted input and filenames (path traversal, argument injection into spawned shells)", "safe temp-file creation (mkstemp, no predictable paths)", "supply-chain integrity of distributed binaries (signing/checksums)", "least privilege: no unexpected network access or filesystem writes"],
+      "typical_requirements": ["secret-input policy (no secrets in argv)", "safe subprocess / path / temp-file handling", "signed & checksummed distribution", "least-privilege file/network behaviour"],
+      "questions": ["Are secrets kept out of argv (env/file/stdin instead)?", "Is untrusted input (paths, shell arguments, temp files) handled safely?", "Are distributed binaries signed and checksummed?"]
+    }
+  }
+}

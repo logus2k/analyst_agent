@@ -1,0 +1,727 @@
+{
+  "version": "INCOSE GtWR v4 (INCOSE-TP-2010-006-04, June 2023)",
+  "characteristics": [
+    {
+      "id": "C1",
+      "name": "Necessary",
+      "scope": "individual",
+      "definition": "The need or requirement statement defines a capability, characteristic, constraint, or quality factor needed or required to satisfy a lifecycle concept, need, source, or higher-level requirement.",
+      "supports_rules": "pending",
+      "file": "characteristics/C1-necessary.md"
+    },
+    {
+      "id": "C2",
+      "name": "Appropriate",
+      "scope": "individual",
+      "definition": "The specific intent and amount of detail of the need or requirement statement is appropriate to the level (the level of abstraction, organization, or system architecture) of the entity to which it refers.",
+      "supports_rules": "pending",
+      "file": "characteristics/C2-appropriate.md"
+    },
+    {
+      "id": "C3",
+      "name": "Unambiguous",
+      "scope": "individual",
+      "definition": "Need and requirement statements must be stated such that their intent is clear and can be interpreted in only one way by all intended audiences.",
+      "supports_rules": "pending",
+      "file": "characteristics/C3-unambiguous.md"
+    },
+    {
+      "id": "C4",
+      "name": "Complete",
+      "scope": "individual",
+      "definition": "The requirement statement sufficiently describes the necessary capability, characteristic, constraint, conditions, or quality factor to meet the need, source, or higher-level requirement from which it was transformed.",
+      "supports_rules": "pending",
+      "file": "characteristics/C4-complete.md"
+    },
+    {
+      "id": "C5",
+      "name": "Singular",
+      "scope": "individual",
+      "definition": "The need or requirement statement should state a single capability, characteristic, constraint, or quality factor.",
+      "supports_rules": "pending",
+      "file": "characteristics/C5-singular.md"
+    },
+    {
+      "id": "C6",
+      "name": "Feasible",
+      "scope": "individual",
+      "definition": "The need or requirement can be realized within entity constraints (for example: cost, schedule, technical, legal, ethical, safety) with acceptable risk.",
+      "supports_rules": "pending",
+      "file": "characteristics/C6-feasible.md"
+    },
+    {
+      "id": "C7",
+      "name": "Verifiable",
+      "scope": "individual",
+      "definition": "The requirement statement is structured and worded such that its realization can be verified to the approving authority's satisfaction.",
+      "supports_rules": "pending",
+      "file": "characteristics/C7-verifiable.md"
+    },
+    {
+      "id": "C8",
+      "name": "Correct",
+      "scope": "individual",
+      "definition": "The requirement statement must be an accurate representation of the need, source, or higher-level requirement from which it was transformed.",
+      "supports_rules": "pending",
+      "file": "characteristics/C8-correct.md"
+    },
+    {
+      "id": "C9",
+      "name": "Conforming",
+      "scope": "individual",
+      "definition": "Statements and expressions of individual needs and requirements should conform to an approved standard pattern and style guide or standard for writing and managing needs and requirements.",
+      "supports_rules": "pending",
+      "file": "characteristics/C9-conforming.md"
+    },
+    {
+      "id": "C10",
+      "name": "Complete",
+      "scope": "set",
+      "definition": "The set of requirements for an entity should stand alone such that it sufficiently describes the necessary capabilities, characteristics, functionality, performance, drivers, constraints, conditions, interactions, standards, regulations, safety, security, resilience, and quality factors without requiring other sets of requirements at the appropriate level of abstraction.",
+      "supports_rules": "pending",
+      "file": "characteristics/C10-complete.md"
+    },
+    {
+      "id": "C11",
+      "name": "Consistent",
+      "scope": "set",
+      "definition": "A set of requirements is consistent if it contains individual requirements that are: unique; do not conflict with or overlap with others in the set; make use of homogeneous units and measurement systems; and are developed using a consistent language (the same words are used throughout the set to mean the same thing) consistent with the architectural model, project glossary, and data dictionary.",
+      "supports_rules": "pending",
+      "file": "characteristics/C11-consistent.md"
+    },
+    {
+      "id": "C12",
+      "name": "Feasible",
+      "scope": "set",
+      "definition": "A set of requirements is feasible if it can be realized within entity constraints (such as cost, schedule, technical) with acceptable risk.",
+      "supports_rules": "pending",
+      "file": "characteristics/C12-feasible.md"
+    },
+    {
+      "id": "C13",
+      "name": "Comprehensible",
+      "scope": "set",
+      "definition": "The set of requirements must be written such that it is clear as to what is expected of the entity and its relation to the macro system of which it is a part.",
+      "supports_rules": "pending",
+      "file": "characteristics/C13-comprehensible.md"
+    },
+    {
+      "id": "C14",
+      "name": "Able to be validated",
+      "scope": "set",
+      "definition": "It must be possible to validate that the set of requirements will lead to the achievement of the set of needs and higher-level requirements within the constraints (such as cost, schedule, technical, and regulatory compliance) with acceptable risk.",
+      "supports_rules": "pending",
+      "file": "characteristics/C14-able-to-be-validated.md"
+    },
+    {
+      "id": "C15",
+      "name": "Correct",
+      "scope": "set",
+      "definition": "The set of requirements must be an accurate representation of the needs, sources, or higher-level requirements from which it was transformed.",
+      "supports_rules": "pending",
+      "file": "characteristics/C15-correct.md"
+    }
+  ],
+  "rules": [
+    {
+      "id": "R1",
+      "name": "Structured Statements",
+      "category": "Accuracy",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Need and requirement statements must conform to one of the agreed patterns, thus resulting in a well-structured complete statement.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R01-structured-statements.md"
+    },
+    {
+      "id": "R2",
+      "name": "Active Voice",
+      "category": "Accuracy",
+      "scope": "individual",
+      "detector": "nlp",
+      "text": "Use the active voice in the need or requirement statement with the responsible entity clearly identified as the subject of the sentence.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R02-active-voice.md"
+    },
+    {
+      "id": "R3",
+      "name": "Appropriate Subject-Verb",
+      "category": "Accuracy",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Ensure the subject and verb of the need or requirement statement are appropriate to the entity to which the statement refers.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R03-appropriate-subject-verb.md"
+    },
+    {
+      "id": "R4",
+      "name": "Defined Terms",
+      "category": "Accuracy",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Define all terms used within the need statement and requirement statement within an associated glossary and/or data dictionary.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R04-defined-terms.md"
+    },
+    {
+      "id": "R5",
+      "name": "Definite Articles",
+      "category": "Accuracy",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Use the definite article \"the\" rather than the indefinite article \"a\".",
+      "terms": [
+        "a",
+        "an"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R05-definite-articles.md"
+    },
+    {
+      "id": "R6",
+      "name": "Common Units of Measure",
+      "category": "Accuracy",
+      "scope": "individual",
+      "detector": "nlp",
+      "text": "When stating quantities, all numbers should have appropriate and consistent units of measure explicitly stated using a common measurement system in terms of the thing the number refers.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R06-common-units-of-measure.md"
+    },
+    {
+      "id": "R7",
+      "name": "Vague Terms",
+      "category": "Accuracy",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid the use of vague terms that provide vague quantification or vague adjectives.",
+      "terms": [
+        "some",
+        "any",
+        "allowable",
+        "several",
+        "many",
+        "a lot of",
+        "a few",
+        "almost always",
+        "very nearly",
+        "nearly",
+        "about",
+        "close to",
+        "almost",
+        "approximate",
+        "ancillary",
+        "relevant",
+        "routine",
+        "common",
+        "generic",
+        "significant",
+        "flexible",
+        "expandable",
+        "typical",
+        "sufficient",
+        "adequate",
+        "appropriate",
+        "efficient",
+        "effective",
+        "proficient",
+        "reasonable",
+        "customary"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R07-vague-terms.md"
+    },
+    {
+      "id": "R8",
+      "name": "Escape Clauses",
+      "category": "Accuracy",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid the inclusion of escape clauses that state vague conditions or possibilities.",
+      "terms": [
+        "so far as is possible",
+        "as little as possible",
+        "where possible",
+        "as much as possible",
+        "if it should prove necessary",
+        "if necessary",
+        "to the extent necessary",
+        "as appropriate",
+        "as required",
+        "to the extent practical",
+        "if practicable"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R08-escape-clauses.md"
+    },
+    {
+      "id": "R9",
+      "name": "Open-Ended Clauses",
+      "category": "Accuracy",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid open-ended, non-specific clauses.",
+      "terms": [
+        "including but not limited to",
+        "etc.",
+        "and so on"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R09-open-ended-clauses.md"
+    },
+    {
+      "id": "R10",
+      "name": "Superfluous Infinitives",
+      "category": "Concision",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid the use of superfluous infinitives.",
+      "terms": [
+        "to be designed to",
+        "to be able to",
+        "to be capable of",
+        "to enable",
+        "to allow"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R10-superfluous-infinitives.md"
+    },
+    {
+      "id": "R11",
+      "name": "Separate Clauses",
+      "category": "Concision",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Use a separate clause for each condition or qualification.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R11-separate-clauses.md"
+    },
+    {
+      "id": "R12",
+      "name": "Correct Grammar",
+      "category": "Non-ambiguity",
+      "scope": "individual",
+      "detector": "tool",
+      "text": "Use correct grammar.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R12-correct-grammar.md"
+    },
+    {
+      "id": "R13",
+      "name": "Correct Spelling",
+      "category": "Non-ambiguity",
+      "scope": "individual",
+      "detector": "tool",
+      "text": "Use correct spelling.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R13-correct-spelling.md"
+    },
+    {
+      "id": "R14",
+      "name": "Correct Punctuation",
+      "category": "Non-ambiguity",
+      "scope": "individual",
+      "detector": "tool",
+      "text": "Use correct punctuation.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R14-correct-punctuation.md"
+    },
+    {
+      "id": "R15",
+      "name": "Logical Expressions",
+      "category": "Non-ambiguity",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Use a defined convention to express logical expressions such as \"[X AND Y]\", \"[X OR Y]\", \"[X XOR Y]\", \"NOT [X OR Y]\".",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R15-logical-expressions.md"
+    },
+    {
+      "id": "R16",
+      "name": "Use of \"Not\"",
+      "category": "Non-ambiguity",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid the use of \"not\".",
+      "terms": [
+        "not"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R16-use-of-not.md"
+    },
+    {
+      "id": "R17",
+      "name": "Use of Oblique Symbol",
+      "category": "Non-ambiguity",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid the use of the oblique (\"/\") symbol except in units (e.g. Km/hr) or fractions.",
+      "terms": [
+        "/"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R17-use-of-oblique-symbol.md"
+    },
+    {
+      "id": "R18",
+      "name": "Single Thought Sentence",
+      "category": "Singularity",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Write a single sentence that contains a single thought conditioned and qualified by relevant sub-clauses.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R18-single-thought-sentence.md"
+    },
+    {
+      "id": "R19",
+      "name": "Combinators",
+      "category": "Singularity",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid words that join or combine clauses.",
+      "terms": [
+        "and",
+        "or",
+        "then",
+        "unless",
+        "but",
+        "as well as",
+        "but also",
+        "however",
+        "whether",
+        "meanwhile",
+        "whereas",
+        "on the other hand",
+        "otherwise"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R19-combinators.md"
+    },
+    {
+      "id": "R20",
+      "name": "Purpose Phrases",
+      "category": "Singularity",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid phrases that indicate the \"purpose of\", \"intent of\", or \"reason for\" the requirement statement.",
+      "terms": [
+        "purpose of",
+        "intent of",
+        "reason for",
+        "in order to",
+        "so that",
+        "so as to"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R20-purpose-phrases.md"
+    },
+    {
+      "id": "R21",
+      "name": "Parentheses",
+      "category": "Singularity",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid parentheses and brackets containing subordinate text.",
+      "terms": [
+        "(",
+        ")",
+        "[",
+        "]"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R21-parentheses.md"
+    },
+    {
+      "id": "R22",
+      "name": "Enumeration",
+      "category": "Singularity",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Enumerate sets explicitly instead of using a group noun to name the set.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R22-enumeration.md"
+    },
+    {
+      "id": "R23",
+      "name": "Supporting Diagram, Model, or ICD",
+      "category": "Singularity",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "When a need or requirement is related to complex behavior, refer to a supporting diagram, model, or ICD.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R23-supporting-diagram-model-or-icd.md"
+    },
+    {
+      "id": "R24",
+      "name": "Pronouns",
+      "category": "Completeness",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid the use of personal and indefinite pronouns.",
+      "terms": [
+        "it",
+        "its",
+        "they",
+        "them",
+        "their",
+        "this",
+        "that",
+        "these",
+        "those",
+        "he",
+        "she",
+        "his",
+        "her",
+        "we",
+        "our",
+        "you",
+        "your",
+        "anyone",
+        "everyone",
+        "someone",
+        "anything",
+        "everything",
+        "something"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R24-pronouns.md"
+    },
+    {
+      "id": "R25",
+      "name": "Headings",
+      "category": "Completeness",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Avoid relying on headings to support explanation or understanding of the need or requirement.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R25-headings.md"
+    },
+    {
+      "id": "R26",
+      "name": "Absolutes",
+      "category": "Realism",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Avoid using unachievable absolutes.",
+      "terms": [
+        "100%",
+        "all",
+        "every",
+        "always",
+        "never",
+        "none",
+        "total",
+        "complete",
+        "fully",
+        "any"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R26-absolutes.md"
+    },
+    {
+      "id": "R27",
+      "name": "Explicit Conditions",
+      "category": "Conditions",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "State conditions' applicability explicitly instead of leaving applicability to be inferred from the context.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R27-explicit-conditions.md"
+    },
+    {
+      "id": "R28",
+      "name": "Multiple Conditions",
+      "category": "Conditions",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Express the propositional nature of a condition explicitly for a single action instead of giving lists of actions for a specific condition.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R28-multiple-conditions.md"
+    },
+    {
+      "id": "R29",
+      "name": "Classification",
+      "category": "Uniqueness",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Classify needs and requirements according to the aspects of the problem or system it addresses.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R29-classification.md"
+    },
+    {
+      "id": "R30",
+      "name": "Unique Expression",
+      "category": "Uniqueness",
+      "scope": "set",
+      "detector": "semantic",
+      "text": "Express each need and requirement once and only once.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R30-unique-expression.md"
+    },
+    {
+      "id": "R31",
+      "name": "Solution Free",
+      "category": "Abstraction",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Avoid stating implementation in a need statement or requirement statement unless there is rationale for constraining the design.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R31-solution-free.md"
+    },
+    {
+      "id": "R32",
+      "name": "Universal Qualification",
+      "category": "Quantifiers",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Use \"each\" instead of \"all\", \"any\", or \"both\" when universal quantification is intended.",
+      "terms": [
+        "all",
+        "any",
+        "both"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R32-universal-qualification.md"
+    },
+    {
+      "id": "R33",
+      "name": "Range of Values",
+      "category": "Tolerance",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Define each quantity with a range of values appropriate to the entity to which the quantity applies and against which the entity will be verified or validated.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R33-range-of-values.md"
+    },
+    {
+      "id": "R34",
+      "name": "Measurable Performance",
+      "category": "Quantification",
+      "scope": "individual",
+      "detector": "semantic",
+      "text": "Provide specific measurable performance targets appropriate to the entity to which the need or requirement is stated and against which the entity will be verified to meet.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R34-measurable-performance.md"
+    },
+    {
+      "id": "R35",
+      "name": "Temporal Dependencies",
+      "category": "Quantification",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Define temporal dependencies explicitly instead of using indefinite temporal keywords.",
+      "terms": [
+        "eventually",
+        "until",
+        "before",
+        "after",
+        "as",
+        "once",
+        "earliest",
+        "latest",
+        "instantaneous",
+        "simultaneous",
+        "at last"
+      ],
+      "characteristics": "pending",
+      "file": "rules/R35-temporal-dependencies.md"
+    },
+    {
+      "id": "R36",
+      "name": "Consistent Terms and Units",
+      "category": "Uniformity of Language",
+      "scope": "set",
+      "detector": "semantic",
+      "text": "Ensure each term and unit of measure used throughout need and requirement sets, as well as associated models and other SE artefacts, are consistent with the project's defined ontology.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R36-consistent-terms-and-units.md"
+    },
+    {
+      "id": "R37",
+      "name": "Acronyms",
+      "category": "Uniformity of Language",
+      "scope": "set",
+      "detector": "semantic",
+      "text": "If acronyms are used, they must be consistent throughout need and requirement sets as well as associated models and other SE artefacts.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R37-acronyms.md"
+    },
+    {
+      "id": "R38",
+      "name": "Abbreviations",
+      "category": "Uniformity of Language",
+      "scope": "individual",
+      "detector": "nlp",
+      "text": "Avoid the use of abbreviations in needs and requirement statements as well as associated models and other SE lifecycle artefacts.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R38-abbreviations.md"
+    },
+    {
+      "id": "R39",
+      "name": "Style Guide",
+      "category": "Uniformity of Language",
+      "scope": "set",
+      "detector": "semantic",
+      "text": "Use a project-wide style guide for individual need statements and requirement statements.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R39-style-guide.md"
+    },
+    {
+      "id": "R40",
+      "name": "Decimal Format",
+      "category": "Uniformity of Language",
+      "scope": "individual",
+      "detector": "deterministic",
+      "text": "Use a consistent format and number of significant digits for the specification of decimal numbers.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R40-decimal-format.md"
+    },
+    {
+      "id": "R41",
+      "name": "Related Needs and Requirements",
+      "category": "Modularity",
+      "scope": "set",
+      "detector": "semantic",
+      "text": "Group related needs and requirements together.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R41-related-needs-and-requirements.md"
+    },
+    {
+      "id": "R42",
+      "name": "Structured Sets",
+      "category": "Modularity",
+      "scope": "set",
+      "detector": "semantic",
+      "text": "Conform to a defined structure or template for organizing sets of needs and requirements.",
+      "terms": null,
+      "characteristics": "pending",
+      "file": "rules/R42-structured-sets.md"
+    }
+  ]
+}

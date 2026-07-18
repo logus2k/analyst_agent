@@ -1,0 +1,66 @@
+{
+  "id": "robotics",
+  "name": "Robotics / autonomous system",
+  "class": "control-dominant",
+  "aliases": ["robot", "robotics", "autonomous system", "autonomous robot", "cobot", "collaborative robot", "AMR", "AGV", "mobile robot", "manipulator", "drone", "UAV", "autonomous vehicle", "self-driving", "robot arm"],
+  "summary": "A cyber-physical system that perceives its environment, plans, and actuates in the physical world under real-time control, operating autonomously or semi-autonomously near people and property. Safety-critical, real-time, uncertainty-bound.",
+  "matching_signals": ["robot", "autonomous", "perception", "localization", "SLAM", "path planning", "motion planning", "actuator", "sensor fusion", "lidar", "IMU", "manipulator", "end effector", "emergency stop", "e-stop", "teleoperation", "ROS", "control loop", "obstacle avoidance", "human-robot"],
+  "salient_domains": ["safety", "performance", "functional", "reliability", "security", "usability", "operational", "maintainability", "compatibility"],
+  "grounding": ["iso-10218-1:2025", "iso-10218-2:2025", "iso-ts-15066", "iso-13482", "iec-61508", "iso-25010:2023", "volere"],
+  "domains": {
+    "safety": {
+      "emphasis": "critical",
+      "concerns": ["hazard identification and risk assessment for physical harm (crushing, impact, pinch, cutting) per ISO 12100 / ISO 10218", "emergency stop (Category 0/1) and protective stop reachable, independent of the main controller, and de-energising to a safe state", "collaborative-operation safety modes: safety-rated monitored stop, hand-guiding, speed & separation monitoring, and power-&-force limiting (ISO/TS 15066, integrated in ISO 10218-2:2025) with biomechanical force/pressure limits", "safety-rated functions to a required Performance Level / SIL (ISO 13849 / IEC 61508 / IEC 62061); safety-rated soft limits on speed, force, workspace/zones", "safe-state definition on power loss, sensor loss, comms loss, or software fault; brakes hold on de-energisation", "service/personal-care robots operating among the public (ISO 13482) where guarding is not possible"],
+      "typical_requirements": ["hazard/risk assessment & mitigations", "emergency & protective stop (independent, safe-state)", "collaborative safety modes & force/speed limits", "safety-rated function Performance Level / SIL", "safe-state on fault/loss-of-power", "safety-rated workspace/zone limiting"],
+      "questions": ["Have physical hazards been identified with mitigations, and is a safe state defined for power/sensor/comms/software faults?", "Is an independent emergency/protective stop specified that de-energises to a safe state?", "For human-collaborative operation, are speed-&-separation and power-&-force limits (ISO/TS 15066 biomechanical limits) and the required Performance Level / SIL specified?"]
+    },
+    "performance": {
+      "emphasis": "critical",
+      "concerns": ["hard real-time control-loop determinism: cycle rate, worst-case latency, and jitter bounds for the servo/control loop", "sensor-to-actuation end-to-end latency budget (perception → planning → control)", "deterministic scheduling and guaranteed compute/GPU headroom for perception under peak scene complexity", "real-time bus timing (EtherCAT/CAN) and missed-deadline handling"],
+      "typical_requirements": ["control-loop rate & jitter bounds", "sensor-to-actuation latency budget", "deterministic scheduling & compute headroom", "missed-deadline / overrun handling"],
+      "questions": ["Are the control-loop rate, worst-case latency, and jitter bounds specified (hard real-time)?", "Is the end-to-end sensor-to-actuation latency budget quantified?", "Is behaviour on missed deadlines / compute overload under peak perception load defined?"]
+    },
+    "functional": {
+      "emphasis": "high",
+      "concerns": ["perception, localization/SLAM, and mapping accuracy under real-world sensing", "motion/path planning correctness: collision-free trajectories, kinematic/dynamic limit adherence, and reachability", "sensor fusion across lidar/camera/IMU/encoders with defined accuracy and failure handling for degraded/occluded sensors", "behaviour under environmental uncertainty: unknown obstacles, dynamic actors, out-of-distribution scenes, and graceful task abort", "calibration (intrinsic/extrinsic, hand-eye) and its accuracy/validity requirements"],
+      "typical_requirements": ["perception/localization accuracy targets", "planning correctness & collision-free guarantees", "sensor-fusion & degraded-sensor handling", "uncertainty / out-of-distribution behaviour", "calibration accuracy & validation"],
+      "questions": ["Are perception/localization accuracy targets and behaviour under degraded/occluded sensors specified?", "Are planning correctness (collision-free, within kinematic/dynamic limits) requirements defined?", "Is behaviour under environmental uncertainty (unknown/dynamic obstacles, OOD scenes) and calibration validity specified?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["fault detection, isolation and recovery (FDIR) for sensor, actuator, and compute faults", "graceful degradation: reduced-speed/limp-home/controlled-stop modes when a subsystem fails", "redundancy for safety- or mission-critical sensing/compute where a single failure is unacceptable", "MTBF and unattended-operation duration; recovery after fault without hazard"],
+      "typical_requirements": ["FDIR for sensors/actuators/compute", "degraded-mode operation", "redundancy for critical subsystems", "MTBF / recovery behaviour"],
+      "questions": ["Is fault detection/isolation/recovery for sensor, actuator, and compute faults specified?", "Are degraded modes (reduced-speed, controlled-stop, limp-home) defined per subsystem failure?", "Is redundancy required for any single-point-of-failure critical to safety or mission?"]
+    },
+    "security": {
+      "emphasis": "high",
+      "concerns": ["command-and-control integrity: authenticated, tamper-proof motion commands (a spoofed command is a safety event)", "teleoperation/remote-access channel security and session authentication", "cybersecurity of the safety-relevant control path (now in scope of ISO 10218:2025)", "secure software/firmware update of the controller without weakening safety functions"],
+      "typical_requirements": ["authenticated command & control", "secure teleoperation channel", "safety-path cybersecurity", "secure controller updates"],
+      "questions": ["Are motion/command channels authenticated and integrity-protected against spoofing (a security-safety coupling)?", "Is remote/teleoperation access secured and authenticated?", "Is cybersecurity of the safety-relevant control path addressed?"]
+    },
+    "usability": {
+      "emphasis": "medium",
+      "concerns": ["human-robot interaction clarity: intent signalling (lights/sound/motion) so bystanders anticipate motion", "operator interfaces for mode selection, jogging, recovery, and clear status/fault indication", "teleoperation fallback usability and low-latency operator feedback when autonomy disengages", "training/skill assumptions for operators and safe hand-over between autonomy and human"],
+      "typical_requirements": ["HRI intent signalling & status indication", "operator control/recovery interface", "teleoperation fallback & handover", "operator training assumptions"],
+      "questions": ["Does the robot signal intent/status so nearby humans can anticipate its motion?", "Are operator interfaces for mode, recovery, and fault indication specified?", "Is a teleoperation/manual fallback and safe autonomy↔human handover defined?"]
+    },
+    "operational": {
+      "emphasis": "medium",
+      "concerns": ["operating-environment envelope: floor/terrain, lighting, temperature, dust/water (IP rating), EMI", "commissioning, calibration, and site setup (maps, zones, fiducials) as an operational procedure", "fleet coordination/traffic management where multiple robots share a space", "field maintenance, spare handling, and recharge/refuel/battery-swap logistics"],
+      "typical_requirements": ["operating-environment envelope & ingress rating", "commissioning & calibration procedure", "multi-robot coordination", "maintenance & energy logistics"],
+      "questions": ["Is the operating environment (terrain, lighting, temperature, IP rating, EMI) specified?", "Are commissioning/calibration/site-setup procedures defined?", "Is multi-robot coordination and energy/maintenance logistics addressed?"]
+    },
+    "maintainability": {
+      "emphasis": "medium",
+      "concerns": ["black-box / flight-recorder logging of sensor+command+state for incident reconstruction and safety audits", "simulation and hardware-in-the-loop testability for autonomy validation before field release", "diagnosability of intermittent physical faults; component replaceability and re-calibration workflow", "observability of autonomy internals (planner decisions, confidence) for debugging non-deterministic behaviour"],
+      "typical_requirements": ["black-box event logging", "sim / HIL test harness", "component replace & recalibration", "autonomy-decision observability"],
+      "questions": ["Is black-box logging of sensor/command/state for incident reconstruction required?", "Are simulation/HIL testability and autonomy-validation requirements specified?", "Is diagnosability/observability of autonomy decisions and recalibration workflow addressed?"]
+    },
+    "compatibility": {
+      "emphasis": "medium",
+      "concerns": ["sensor/actuator hardware interfaces and driver compatibility (CAN, EtherCAT, ROS/ROS 2 message contracts)", "interoperability with plant/site systems (MES/WMS, fleet managers, safety PLCs)", "map/coordinate-frame and data-format interoperability across tools"],
+      "typical_requirements": ["hardware/driver & fieldbus interfaces", "site-system (MES/WMS/PLC) integration", "map/coordinate-frame interoperability"],
+      "questions": ["Are sensor/actuator interfaces and fieldbus/middleware (CAN/EtherCAT/ROS) contracts specified?", "Is integration with plant/site systems (MES/WMS, safety PLC, fleet manager) defined?"]
+    }
+  }
+}

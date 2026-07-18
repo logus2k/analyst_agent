@@ -1,0 +1,60 @@
+{
+  "id": "devtool-sdk",
+  "name": "Developer tool / library / SDK / framework",
+  "class": "systems-software",
+  "aliases": ["sdk", "library", "framework", "developer tool", "package", "api client", "client library", "toolkit", "plugin system", "code library", "module"],
+  "summary": "Software consumed by other developers as a dependency: a library, SDK, framework or tool whose primary users are engineers integrating it into their own systems. Its contract is a stable, well-documented programmatic API rather than an end-user UI.",
+  "matching_signals": ["sdk", "library", "framework", "package", "api", "semver", "semantic versioning", "backward compatible", "deprecation", "public api", "developer experience", "plugin", "extension", "npm", "pypi", "maven", "crate", "nuget", "changelog", "breaking change"],
+  "salient_domains": ["compatibility", "usability", "maintainability", "security", "portability", "constraints", "functional", "legal-privacy"],
+  "grounding": ["iso-25010:2023", "semver-2.0", "slsa", "owasp-asvs", "spdx-licenses", "29148:2018", "volere"],
+  "domains": {
+    "compatibility": {
+      "emphasis": "critical",
+      "concerns": ["semantic-versioning (SemVer 2.0) contract: an explicit boundary between public API and internal surface, and what may change in major/minor/patch", "backward/forward compatibility across minor and patch releases; ABI/serialization stability where applicable", "deprecation policy: deprecate-in-minor then remove-in-major, with notice windows, migration guides and codemods", "supported language/runtime version matrix (minimum version, LTS coverage)", "source vs binary compatibility and stability of reflection/serialization surfaces"],
+      "typical_requirements": ["SemVer policy & defined public-API surface", "deprecation & migration policy with notice period", "supported language/runtime version matrix", "ABI/serialization stability"],
+      "questions": ["Is the public-API surface and its SemVer stability contract explicitly defined (what may change in minor/patch)?", "Is there a deprecation policy with a notice period and a documented migration path?", "Is the supported language/runtime version matrix stated?"]
+    },
+    "usability": {
+      "emphasis": "high",
+      "concerns": ["developer experience: API ergonomics, discoverability, sensible defaults and principle-of-least-surprise", "completeness and currency of reference docs, quickstart and runnable examples (kept in sync with the API)", "clear, actionable and typed errors for programmatic handling", "IDE support via types, docstrings and autocomplete", "time-to-first-successful-call for a new integrator"],
+      "typical_requirements": ["API-design/ergonomics guidelines", "reference docs + quickstart + runnable examples", "error-message quality & typed errors", "IDE/type/autocomplete support"],
+      "questions": ["Are documentation, quickstart and runnable examples required and kept in sync with the API?", "Are error messages actionable and typed for programmatic handling?", "Are ergonomics/defaults and IDE (type/autocomplete) support specified?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["automated test coverage (unit, integration, example/doctest) and a CI matrix across the support surface", "extension/plugin points with stable extension interfaces", "internal modularity so consumers are not coupled to internals", "changelog discipline and release automation", "automated API-diff / breaking-change detection gate in CI"],
+      "typical_requirements": ["test coverage & CI matrix", "extension/plugin interface", "changelog & release process", "automated breaking-change / API-diff gate"],
+      "questions": ["Are automated-test-coverage and a CI matrix across supported versions/platforms required?", "Is there an automated API-diff / breaking-change detection gate?", "Are extension points and changelog/release discipline defined?"]
+    },
+    "security": {
+      "emphasis": "high",
+      "concerns": ["supply-chain integrity: signed releases, build provenance/attestation (SLSA), reproducible builds and a published SBOM", "dependency vetting, pinning and vulnerability scanning of the transitive tree", "secure-by-default configuration and least-privilege defaults", "no silent network/telemetry calls without consent", "safe handling of untrusted input passed through the SDK (no injection into spawned processes/queries)"],
+      "typical_requirements": ["signed & provenance-attested releases (SLSA) + SBOM", "dependency scanning & pinning", "secure-by-default settings", "no-silent-telemetry policy"],
+      "questions": ["Are releases signed with build provenance/attestation (SLSA) and is an SBOM published?", "Are dependencies pinned, vetted and vulnerability-scanned?", "Are secure-by-default settings and a no-silent-network/telemetry policy specified?"]
+    },
+    "portability": {
+      "emphasis": "high",
+      "concerns": ["cross-platform/OS/architecture support and per-ecosystem packaging (npm, PyPI, Maven, crates, NuGet, Go modules)", "minimal dependency footprint and tree-shakeability", "runtime/engine version breadth", "zero or clearly-documented native-build requirements", "install-size and cold-start/import cost"],
+      "typical_requirements": ["platform/arch/runtime support & packaging targets", "dependency-footprint budget", "native-dependency policy", "install-size / tree-shaking"],
+      "questions": ["Are the target platforms/runtimes and per-ecosystem packaging specified?", "Is the dependency footprint bounded (transitive deps, install size, tree-shaking)?", "Are native-build requirements documented or avoided?"]
+    },
+    "constraints": {
+      "emphasis": "high",
+      "concerns": ["open-source licensing of the SDK and ALL transitive dependencies (permissive vs copyleft/GPL contamination for embedders)", "license compatibility with the consumer's redistribution and linking model", "contribution / CLA terms", "export-control and cryptography-distribution restrictions"],
+      "typical_requirements": ["SDK & transitive-dependency license policy (allow/deny list)", "redistribution/embedding/linking terms", "contribution / CLA terms"],
+      "questions": ["Are the SDK's and its transitive dependencies' licenses (permissive vs copyleft) vetted for the consumer's redistribution/linking model?", "Are contribution/CLA terms defined?", "Are any export-control or crypto-distribution constraints stated?"]
+    },
+    "functional": {
+      "emphasis": "medium",
+      "concerns": ["correctness and stability of the documented API contract (inputs/outputs, edge cases, invariants)", "thread-safety, reentrancy and concurrency guarantees", "completeness of the capability surface against the advertised purpose", "a defined error/exception taxonomy"],
+      "typical_requirements": ["documented API contract & invariants", "thread-safety/concurrency guarantees", "error/exception taxonomy", "capability completeness"],
+      "questions": ["Are the API contract, invariants and thread-safety/concurrency guarantees specified?", "Is the error/exception taxonomy defined?", "Is the capability surface complete against the stated purpose?"]
+    },
+    "legal-privacy": {
+      "emphasis": "medium",
+      "concerns": ["IP/licensing obligations passed to consumers (attribution, NOTICE files, patent grants)", "any data collected or transmitted by the SDK (telemetry, analytics) and consent/opt-out", "PII handling when the SDK relays user data"],
+      "typical_requirements": ["attribution / NOTICE / patent-grant obligations", "telemetry data inventory & consent policy", "PII-relay handling"],
+      "questions": ["Does the SDK collect or transmit any data (telemetry), and is consent/opt-out specified?", "Are attribution/NOTICE and patent-grant obligations to consumers defined?"]
+    }
+  }
+}

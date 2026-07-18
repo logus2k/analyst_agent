@@ -1,0 +1,60 @@
+{
+  "id": "middleware-integration",
+  "name": "Middleware / integration / messaging",
+  "class": "systems-software",
+  "aliases": ["middleware", "integration", "messaging", "message broker", "event bus", "esb", "ipaas", "event-driven", "event streaming", "message queue", "etl", "data pipeline", "integration platform", "event mesh", "connector"],
+  "summary": "A system that moves, routes, and transforms messages/events between otherwise-independent systems, decoupling producers from consumers with defined delivery guarantees. Throughput-bound, correctness-critical plumbing where the contract is the message, not a UI.",
+  "matching_signals": ["message", "queue", "topic", "event", "broker", "kafka", "rabbitmq", "amqp", "mqtt", "pub/sub", "publish", "subscribe", "consumer", "producer", "exactly-once", "at-least-once", "dead letter", "dlq", "backpressure", "transformation", "routing", "connector", "esb", "ipaas", "schema registry", "offset"],
+  "salient_domains": ["reliability", "compatibility", "performance", "data", "maintainability", "security", "operational", "functional"],
+  "grounding": ["amqp-1.0", "iso-25010:2023", "cloudevents", "opentelemetry", "volere", "29148:2018"],
+  "domains": {
+    "reliability": {
+      "emphasis": "critical",
+      "concerns": ["delivery-guarantee semantics stated explicitly: at-most-once vs at-least-once vs effectively-exactly-once, and consumer-side idempotency/deduplication when exactly-once is not achievable end-to-end", "message durability and persistence: acknowledgement model, no message loss on broker/consumer crash, and replication/quorum for the log/queue", "poison-message and failure handling: bounded retries with backoff, dead-letter queue (DLQ), and redrive so one bad message cannot block or be lost", "no-loss under failure: producer confirms, consumer offset/ack commit ordering, and recovery/replay after outage", "transactional / outbox patterns where a message and a state change must be atomic"],
+      "typical_requirements": ["delivery-guarantee level & consumer idempotency", "durability/persistence & replication", "DLQ, bounded retry & redrive", "producer-confirm / ack & offset-commit semantics", "replay/recovery & transactional outbox"],
+      "questions": ["Is the delivery guarantee (at-most/at-least/exactly-once) stated, with consumer-side idempotency/dedup where exactly-once isn't end-to-end?", "Are durability, acknowledgement, and replication specified so no message is lost on broker/consumer crash?", "Are poison-message handling (DLQ, bounded retry, redrive) and recovery/replay after outage defined?"]
+    },
+    "compatibility": {
+      "emphasis": "high",
+      "concerns": ["message schema/contract governance: schema registry, versioning, and enforced backward/forward compatibility so producers and consumers evolve independently", "protocol mediation across endpoints: AMQP, MQTT, Kafka protocol, JMS, HTTP/webhooks, gRPC — and translation between them", "payload format and transformation: canonical data model, format conversion (JSON/Avro/Protobuf/XML/EDI), and envelope standards (e.g. CloudEvents)", "connector/adapter compatibility with source and target system versions"],
+      "typical_requirements": ["schema registry & compatibility rules", "protocol mediation/bridging", "canonical model & format transformation", "connector/adapter versioning"],
+      "questions": ["Is message-schema governance (registry, versioning, back/forward compatibility) specified so producers/consumers evolve independently?", "Are the protocols to mediate (AMQP/MQTT/Kafka/JMS/HTTP) and their translation defined?", "Are payload formats, canonical model, and transformation rules (and envelope standard) specified?"]
+    },
+    "performance": {
+      "emphasis": "high",
+      "concerns": ["sustained throughput (messages/sec, MB/sec) and end-to-end latency percentiles from publish to consume", "backpressure and flow control: how the system behaves when consumers are slower than producers (buffering, blocking, shedding, rate limiting) without unbounded growth", "consumer lag/queue-depth bounds and scaling of partitions/consumers to drain backlog", "batching, compression, and prefetch tuning versus latency trade-offs; message-size limits"],
+      "typical_requirements": ["throughput & end-to-end latency targets", "backpressure / flow-control policy", "consumer-lag / queue-depth bounds & scaling", "batching/size limits"],
+      "questions": ["Are sustained throughput and end-to-end latency percentiles quantified?", "Is backpressure behaviour defined when consumers lag producers (no unbounded buffering)?", "Are consumer-lag/queue-depth limits and the partition/consumer scaling strategy specified?"]
+    },
+    "data": {
+      "emphasis": "high",
+      "concerns": ["message ordering guarantees and their scope (global vs per-partition/per-key) and how ordering interacts with retries/parallelism", "transformation/mapping correctness and data-loss-free format conversion; handling of missing/extra fields", "retention/replay window, log compaction, and TTL/expiry of messages", "deduplication keys, idempotency tokens, and correlation/trace IDs carried on the envelope"],
+      "typical_requirements": ["ordering guarantee & scope", "transformation/mapping correctness", "retention/replay/compaction & TTL", "dedup keys & correlation IDs"],
+      "questions": ["Is the ordering guarantee and its scope (global vs per-key/partition) specified, including interaction with retries?", "Are transformation/mapping rules and their correctness (no silent data loss) defined?", "Are retention/replay window, TTL, and deduplication/correlation identifiers specified?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["end-to-end traceability: correlation/trace-id propagation and distributed tracing (OpenTelemetry) across hops", "observability of flow health: throughput, lag, DLQ depth, error rates, and per-route/topic metrics", "testability of routes/transformations (contract tests, message replay, sandbox/what-if) without touching live endpoints", "message/route auditability and inspection for debugging in-flight data"],
+      "typical_requirements": ["trace-id propagation & distributed tracing", "flow-health metrics (lag/DLQ/errors)", "route/transformation contract tests", "message audit/inspection"],
+      "questions": ["Is correlation/trace-id propagation and end-to-end tracing across hops required?", "Are flow-health metrics (throughput, consumer lag, DLQ depth, error rate) specified?", "Are transformations/routes testable (contract tests, replay) and messages auditable?"]
+    },
+    "security": {
+      "emphasis": "high",
+      "concerns": ["authentication/authorization of producers and consumers per topic/queue (who may publish/subscribe to what)", "encryption in transit (TLS) and, where required, message-level/payload encryption and PII handling in transit", "tenant/domain isolation on shared brokers so one integration cannot read another's messages", "message integrity/signing and preventing injection of forged messages into a flow"],
+      "typical_requirements": ["per-topic authN/authZ (publish/subscribe)", "TLS & optional payload encryption", "multi-tenant topic isolation", "message integrity/signing"],
+      "questions": ["Are producer/consumer authentication and per-topic/queue authorization specified?", "Is transport (and, where needed, payload) encryption required, with PII handling in transit addressed?", "Is tenant isolation on shared brokers and message integrity/anti-forgery specified?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["DLQ operations: alerting on DLQ growth, triage, and a defined redrive/reprocess procedure after a fix", "runbooks for backlog/lag incidents, broker failover, and consumer-group rebalancing", "configuration of routes/topics/connectors and safe change management of live flows", "capacity planning for retention storage and partition/consumer sizing"],
+      "typical_requirements": ["DLQ alerting & redrive procedure", "backlog/failover runbooks", "route/connector config management", "retention & capacity planning"],
+      "questions": ["Are DLQ alerting and a redrive/reprocess procedure after fixes defined?", "Are runbooks for backlog/lag, broker failover, and rebalancing specified?", "Is safe change management of live routes/topics and retention capacity planning addressed?"]
+    },
+    "functional": {
+      "emphasis": "medium",
+      "concerns": ["routing/filtering correctness: content-based routing, fan-out/fan-in, and splitter/aggregator behaviour (enterprise integration patterns)", "completeness of source/target mappings and handling of unmatched/unroutable messages", "exception flows: what happens to messages that fail transformation or have no valid route (not just the happy path)"],
+      "typical_requirements": ["routing/filtering rules & EIP patterns", "complete source/target mapping", "unroutable/failed-transform handling"],
+      "questions": ["Are routing/filtering rules and aggregation/split behaviour fully specified?", "Are all source→target mappings complete, with unmatched/unroutable messages handled?", "Is the failure path for messages that cannot be transformed or routed defined?"]
+    }
+  }
+}

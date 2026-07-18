@@ -1,0 +1,72 @@
+{
+  "id": "web-saas",
+  "name": "Web / SaaS application",
+  "class": "data-dominant",
+  "aliases": ["saas", "web application", "web app", "multi-tenant application", "cloud application"],
+  "summary": "A multi-tenant, browser-delivered transactional application served over HTTP, with server-side business logic, a persistent datastore, and per-tenant user accounts. Connected, always-on, cloud-hosted.",
+  "matching_signals": ["web", "browser", "saas", "multi-tenant", "http", "rest", "login", "sign up", "dashboard", "portal", "subscription", "tenant", "web portal", "single sign-on"],
+  "salient_domains": ["security", "reliability", "performance", "data", "usability", "accessibility", "legal-privacy", "operational", "maintainability", "quality-in-use"],
+  "grounding": ["iso-25010:2023", "iso-25019:2023", "volere", "owasp-asvs", "wcag-2.2", "29148:2018", "gdpr"],
+  "domains": {
+    "security": {
+      "emphasis": "critical",
+      "concerns": ["authentication (MFA, SSO/OIDC/SAML), session management and fixation, password/credential policy", "authorization: per-tenant isolation and role/permission model (no cross-tenant data access)", "input validation against OWASP Top 10 (injection, XSS, CSRF, SSRF)", "encryption in transit (TLS) and of sensitive data at rest; secrets/key management", "audit logging of security-relevant actions; dependency/supply-chain scanning"],
+      "typical_requirements": ["auth & session policy", "tenant isolation / RBAC", "input-validation & output-encoding rules", "encryption & key management", "audit trail", "rate limiting / abuse protection"],
+      "questions": ["Is tenant isolation specified so no tenant can reach another's data?", "Are authN (MFA/SSO), session lifetime, and password policy defined?", "Is protection against the OWASP Top 10 required, and is there an audit trail?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["availability SLO/SLA and its measurement window", "graceful degradation when a dependency (DB, cache, third-party) fails", "backups, RTO/RPO, disaster recovery across zones/regions", "idempotency of mutating operations and safe retries"],
+      "typical_requirements": ["availability target", "backup/restore & RTO/RPO", "dependency-failure behaviour", "multi-AZ/region strategy"],
+      "questions": ["Is an availability target with a measurement window stated?", "Are RTO/RPO and backup/restore requirements defined?", "Is behaviour on datastore/third-party outage specified?"]
+    },
+    "performance": {
+      "emphasis": "high",
+      "concerns": ["page/API latency targets (p95/p99) and throughput", "behaviour under concurrent tenants and peak load", "horizontal scaling / autoscaling strategy", "pagination and query efficiency for large tenants"],
+      "typical_requirements": ["latency/throughput SLOs", "concurrency & scaling targets", "large-dataset pagination"],
+      "questions": ["Are p95/p99 latency and throughput targets quantified for key flows?", "Is behaviour under peak concurrent load and the scaling strategy defined?"]
+    },
+    "data": {
+      "emphasis": "high",
+      "concerns": ["tenant data model, schemas, migrations", "retention, export, and deletion (incl. tenant offboarding)", "data quality and validation at ingestion", "backup encryption and PII classification"],
+      "typical_requirements": ["data model & migration policy", "retention/export/deletion", "PII classification"],
+      "questions": ["Are retention, export and deletion (tenant offboarding) rules defined?", "Is PII classified and its handling specified?"]
+    },
+    "usability": {
+      "emphasis": "high",
+      "concerns": ["onboarding/learnability for new tenants and users", "error prevention on destructive actions (delete tenant, bulk ops)", "responsive UI across viewports and browsers", "consistent, discoverable navigation and feedback"],
+      "typical_requirements": ["onboarding flow", "destructive-action safeguards", "responsive/cross-browser support"],
+      "questions": ["Are safeguards for destructive/bulk actions required?", "Are supported browsers/viewports and responsiveness specified?"]
+    },
+    "accessibility": {
+      "emphasis": "high",
+      "concerns": ["WCAG 2.2 AA conformance for public/enterprise buyers", "keyboard navigation and screen-reader support", "localization / i18n (languages, locales, RTL, formats)"],
+      "typical_requirements": ["WCAG level", "i18n/localization scope"],
+      "questions": ["Is a WCAG 2.2 conformance level required?", "Are localization/i18n requirements (languages, locales) stated?"]
+    },
+    "legal-privacy": {
+      "emphasis": "high",
+      "concerns": ["GDPR/CCPA: lawful basis, consent, data-subject rights (access, erasure, portability)", "data residency / sovereignty per tenant region", "DPA and sub-processor obligations", "cookie/tracking consent"],
+      "typical_requirements": ["GDPR/CCPA obligations", "data residency", "DSAR handling"],
+      "questions": ["Are GDPR/CCPA obligations (consent, DSAR, erasure) specified?", "Are data-residency constraints per region stated?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["monitoring, alerting, on-call and runbooks", "zero/low-downtime deploys, feature flags, rollback", "multi-tenant configuration and per-tenant limits/quotas", "cost/capacity operations"],
+      "typical_requirements": ["monitoring/alerting", "deploy/rollback strategy", "tenant quotas"],
+      "questions": ["Are monitoring/alerting and on-call runbook requirements defined?", "Are deploy/rollback and per-tenant quota/limit requirements stated?"]
+    },
+    "maintainability": {
+      "emphasis": "medium",
+      "concerns": ["automated test coverage and CI gates", "structured logging/metrics/tracing", "modular service boundaries, API versioning"],
+      "typical_requirements": ["test-coverage/CI requirements", "observability", "API versioning"],
+      "questions": ["Are automated-test-coverage and observability requirements stated?", "Is API versioning/backward-compatibility addressed?"]
+    },
+    "quality-in-use": {
+      "emphasis": "medium",
+      "concerns": ["activation/retention and task-success metrics", "time-to-value for new tenants", "user trust and satisfaction (support, SLAs)"],
+      "typical_requirements": ["success metrics", "time-to-value"],
+      "questions": ["Are user-outcome/success metrics (activation, task success) defined?"]
+    }
+  }
+}

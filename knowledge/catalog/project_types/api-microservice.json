@@ -1,0 +1,60 @@
+{
+  "id": "api-microservice",
+  "name": "API / backend microservice",
+  "class": "systems-software",
+  "aliases": ["api", "microservice", "backend service", "rest api", "grpc service", "web service", "headless service", "service", "graphql api", "backend", "internal api", "public api"],
+  "summary": "A headless, network-exposed service that fulfils a bounded capability behind a versioned API contract, called by other services or clients rather than by end users directly. Contract-first, stateless-where-possible, operated to explicit SLOs.",
+  "matching_signals": ["api", "endpoint", "rest", "grpc", "graphql", "microservice", "service", "openapi", "swagger", "contract", "webhook", "backend", "rate limit", "oauth", "jwt", "sdk", "idempotency", "pagination", "versioning"],
+  "salient_domains": ["compatibility", "security", "reliability", "performance", "maintainability", "operational", "data", "functional"],
+  "grounding": ["iso-25010:2023", "owasp-asvs", "rfc-9457", "openapi", "oauth2-oidc", "opentelemetry", "29148:2018"],
+  "domains": {
+    "compatibility": {
+      "emphasis": "critical",
+      "concerns": ["API contract definition (OpenAPI/JSON Schema/Protobuf/GraphQL SDL) as the source of truth", "versioning strategy (URI/header/media-type) and deprecation/sunset policy with timelines", "backward compatibility: additive-only evolution, no breaking changes to existing consumers, tolerant-reader expectations", "consumer-driven contract testing and schema-compatibility checks in CI (breaking-change gate)", "standardized error format (RFC 9457 problem+json), pagination, filtering, and content-negotiation conventions"],
+      "typical_requirements": ["published API contract & schema", "versioning & deprecation/sunset policy", "backward-compatibility rules", "contract/schema-compatibility testing", "standard error & pagination conventions"],
+      "questions": ["Is the API contract published and authoritative, with a versioning and deprecation/sunset policy?", "Are backward-compatibility rules (additive-only, no breaking changes) enforced by contract/schema tests in CI?", "Are standardized error responses (e.g. RFC 9457), pagination, and content negotiation specified?"]
+    },
+    "security": {
+      "emphasis": "critical",
+      "concerns": ["authentication of callers: OAuth 2.0 / OIDC, JWT validation (signature, issuer, audience, expiry), mTLS for service-to-service", "authorization: scopes/roles/claims enforced per endpoint; no broken object-level authorization (BOLA/IDOR) — OWASP API Security Top 10", "input validation and output encoding at the boundary; injection and mass-assignment protection", "secrets/token management, key rotation, and short-lived credentials", "audit logging of security-relevant calls and abuse/anomaly detection"],
+      "typical_requirements": ["authN (OAuth/OIDC/JWT/mTLS)", "per-endpoint authorization & object-level checks", "input validation & schema enforcement", "secrets/key rotation", "audit logging"],
+      "questions": ["Are caller authentication (OAuth/OIDC/JWT/mTLS) and per-endpoint, object-level authorization specified (no BOLA/IDOR)?", "Is boundary input validation against the schema and injection/mass-assignment protection required?", "Are token/secret rotation and audit logging of security-relevant calls addressed?"]
+    },
+    "reliability": {
+      "emphasis": "high",
+      "concerns": ["resilience patterns for downstream dependencies: timeouts, retries with exponential backoff + jitter, and circuit breakers", "idempotency of mutating operations (idempotency keys) so safe retries do not double-apply effects", "bulkheads and graceful degradation / fallback when a dependency is slow or down", "availability SLO and error-budget policy; behaviour under partial outage of dependencies"],
+      "typical_requirements": ["timeout/retry/circuit-breaker policy", "idempotency keys for mutations", "bulkhead & fallback/degradation", "availability SLO & error budget"],
+      "questions": ["Are timeouts, bounded retries with backoff+jitter, and circuit breakers specified for every downstream dependency?", "Are mutating operations idempotent (idempotency keys) so retries are safe?", "Is an availability SLO with graceful degradation on dependency failure defined?"]
+    },
+    "performance": {
+      "emphasis": "high",
+      "concerns": ["latency SLOs (p95/p99) and throughput (req/s) targets per endpoint", "rate limiting / throttling and quota enforcement per client (429 + Retry-After), plus load-shedding under overload", "connection/thread/pool sizing and resource ceilings; N+1 and payload-size efficiency", "horizontal scalability and statelessness for autoscaling"],
+      "typical_requirements": ["per-endpoint latency/throughput SLOs", "rate limiting/quotas & load shedding", "resource ceilings & pooling", "horizontal-scaling / statelessness"],
+      "questions": ["Are p95/p99 latency and throughput targets quantified per endpoint?", "Are rate limiting, per-client quotas, and overload load-shedding specified?", "Is the service horizontally scalable/stateless with defined resource ceilings?"]
+    },
+    "maintainability": {
+      "emphasis": "high",
+      "concerns": ["observability: structured logs, RED/USE metrics, and distributed tracing (OpenTelemetry) with trace/correlation propagation", "automated test strategy: unit, integration, and consumer-driven contract tests as CI gates", "modular bounded-context design and clear API/domain separation", "documentation generated from the contract; changelog and SDK generation"],
+      "typical_requirements": ["logs/metrics/tracing (OpenTelemetry)", "contract & integration test gates", "bounded-context modularity", "generated API docs & changelog"],
+      "questions": ["Are structured logging, metrics, and distributed tracing (with correlation IDs) required?", "Are automated contract/integration tests enforced as CI gates?", "Is API documentation generated from the contract and kept in sync?"]
+    },
+    "operational": {
+      "emphasis": "high",
+      "concerns": ["health/readiness/liveness probes and graceful shutdown (connection draining) for zero-downtime deploys", "configuration and secret injection via environment (12-factor), no hardcoded config", "SLO monitoring, alerting on error budget burn, and runbooks; deploy/rollback and canary strategy", "capacity/cost management and per-consumer usage metering"],
+      "typical_requirements": ["health probes & graceful shutdown", "externalized config/secrets", "SLO alerting & runbooks", "deploy/rollback/canary"],
+      "questions": ["Are health/readiness probes and graceful shutdown (draining) specified for zero-downtime deploys?", "Is configuration/secret injection externalized (12-factor)?", "Are SLO alerting, runbooks, and deploy/rollback/canary requirements defined?"]
+    },
+    "data": {
+      "emphasis": "medium",
+      "concerns": ["request/response payload schemas, validation rules, and canonical data model ownership for the bounded context", "database schema migration/versioning coordinated with API evolution (expand-contract)", "data consistency model (strong vs eventual) and transaction boundaries across service calls"],
+      "typical_requirements": ["payload schema & validation", "schema migration (expand-contract)", "consistency model & transaction boundaries"],
+      "questions": ["Are request/response schemas and the service's owned data model defined?", "Is schema migration coordinated with API versioning (expand-contract)?", "Is the consistency model (strong/eventual) and transaction boundary specified?"]
+    },
+    "functional": {
+      "emphasis": "medium",
+      "concerns": ["completeness of the operations exposed for the bounded capability and their pre/post-conditions", "correctness of state transitions and the exception/error contract per operation (not just the happy path)", "concurrency semantics: optimistic concurrency (ETags/If-Match) and conflict handling"],
+      "typical_requirements": ["operation coverage & pre/post-conditions", "error/exception contract per operation", "concurrency/conflict semantics"],
+      "questions": ["Is every operation of the bounded capability specified with pre/post-conditions?", "Is the error/exception behaviour (not only success) defined per operation?", "Is concurrent-modification handling (optimistic concurrency/ETags) specified?"]
+    }
+  }
+}

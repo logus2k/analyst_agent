@@ -1,0 +1,265 @@
+{
+ "version": 2,
+ "ratified": true,
+ "updated_at": "2026-07-10T12:20:20+00:00",
+ "statement": {
+  "purpose": {
+   "value": "To describe the requirements specifications for applications and a data repository designed to distribute manufacturing data, enabling researchers, practitioners, and solution providers to interact with real data generated from a manufacturing facility.",
+   "provenance": "stated",
+   "confidence": "high",
+   "source_quote": "The purpose of this SRS document is to describe the requirements specifications for applications and a data repository to distribute manufacturing data."
+  },
+  "stakeholders": [
+   {
+    "value": "Prospective developers",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Technical-assessment personnel",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Interested end-users (Researchers, Practicing Engineers, Software Developers)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Data Curator",
+    "provenance": "stated",
+    "confidence": "medium"
+   },
+   {
+    "value": "Administrator",
+    "provenance": "stated",
+    "confidence": "medium"
+   }
+  ],
+  "context": {
+   "value": "The system is part of a larger manufacturing-monitoring system. It addresses the need to automate the discovery, curation, and integration of manufacturing data, which originates from a network of industrial equipment instrumented with sensors and data-acquisition devices. The data distribution must support real-time monitoring (VDS) and object-of-interest observation (QDR).",
+   "provenance": "stated",
+   "confidence": "high",
+   "source_quote": "Distributing manufacturing data across an enterprise requires the curation and management of the data within a repository and end-user services to access the data."
+  },
+  "scope": {
+   "in": [
+    "Volatile Data Stream (VDS) application for streaming time-synchronized manufacturing data.",
+    "Query-able Data Repository (QDR) application for querying and sharing structured manufacturing data.",
+    "Web service interface for data distribution.",
+    "Administrative functions for managing users, groups, and data templates."
+   ],
+   "out": [
+    "Manual discovery, curation, and integration of manufacturing data by users."
+   ],
+   "provenance": "stated",
+   "confidence": "high"
+  },
+  "capabilities": [
+   {
+    "value": "Stream time-synchronized manufacturing data in compliance with MTConnect standard (VDS).",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Allow users to query stored manufacturing data via a template-driven web-based form, endpoint query, and/or RESTful API call (QDR).",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Provide administrative functions to CRUD manage users, groups, permissions, and data templates.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Curate and store manufacturing data into a database according to predefined data-structure templates.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Serve all data and administrative functions over a RESTful API.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Provide a User Interface (UI) for administration and querying.",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "data_entities": [
+   {
+    "value": "Manufacturing Data (streamed/curated)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Data Templates/Data-structure Templates (defined using XSD)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Users and Groups",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Permissions",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Query Definitions (predefined queries)",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "external_interfaces": [
+   {
+    "value": "Industrial Equipment Network (Source of manufacturing data)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Database (for QDR storage and template management)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Web Browsers (Client-side UI, supporting Safari 7+, Chrome 44+, IE 10+, Firefox 40+)",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "MTConnect Agent/Standard (for VDS data format)",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "constraints": [
+   {
+    "value": "Server-side components must operate on a Linux operating system environment.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Client-side communication must use HTTPS/SSL/TLS with a minimum encryption level of 128 bits.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "Communication must be stateless.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "QDR must be able to curate data collected in batches from the Industrial-Equipment Network.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "QDR must process curated data daily to populate a list of available elements for query.",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "success_criteria": [
+   {
+    "value": "VDS must provide available fresh data at a rate of no less than 1 Hz.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "QDR response time must be minimized using industry recommended practices.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "System must achieve 95% uptime.",
+    "provenance": "stated",
+    "confidence": "high"
+   },
+   {
+    "value": "System must pass automated dynamic application security testing.",
+    "provenance": "stated",
+    "confidence": "high"
+   }
+  ],
+  "assumptions": [
+   "The 'industry recommended practices' for performance, reliability, and security are sufficiently defined by the customer/NIST context, even if not explicitly detailed in the SRS.",
+   "The existence of a functional 'Industrial-Equipment Network' capable of generating data conforming to MTConnect standards.",
+   "The customer is responsible for the setup, hosting, host-security configuration, and administration of the QDR application."
+  ],
+  "clarifying_questions": [
+   "What specific industry standards or metrics define 'industry recommended practices' for QDR response time and general performance?",
+   "What is the required data retention period for the QDR?",
+   "What are the specific requirements for the 'MTConnect Agent' implementation beyond the standard documentation reference?",
+   "Are there specific compliance requirements (e.g., ISO standards) beyond general security practices that must be met for the manufacturing data?"
+  ],
+  "candidate_archetypes": [
+   {
+    "id": "api-microservice",
+    "confidence": "high",
+    "why": "The core functionality relies on exposing capabilities (VDS, QDR) via versioned, RESTful APIs."
+   },
+   {
+    "id": "data-pipeline",
+    "confidence": "high",
+    "why": "It involves ingesting (VDS/QDR Capture), transforming (data curation), and delivering data into a repository."
+   },
+   {
+    "id": "web-saas",
+    "confidence": "high",
+    "why": "It is a multi-tenant, browser-delivered transactional application with server-side business logic and a persistent datastore."
+   },
+   {
+    "id": "datastore-engine",
+    "confidence": "medium",
+    "why": "The QDR relies heavily on a database engine for persistence and indexing."
+   }
+  ],
+  "salient_domains": [
+   {
+    "id": "data",
+    "confidence": "high",
+    "why": "The entire system revolves around the ingestion, storage, and retrieval of manufacturing data."
+   },
+   {
+    "id": "functional",
+    "confidence": "high",
+    "why": "The system must fulfill specific functions: streaming, querying, and administration."
+   },
+   {
+    "id": "performance",
+    "confidence": "high",
+    "why": "Specific requirements exist for VDS streaming rate (1 Hz) and minimized QDR response time."
+   },
+   {
+    "id": "security",
+    "confidence": "high",
+    "why": "Mandates HTTPS, least privilege, and passing automated security testing."
+   },
+   {
+    "id": "reliability",
+    "confidence": "medium",
+    "why": "Requires 95% uptime, though formal MTBF/MTTF are not specified."
+   },
+   {
+    "id": "maintainability",
+    "confidence": "medium",
+    "why": "Defines constraints on fixing security defects (max two person days)."
+   },
+   {
+    "id": "compatibility",
+    "confidence": "high",
+    "why": "Must adhere to MTConnect standards and support specific browser versions."
+   },
+   {
+    "id": "legal-privacy",
+    "confidence": "medium",
+    "why": "Implied by security requirements and the handling of potentially sensitive manufacturing data."
+   }
+  ],
+  "overall_confidence": "high"
+ }
+}

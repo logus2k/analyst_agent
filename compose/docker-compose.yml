@@ -1,0 +1,21 @@
+services:
+  analyst-agent:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: analyst-agent:0.1.0
+    container_name: analyst-agent
+    restart: unless-stopped
+    # host networking: the shared services (agent_server :7701, ingestion-server
+    # :8700, embeddings :8601) are reachable on localhost, same as reqoach.
+    network_mode: host
+    environment:
+      PORT: "7803"
+      AGENT_SERVER_URL: "http://localhost:7701"
+      INGESTION_URL: "http://localhost:8700"
+      EMBEDDINGS_URL: "http://localhost:8601"
+      ANALYST_STORE: "/app/store"
+      ANALYST_KNOWLEDGE: "/app/knowledge"
+    volumes:
+      # analysis data is the agent's own; survives rebuilds
+      - ../store:/app/store
