@@ -1,0 +1,10 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Analysis state. The store is the authoritative live dataset (projects,
+# documents incl. source PDFs, quality/coverage runs, reviews) — it is data, not
+# source, and it grows without bound. It was tracked historically; untrack with:
+#     git rm -r --cached store
+store/

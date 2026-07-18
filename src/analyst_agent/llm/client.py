@@ -9,10 +9,11 @@ back clean; a fence-stripping fallback covers the rare case it doesn't.
 from __future__ import annotations
 
 import json
-import os
 import re
 
 import httpx
+
+from analyst_agent import config
 
 _FENCE_RE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.IGNORECASE)
 
@@ -23,7 +24,7 @@ class LLMError(RuntimeError):
 
 class AgentServerClient:
     def __init__(self, base_url: str | None = None, timeout: float = 180.0):
-        self.base_url = (base_url or os.environ.get("AGENT_SERVER_URL", "http://localhost:7701")).rstrip("/")
+        self.base_url = (base_url or config.AGENT_SERVER_URL).rstrip("/")
         self.timeout = timeout
 
     def complete_json(self, agent: str, user_content: str) -> dict:

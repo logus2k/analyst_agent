@@ -27,10 +27,7 @@ what the manifest prevents.
 from __future__ import annotations
 
 from analyst_agent import store as pj
-
-# What a set must clear to be released. Reported, never silently enforced.
-_TERMINAL_OK = ("accepted_refined", "accepted", "approved")
-
+from analyst_agent.authoring import unresolved_placeholders
 
 def _requirement_record(req: dict, review_entry: dict | None) -> dict:
     """Join one scorecard requirement with its review/classification state."""
@@ -65,6 +62,10 @@ def _requirement_record(req: dict, review_entry: dict | None) -> dict:
             "rules_triggered": sorted({f["rule_id"] for f in findings if f.get("rule_id")}),
             "deterministic_findings": findings,
             "review": req.get("review"),                 # reviewer rewrites/advisories
+            # How many of the 9 judges actually answered. A score averaged over
+            # fewer is not comparable to a complete one and must not clear the gate.
+            "judges_ok": req.get("judges_ok"),
+            "judges_total": req.get("judges_total"),
             "status": e.get("status") or "unreviewed",
             "original_text": original,
             "text_changed": current.strip() != original.strip(),
@@ -109,10 +110,30 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
 
     scored = [r["analysis"]["score"] for r in records if r["analysis"]["score"] is not None]
     at_or_above = sum(1 for s in scored if s >= threshold)
+    # Absolute floor (remaining_work.md decision 1): being below threshold blocks
+    # release regardless of review status. There is no human-override path — a
+    # human resolves it by supplying the missing information and re-scoring.
     below = [r["req_id"] for r in records
-             if r["analysis"]["score"] is not None and r["analysis"]["score"] < threshold
-             and r["analysis"]["status"] not in _TERMINAL_OK]
+             if r["analysis"]["score"] is None or r["analysis"]["score"] < threshold]
     unclassified = [r["req_id"] for r in records if not r["classes"]]
+    # A mean over fewer than 9 judges is not comparable to a complete one.
+    incomplete = [r["req_id"] for r in records
+                  if (r["analysis"].get("judges_ok") is not None
+                      and r["analysis"].get("judges_total") is not None
+                      and r["analysis"]["judges_ok"] < r["analysis"]["judges_total"])]
+    # Unfilled placeholders. Observed live: an authored requirement reading
+    # "...latency of less than [LATENCY_VALUE]..." scored 4.56 and would have
+    # cleared a 4.3 threshold — the judges rate the form of a statement, and a
+    # parameterized statement is well-formed. Checked here for EVERY requirement,
+    # not just authored ones, because a human edit can introduce one too.
+    placeholdered = [r["req_id"] for r in records
+                     if unresolved_placeholders(r.get("text", ""))]
+    # Analyst-authored gap fillers need human ratification before release.
+    authored = [r["req_id"] for r in records
+                if (r.get("provenance") or {}).get("origin") == "analyst_authored"]
+    unratified = [r["req_id"] for r in records
+                  if (r.get("provenance") or {}).get("origin") == "analyst_authored"
+                  and not (r.get("provenance") or {}).get("ratified")]
 
     ps = pj.get_problem_statement(pid)
     coverage = pj.get_coverage(pid)
@@ -123,8 +144,14 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
     release_status = review.get("release_status") or "draft"
     blockers = []
     if below:
-        blockers.append(f"{len(below)} requirement(s) below threshold {threshold} "
-                        f"and not human-accepted")
+        blockers.append(f"{len(below)} requirement(s) below threshold {threshold}")
+    if incomplete:
+        blockers.append(f"{len(incomplete)} requirement(s) scored on fewer than all judges")
+    if placeholdered:
+        blockers.append(f"{len(placeholdered)} requirement(s) contain unfilled "
+                        f"placeholders (e.g. [VALUE], TBD)")
+    if unratified:
+        blockers.append(f"{len(unratified)} analyst-authored requirement(s) not ratified")
     if unclassified:
         blockers.append(f"{len(unclassified)} requirement(s) missing routing classes")
     if not ps:
@@ -153,6 +180,11 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
                 "scored": len(scored),
                 "at_or_above_threshold": at_or_above,
                 "below_threshold": len(below),
+                "incompletely_judged": len(incomplete),
+                "with_placeholders": len(placeholdered),
+                # How much of this set the Analyst wrote rather than extracted.
+                "analyst_authored": len(authored),
+                "unratified_authored": len(unratified),
                 "unclassified": len(unclassified),
                 "mean_score": round(sum(scored) / len(scored), 2) if scored else None,
             },
@@ -179,7 +211,12 @@ def render_markdown(package: dict) -> str:
            f"- Threshold: {m['threshold']}",
            f"- Requirements: {m['counts']['total']} "
            f"({m['counts']['at_or_above_threshold']} at/above threshold, "
-           f"mean {m['counts']['mean_score']})", ""]
+           f"mean {m['counts']['mean_score']})"]
+    if m["counts"].get("analyst_authored"):
+        out.append(f"- ⚠️ **{m['counts']['analyst_authored']} analyst-generated** to fill "
+                   f"coverage gaps ({m['counts'].get('unratified_authored', 0)} not yet "
+                   f"ratified) — these were written by the Analyst, not by a stakeholder")
+    out.append("")
     if m["blockers"]:
         out += ["## Blockers", ""] + [f"- {b}" for b in m["blockers"]] + [""]
     out += ["## Requirements", ""]
@@ -190,13 +227,30 @@ def render_markdown(package: dict) -> str:
                          (prov.get("source_document") or prov.get("source_file"),
                           prov.get("section_path"),
                           f"p.{prov['page']}" if prov.get("page") else None) if x)
-        out += [f"### {r['req_id']}", "", r["text"], "",
-                f"- Classes: {', '.join(r['classes']) or '—'} | Type: {r['type'] or '—'}"
+        authored = prov.get("origin") == "analyst_authored"
+        heading = f"### {r['req_id']}"
+        if authored:
+            # Must be unmissable: nobody asked for this requirement.
+            heading += "  ⚠️ GENERATED"
+        out += [heading, "", r["text"], ""]
+        if authored:
+            out += [f"> **⚠️ Analyst-generated to fill a coverage gap** — no stakeholder "
+                    f"wrote this. Gap: _{prov.get('gap_title', '?')}_ "
+                    f"({prov.get('gap_severity', '?')}, domain "
+                    f"{prov.get('domain_name') or prov.get('domain', '?')}). "
+                    f"Ratified: **{'yes' if prov.get('ratified') else 'NO'}**.", ""]
+            if prov.get("rationale"):
+                out += [f"> Rationale: {prov['rationale']}", ""]
+            if prov.get("assumptions"):
+                out += ["> Assumptions: " + "; ".join(prov["assumptions"]), ""]
+        out += [f"- Classes: {', '.join(r['classes']) or '—'} | Type: {r['type'] or '—'}"
                 f" | Constraints: {', '.join(r['constraints']) or '—'}",
                 f"- Score: {a['score']} | Status: {a['status']}"
                 f"{' | rules: ' + ', '.join(a['rules_triggered']) if a['rules_triggered'] else ''}"]
         if loc:
             out.append(f"- Source: {loc}")
+        elif authored:
+            out.append("- Source: **none — generated, not extracted from any document**")
         if a["text_changed"]:
             out.append(f"- Original: _{a['original_text']}_")
         out.append("")

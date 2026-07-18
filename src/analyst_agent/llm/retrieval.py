@@ -13,15 +13,17 @@ topically similar), whereas the reranker scores true subsumption ~0.95 vs <0.05.
 from __future__ import annotations
 
 import math
-import os
 
 import httpx
 
+from analyst_agent import config
+
 # Embeddings + reranking now served by embeddings_server (torch GPU service),
 # not llama-server. Same /v1/rerank contract; /embed returns {"vectors": [...]}
-# (already L2-normalized). reqoach uses host networking -> localhost:8601.
-EMBEDDINGS_URL = os.environ.get("EMBEDDINGS_URL", "http://localhost:8601")
-RERANK_MODEL = os.environ.get("RERANK_MODEL_NAME", "bge-reranker")
+# (already L2-normalized). Host networking -> localhost:8601.
+# URL/model defaults live in config.py — never re-declare them here.
+EMBEDDINGS_URL = config.EMBEDDINGS_URL
+RERANK_MODEL = config.RERANK_MODEL_NAME
 
 
 def _sigmoid(x: float) -> float:

@@ -46,6 +46,7 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 
 from analyst_agent import __version__
 from analyst_agent import config
+from analyst_agent import authoring
 from analyst_agent import coverage
 from analyst_agent import framing
 from analyst_agent import refine
@@ -61,7 +62,8 @@ STORE = config.STORE
 
 # What the "done/total" of each stage counts — used to label the progress readout.
 _STAGE_UNIT = {"ingest": "documents", "score": "requirements", "review": "requirements",
-               "judges": "domains", "refine": "requirements", "classify": "requirements"}
+               "judges": "domains", "refine": "requirements", "classify": "requirements",
+               "author": "gaps"}
 
 
 @dataclass
@@ -126,12 +128,13 @@ class JobManager:
             job.progress = {"stage": "review", "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
                             "unit": "requirements"}
-        elif et in ("refined", "classified"):   # one per requirement finished
-            stage = "refine" if et == "refined" else "classify"
+        elif et in ("refined", "classified", "authored"):   # one per item finished
+            stage = {"refined": "refine", "classified": "classify",
+                     "authored": "author"}[et]
             job.stage = stage
             job.progress = {"stage": stage, "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
-                            "unit": "requirements"}
+                            "unit": _STAGE_UNIT.get(stage, "requirements")}
         elif et == "domain":          # coverage: one per domain judge finished
             job.stage = "judges"
             job.progress = {"stage": "judges", "done": event.get("done"),
@@ -317,6 +320,33 @@ class JobManager:
         job.project_id, job.run_id, job.kind = pid, job.job_id, "classify"
         self.jobs[job.job_id] = job
         threading.Thread(target=self._run_classify, args=(job, quality_run), daemon=True).start()
+        return job
+
+    # --- gap authoring (the Analyst closes coverage gaps, decisions 2 + 3) ---
+    def _run_author(self, job: Job, quality_run: str) -> None:
+        job.status = "running"
+        job.started_at = time.time()
+        self._emit(job, {"type": "stage", "stage": "queued", "status": "done"})
+        try:
+            for event in authoring.iter_author_for_project(
+                    job.project_id, quality_run, should_cancel=job.cancel_event.is_set):
+                self._emit(job, event)
+            if job.cancel_event.is_set():
+                job.status = "cancelled"
+                self._emit(job, {"type": "job_cancelled", "project_id": job.project_id})
+            else:
+                job.status = "done"
+                self._emit(job, {"type": "job_done", "project_id": job.project_id})
+        except Exception as e:  # noqa: BLE001
+            job.status = "error"
+            job.error = f"{type(e).__name__}: {e}"
+            self._emit(job, {"type": "job_error", "message": job.error})
+
+    def create_author_run(self, pid: str, quality_run: str) -> Job:
+        job = Job(job_id=uuid.uuid4().hex, doc_id="", source_file="")
+        job.project_id, job.run_id, job.kind = pid, job.job_id, "author"
+        self.jobs[job.job_id] = job
+        threading.Thread(target=self._run_author, args=(job, quality_run), daemon=True).start()
         return job
 
     # --- problem framing (streamed) runs ---
@@ -858,6 +888,34 @@ def run_project_classify(pid: str, payload: dict | None = None) -> JSONResponse:
     if not pj.get_review(pid, run):
         raise HTTPException(404, "no such quality run")
     job = jm.create_classify_run(pid, run)
+    return JSONResponse(status_code=202,
+                        content={"job_id": job.job_id, "project_id": pid,
+                                 "quality_run": run, "status": job.status})
+
+
+@api.post("/projects/{pid}/author:run")
+def run_project_author(pid: str, payload: dict | None = None) -> JSONResponse:
+    """Author a requirement for every open coverage gap, score it and refine it to
+    threshold (remaining_work.md decisions 2 + 3 — all severities are in scope).
+
+    Needs both a quality run and a coverage run. Every authored requirement is
+    flagged `provenance.origin = "analyst_authored"`, carries no source document,
+    and is `ratified: false` until a human accepts it — unratified ones block
+    release. Streamed + abortable like other jobs.
+    """
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    run = (payload or {}).get("run")
+    if not run:
+        runs = pj.list_quality_runs(pid)
+        if not runs:
+            raise HTTPException(400, "no quality run to author against")
+        run = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such quality run")
+    if not pj.get_coverage(pid):
+        raise HTTPException(400, "no coverage run — gaps must be identified first")
+    job = jm.create_author_run(pid, run)
     return JSONResponse(status_code=202,
                         content={"job_id": job.job_id, "project_id": pid,
                                  "quality_run": run, "status": job.status})

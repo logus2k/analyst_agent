@@ -68,7 +68,7 @@ def _review(client: AgentServerClient, text: str, characteristics: list[dict],
     names = {cid: name for cid, _, name in CHARACTERISTICS}
     bundle = [f"REQUIREMENT: {text}", "\nASSESSMENT:"]
     for c in characteristics:
-        if c.get("score") and c["score"] < 5:
+        if (s := c.get("score")) is not None and s < 5:
             bundle.append(
                 f"  {c['id']} {names.get(c['id'], '')} score={c['score']} "
                 f"rules={c.get('rules_triggered')} :: {c.get('justification', '')}")
@@ -84,13 +84,28 @@ def _review(client: AgentServerClient, text: str, characteristics: list[dict],
 
 
 def _overall(characteristics: list[dict]) -> float | None:
-    scores = [c["score"] for c in characteristics if c.get("score")]
+    """Mean of the judges that answered. `is not None`, not truthiness — a
+    literal 0 is a score, not a missing one. Callers that need to know whether
+    all 9 answered use `_judge_health`."""
+    scores = [s for c in characteristics if (s := c.get("score")) is not None]
     return round(statistics.mean(scores), 2) if scores else None
 
 
+def _judge_health(characteristics: list[dict]) -> dict:
+    """How many judges actually returned a score. Without this a 6-of-9 mean is
+    indistinguishable from a complete one."""
+    ok = sum(1 for c in characteristics if c.get("score") is not None)
+    return {"judges_ok": ok, "judges_total": len(CHARACTERISTICS)}
+
+
 def _needs_review(characteristics: list[dict]) -> bool:
-    return any((c.get("score") or 5) <= REVIEW_IF_MIN_SCORE_AT_MOST
-               for c in characteristics)
+    """Defective OR failed judges warrant review. A failed judge is unknown, not
+    fine — `or 5` would suppress review on the least trustworthy requirements."""
+    for c in characteristics:
+        score = c.get("score")
+        if score is None or score <= REVIEW_IF_MIN_SCORE_AT_MOST:
+            return True
+    return False
 
 
 def assess_requirement(text: str, client: AgentServerClient | None = None,

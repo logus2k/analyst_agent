@@ -1,0 +1,5 @@
+# Test-only dependencies. The runtime image does not need these; install them
+# when running the suite:  pip install -r requirements-dev.txt && pytest
+-r requirements.txt
+
+pytest>=8.0

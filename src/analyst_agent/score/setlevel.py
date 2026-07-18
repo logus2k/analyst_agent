@@ -15,19 +15,16 @@ by that evidence and a representative sample.
 
 from __future__ import annotations
 
-import json
 import logging
-import os
 from dataclasses import dataclass
 
-import httpx
-
-from analyst_agent.llm.client import AgentServerClient
+from analyst_agent.llm.client import AgentServerClient, LLMError
 from analyst_agent.llm.retrieval import rerank
 
 logger = logging.getLogger(__name__)
 
 SET_JUDGE_AGENT = "incose_set_judge"
+OVERLAP_CONFIRMER_AGENT = "incose_overlap_confirmer"
 OVERLAP_THRESHOLD = 0.8   # reranker sigmoid; ~0.95 true overlap vs <0.05 related
 
 
@@ -68,21 +65,12 @@ def find_overlaps(reqs: list[dict], threshold: float = OVERLAP_THRESHOLD,
     return pairs
 
 
-_CONFIRM_SYS = (
-    "You are given pairs of software requirements. For each pair, decide whether they "
-    "are TRUE DUPLICATES or SUBSTANTIALLY OVERLAP (they state the same, or largely the "
-    "same, obligation) — as opposed to merely RELATED (same topic or actor, but distinct "
-    "obligations). A broad requirement that a narrower one falls under is RELATED, not a "
-    "duplicate. Output ONLY JSON: "
-    '{"pairs":[{"index":<int>,"overlap":true|false}]}'
-)
-
-
 def confirm_overlaps(pairs: list[OverlapPair], by_id: dict[str, str],
-                     batch: int = 15) -> list[OverlapPair]:
+                     batch: int = 15,
+                     client: AgentServerClient | None = None) -> list[OverlapPair]:
     """LLM-confirm reranker candidate pairs: keep only true duplicates/overlaps,
     dropping the merely-related ones (the reranker's false positives)."""
-    url = os.environ.get("AGENT_SERVER_URL", "http://localhost:7701")
+    client = client or AgentServerClient()
     confirmed: list[OverlapPair] = []
     for s in range(0, len(pairs), batch):
         chunk = pairs[s:s + batch]
@@ -90,16 +78,12 @@ def confirm_overlaps(pairs: list[OverlapPair], by_id: dict[str, str],
             f"[{i}] A: {by_id.get(p.a_id, '')}\n    B: {by_id.get(p.b_id, '')}"
             for i, p in enumerate(chunk))
         try:
-            r = httpx.post(f"{url}/v1/chat/completions", timeout=120, json={
-                "model": "gemma-4",
-                "messages": [{"role": "system", "content": _CONFIRM_SYS},
-                             {"role": "user", "content": user}],
-                "response_format": {"type": "json_object"},
-                "chat_template_kwargs": {"enable_thinking": False}})
-            res = json.loads(r.json()["choices"][0]["message"]["content"])
+            res = client.complete_json(OVERLAP_CONFIRMER_AGENT, user)
             keep = {v["index"] for v in res.get("pairs", [])
                     if isinstance(v, dict) and v.get("overlap")}
-        except Exception as e:
+        # AttributeError: _parse_json returns whatever json.loads yields, so a
+        # model that emits a bare array gives a list, not the promised dict.
+        except (LLMError, AttributeError, KeyError, TypeError) as e:
             logger.warning("confirm_overlaps batch @%d failed: %s", s, e)
             keep = set()
         for i, p in enumerate(chunk):
@@ -133,7 +117,8 @@ def assess_set(reqs: list[dict], client: AgentServerClient | None = None) -> dic
     client = client or AgentServerClient()
     by_id = {r["id"]: r["text"] for r in reqs}
     candidates = find_overlaps(reqs)
-    overlaps = confirm_overlaps(candidates, by_id)   # drop reranker false positives
+    # drop reranker false positives (shares the caller's client)
+    overlaps = confirm_overlaps(candidates, by_id, client=client)
     logger.info("set overlaps: %d candidates -> %d confirmed", len(candidates), len(overlaps))
     summary = build_summary(reqs, overlaps)
     res = client.complete_json(SET_JUDGE_AGENT, summary)

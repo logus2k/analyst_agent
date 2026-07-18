@@ -97,8 +97,9 @@ Per requirement (the Architect's documented input shape, plus analyst provenance
 
 ```json
 {
-  "id": "REQ-0005",
+  "req_id": "REQ-0005",
   "text": "The system shall allocate GPUs fairly across concurrent sessions.",
+  "classes": ["functional", "constraint"],
   "type": "functional",
   "constraints": ["fairness", "resource"],
   "analysis": {
@@ -123,9 +124,14 @@ interface | data | operational | constraint | other`.
 ## 8. Release Gate
 
 A requirement set is released to the Architect only when **all** hold:
-1. **Quality** — every requirement is at/above the acceptance threshold, *or* explicitly
-   accepted by a human despite being below (escalations resolved).
-2. **Coverage** — no unaccepted critical coverage gaps (the human may explicitly accept gaps).
+1. **Quality** — every requirement is at/above the acceptance threshold. **Absolute floor: there
+   is no human-override path** (superseded 2026-07-18, see `remaining_work.md` decision 1). A
+   `needs_human` requirement is resolved by supplying the missing information and re-scoring, not
+   by accepting it as-is. A requirement is also blocked if it was scored on fewer than all nine
+   judges, or if its text still carries an unfilled placeholder (`[VALUE]`, `TBD`) — both clear a
+   threshold while meaning nothing.
+2. **Coverage** — no open coverage gaps at **any** severity. The Analyst authors requirements to
+   close them (decision 2); those are flagged `analyst_authored` and must be human-ratified.
 3. **Human sign-off** — a reviewer approves the set in reqoach, having seen the rewrite diffs
    and the escalated cases.
 
@@ -140,8 +146,11 @@ reqoach keeps only the frontend plus a thin server that serves the static pages 
 service. reqoach holds **no analysis data** — it is a consumer, like the Architect.
 
 ### 9.2 Architect Agent
-Consumes the released package (§7). Contract is versioned; the Analyst guarantees `id`, `text`,
-`type`, `constraints[]` for every released requirement.
+Consumes the released package (§7). Contract is versioned; the Analyst guarantees `req_id`, `text`,
+`classes[]`, `type`, `constraints[]` for every released requirement. `classes[]` is the multi-label
+routing contract (6 values, one per Architect module); `type` is the single-label reporting
+taxonomy. Both are emitted — a single label cannot drive routing, and the routing labels are too
+coarse for reporting. The Architect therefore needs no classification step of its own.
 
 ### 9.2 ingestion-server (shared, `:8700`) — **requires a new `structural` strategy**
 The Analyst is a *client* of the shared ingestion agent; it ships no Docling of its own.

@@ -80,22 +80,37 @@ def _record(req) -> dict:
 
 
 def _finalize_scores(rec: dict) -> None:
+    """Compute `overall` plus the judge-health counters.
+
+    `overall` averages only the judges that answered. That is the right mean, but
+    on its own it is indistinguishable from a fully-judged one — so `judges_ok`/
+    `judges_total` travel with it and a partial result is never mistaken for
+    complete. Filtering is `is not None`, not truthiness: a literal 0 is a score.
+    """
     rec["deterministic_findings"] = [f.to_dict() for f in check_requirement(rec["text"])]
-    vs = [rec["characteristics"][c].get("score") for c, _, _ in CHARACTERISTICS
-          if rec["characteristics"][c].get("score")]
+    vs = [s for c, _, _ in CHARACTERISTICS
+          if (s := rec["characteristics"][c].get("score")) is not None]
     rec["overall"] = round(statistics.mean(vs), 2) if vs else None
+    rec["judges_ok"] = len(vs)
+    rec["judges_total"] = len(CHARACTERISTICS)
 
 
 def _needs_review(rec: dict) -> bool:
-    return any((rec["characteristics"][c].get("score") or 5) <= REVIEW_IF_MIN_SCORE_AT_MOST
-               for c, _, _ in CHARACTERISTICS)
+    """Review when any judge is defective OR failed. A failed judge is unknown,
+    not fine — treating None as 5 would hide exactly the requirements whose
+    scores are least trustworthy."""
+    for c, _, _ in CHARACTERISTICS:
+        score = rec["characteristics"][c].get("score")
+        if score is None or score <= REVIEW_IF_MIN_SCORE_AT_MOST:
+            return True
+    return False
 
 
 def _aggregates(records: list[dict]) -> dict:
     per_char = {}
     for c, _, _ in CHARACTERISTICS:
-        vs = [r["characteristics"][c]["score"] for r in records
-              if r["characteristics"].get(c, {}).get("score")]
+        vs = [s for r in records
+              if (s := r["characteristics"].get(c, {}).get("score")) is not None]
         if vs:
             per_char[c] = round(statistics.mean(vs), 2)
     rule_counts: collections.Counter = collections.Counter()
@@ -107,11 +122,16 @@ def _aggregates(records: list[dict]) -> dict:
             rs.add(f["rule_id"])
         for rid in rs:
             rule_counts[rid] += 1
-    dist = collections.Counter(round(r["overall"]) for r in records if r["overall"])
+    dist = collections.Counter(round(r["overall"]) for r in records
+                               if r["overall"] is not None)
+    incomplete = [r["req_id"] for r in records
+                  if r.get("judges_ok", len(CHARACTERISTICS)) < len(CHARACTERISTICS)]
     return {"per_characteristic_mean": per_char,
             "per_rule_violation_count": dict(rule_counts.most_common()),
             "score_distribution": dict(sorted(dist.items())),
-            "total": len(records)}
+            "total": len(records),
+            # Non-empty means some scores are means over fewer than 9 judges.
+            "incompletely_judged": incomplete}
 
 
 def _score_and_assemble(records: list[dict], opts: JobOptions,
