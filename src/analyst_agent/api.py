@@ -357,13 +357,15 @@ class JobManager:
         return job
 
     # --- convergence loop (Phase D: rounds until complete, stalled or capped) ---
-    def _run_converge(self, job: Job, quality_run: str) -> None:
+    def _run_converge(self, job: Job, quality_run: str,
+                      max_rounds: int = converge_mod.MAX_ROUNDS) -> None:
         job.status = "running"
         job.started_at = time.time()
         self._emit(job, {"type": "stage", "stage": "queued", "status": "done"})
         try:
             for event in converge_mod.iter_converge(
-                    job.project_id, quality_run, should_cancel=job.cancel_event.is_set):
+                    job.project_id, quality_run, should_cancel=job.cancel_event.is_set,
+                    max_rounds=max_rounds):
                 self._emit(job, event)
             if job.cancel_event.is_set():
                 job.status = "cancelled"
@@ -376,11 +378,13 @@ class JobManager:
             job.error = f"{type(e).__name__}: {e}"
             self._emit(job, {"type": "job_error", "message": job.error})
 
-    def create_converge_run(self, pid: str, quality_run: str) -> Job:
+    def create_converge_run(self, pid: str, quality_run: str,
+                            max_rounds: int = converge_mod.MAX_ROUNDS) -> Job:
         job = Job(job_id=uuid.uuid4().hex, doc_id="", source_file="")
         job.project_id, job.run_id, job.kind = pid, job.job_id, "converge"
         self.jobs[job.job_id] = job
-        threading.Thread(target=self._run_converge, args=(job, quality_run), daemon=True).start()
+        threading.Thread(target=self._run_converge, args=(job, quality_run, max_rounds),
+                         daemon=True).start()
         return job
 
     # --- problem framing (streamed) runs ---
@@ -975,10 +979,14 @@ def run_project_converge(pid: str, payload: dict | None = None) -> JSONResponse:
         run = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
     if not pj.get_review(pid, run):
         raise HTTPException(404, "no such quality run")
-    job = jm.create_converge_run(pid, run)
+    max_rounds = int((payload or {}).get("max_rounds") or converge_mod.MAX_ROUNDS)
+    if not 1 <= max_rounds <= 20:
+        raise HTTPException(400, "max_rounds must be between 1 and 20")
+    job = jm.create_converge_run(pid, run, max_rounds)
     return JSONResponse(status_code=202,
                         content={"job_id": job.job_id, "project_id": pid,
-                                 "quality_run": run, "status": job.status})
+                                 "quality_run": run, "max_rounds": max_rounds,
+                                 "status": job.status})
 
 
 @api.get("/projects/{pid}/questions")

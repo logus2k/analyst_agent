@@ -18,4 +18,12 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 STORE = os.environ.get("ANALYST_STORE", os.path.join(_ROOT, "store"))
 KNOWLEDGE = os.environ.get("ANALYST_KNOWLEDGE", os.path.join(_ROOT, "knowledge"))
 
+# How many LLM requests to have in flight at once. MATCH THE SERVER'S SLOT COUNT:
+# agent_server runs llama.cpp with `--parallel 2` and a 64K context, i.e. 2 slots
+# of 32K each. Offering more than that does not add throughput — the excess just
+# queues, and the tail request waits several generation rounds and can blow the
+# client timeout (observed: 180s timeouts under load while 9 judges queued behind
+# 2 slots). Raise this only when the server gains slots.
+LLM_CONCURRENCY = int(os.environ.get("LLM_CONCURRENCY", "2"))
+
 PORT = int(os.environ.get("PORT", "7803"))

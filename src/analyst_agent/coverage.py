@@ -15,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Iterator
 
 from analyst_agent import framing
+from analyst_agent import config
 from analyst_agent import store as pj
 from analyst_agent.jobs import _ingest
 from analyst_agent.llm.client import AgentServerClient
@@ -133,7 +134,7 @@ def iter_coverage_for_project(pid: str, client: AgentServerClient | None = None,
         return idx, out
 
     done = 0
-    ex = ThreadPoolExecutor(max_workers=8)
+    ex = ThreadPoolExecutor(max_workers=config.LLM_CONCURRENCY)
     try:
         futs = {ex.submit(judge, i, d): i for i, d in enumerate(domains)}
         for f in as_completed(futs):

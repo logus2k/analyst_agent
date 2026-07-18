@@ -24,6 +24,7 @@ import statistics
 from concurrent.futures import ThreadPoolExecutor
 from typing import Iterator
 
+from analyst_agent import config
 from analyst_agent.llm.client import AgentServerClient, LLMError
 from analyst_agent.score.characteristics import CHARACTERISTICS, normalize_rule_ids
 from analyst_agent.score.deterministic import check_requirement
@@ -109,7 +110,7 @@ def _needs_review(characteristics: list[dict]) -> bool:
 
 
 def assess_requirement(text: str, client: AgentServerClient | None = None,
-                       review: bool = True, workers: int = 9) -> dict:
+                       review: bool = True, workers: int | None = None) -> dict:
     """Full single-requirement assessment: deterministic + 9 judges + review.
 
     Returns {text, deterministic, characteristics, overall, review}. The judges
@@ -119,7 +120,7 @@ def assess_requirement(text: str, client: AgentServerClient | None = None,
     client = client or AgentServerClient()
     deterministic = [f.to_dict() for f in check_requirement(text)]
 
-    with ThreadPoolExecutor(max_workers=workers) as ex:
+    with ThreadPoolExecutor(max_workers=workers or config.LLM_CONCURRENCY) as ex:
         futures = [ex.submit(_judge, client, cid, suffix, text)
                    for cid, suffix, _ in CHARACTERISTICS]
         by_id = {f.result()["id"]: f.result() for f in futures}

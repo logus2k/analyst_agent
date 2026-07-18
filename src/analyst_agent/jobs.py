@@ -34,6 +34,7 @@ from analyst_agent.assess import _judge, _review
 from analyst_agent.ingest import ingest_file
 from analyst_agent.ingest.dispatch import MARKDOWN_EXTENSIONS
 from analyst_agent.ingest.model import SourceItem
+from analyst_agent import config
 from analyst_agent.llm.client import AgentServerClient
 from analyst_agent.score import check_requirement
 from analyst_agent.score.characteristics import CHARACTERISTICS
@@ -43,7 +44,7 @@ from analyst_agent.ingest.ingestion_client import parse_document
 from analyst_agent.segment.pipeline import segment_items
 
 REVIEW_IF_MIN_SCORE_AT_MOST = 3
-WORKERS = 8
+WORKERS = config.LLM_CONCURRENCY
 
 
 @dataclass

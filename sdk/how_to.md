@@ -6,6 +6,12 @@
 verified against a running instance. Where something is designed-but-not-built it says so
 explicitly — do not infer capability from silence.
 
+**Clients:** `sdk/js/analyst-client.js` (browser, ES module, no build step) and
+`sdk/python/analyst_client/` (httpx). **45 methods shared** under the same names
+(camelCase in JS, snake_case in Python); the JS client additionally has
+`streamJob` and `assess`, which are socket.io and therefore browser-only. Both
+absorb the envelope inconsistencies described in §11.
+
 ---
 
 ## 1. What the Analyst does
@@ -201,15 +207,28 @@ requirement is unverifiable, which is usually more actionable than the number.
   "threshold": 4.3,
   "release_status": "draft",
   "architect_ready": false,
-  "blockers": ["75 requirement(s) below threshold 4.3 and not human-accepted",
+  "blockers": ["75 requirement(s) below threshold 4.3",
+               "8 requirement(s) contain unfilled placeholders (e.g. [VALUE], TBD)",
                "no human sign-off (release_status is not 'validated')"],
   "counts": { "total": 85, "excluded_duplicates": 0, "scored": 85,
               "at_or_above_threshold": 10, "below_threshold": 75,
+              "incompletely_judged": 0, "with_placeholders": 8,
+              "analyst_authored": 0, "unratified_authored": 0,
               "unclassified": 0, "mean_score": 3.65 },
   "below_threshold_ids": ["REQ-0002", "…"],
   "source_documents": [ … ]
 }
 ```
+
+### Blocker types (all must be empty to release)
+| Blocker | Why |
+|---|---|
+| below threshold | **absolute floor — there is no human-override path** |
+| scored on fewer than all judges | a mean over 6 of 9 judges is not comparable to a complete one |
+| unfilled placeholders | measured: `"...latency of less than [LATENCY_VALUE]"` scored **4.56**, above threshold. The judges rate the FORM of a statement; a parameterized statement is well-formed. Checked deterministically, for every requirement. |
+| analyst-authored, not ratified | the Analyst writes requirements to fill coverage gaps; a human must accept them |
+| missing routing classes | the Architect cannot route without `classes[]` |
+| no human sign-off | the Analyst never self-promotes |
 
 **Branch on `manifest.architect_ready`, not on the presence of data.** A `draft` package is
 perfectly valid input for development and testing; it must not be treated as approved.
@@ -231,7 +250,7 @@ Intended state machine: `draft → refined → proposed → validated`
 
 ---
 
-## 7. Full API surface (39 operations, live)
+## 7. Full API surface (43 operations / 36 paths, live)
 
 You only need §2. The rest is listed so nothing looks hidden.
 
@@ -255,6 +274,9 @@ POST /projects/{pid}/refine:run      bounded refinement loop over below-threshol
 POST /projects/{pid}/classify:run    classes[] + type + constraints[]
 POST /projects/{pid}/coverage:run    domain-judge panel: what is MISSING
 POST /projects/{pid}/framing:run     derive a problem statement from the documents
+POST /projects/{pid}/author:run      author a requirement per open coverage gap
+POST /projects/{pid}/converge:run    the convergence loop (refine → coverage → author, repeated)
+POST /projects/{pid}/problem-statement:generate
 ```
 These are **independent operations, not a single pipeline**. Quality and coverage are
 unrelated assessments (*quality = correction, coverage = completion*). Run order for a
@@ -266,6 +288,9 @@ GET /projects/{pid}/package                 ← the handover (§2)
 GET /projects/{pid}/quality                 list quality runs
 GET /projects/{pid}/quality/scorecard?run=  raw scorecard
 GET /projects/{pid}/coverage?run=           coverage result
+GET /projects/{pid}/questions               what a human must answer (no LLM call)
+GET /projects/{pid}/convergence             loop state: round, gap counts, outcome
+GET /documents/{doc_id}/scorecard           single-document run (legacy path)
 GET /projects/{pid}/problem-statement       PUT to ratify · POST …:generate
 GET /projects/{pid}/coverage-profile        PUT to set
 GET /projects/{pid}/reviews/{run}           review session (per-req state + threshold)
@@ -335,3 +360,75 @@ in-flight LLM call still completes first.
 | `architect_agent` §2.1.1 contradicts §4 above | its classifier step is now redundant |
 | Analyst `technical_architecture.md` §7 says `id` | the real key is **`req_id`** — that doc is wrong |
 | Document reissue (corrected doc + PDF) not built | no corrected source document to reference |
+
+---
+
+## 11. Using the clients
+
+Two clients. **45 methods are shared** under the same names — camelCase in JS,
+snake_case in Python — so one document describes both. `streamJob` and `assess`
+exist only in JS (socket.io); `close` only in Python (connection lifetime).
+
+| | |
+|---|---|
+| `sdk/js/analyst-client.js` | browser, ES module, **no build step, no dependencies** |
+| `sdk/python/analyst_client/` | httpx; for the Architect and scripted consumers |
+
+```js
+import { AnalystClient } from './analyst-client.js';
+const analyst = new AnalystClient();          // relative to the current page
+const { requirements, counts, threshold } = await analyst.loadReview(pid);
+```
+```python
+from analyst_client import AnalystClient
+with AnalystClient("http://localhost:7803") as analyst:
+    review = analyst.load_review(pid)
+```
+
+### Why not just call `fetch` directly
+
+**Envelopes are inconsistent per endpoint** — the clients absorb this so every
+list method returns a list:
+
+| endpoint | raw shape |
+|---|---|
+| `/projects` | `{"projects": [...]}` |
+| `/projects/{pid}/quality` | `{"runs": [...]}` |
+| `/catalog/domains` | `{"_about", "version", "domains": [...]}` |
+| `/rules` | **a map keyed by rule id**, `{"R1": {...}} ` — deliberately left as-is, since that is what a UI wants when rendering `rules_triggered` |
+
+**The JS default base URL is page-relative**, matching reqoach's existing frontend,
+so the same code works at `/` locally and `/reqoach/` behind nginx. Pass `baseUrl`
+only for cross-origin use.
+
+**Uploads use the field name `files` (plural).** `file` returns 422.
+
+### The review helper
+
+`loadReview(pid, run)` / `load_review(...)` joins the two files nobody joins
+server-side — the run's `scorecard.json` and its `review.json` — into the
+per-requirement view a review UI needs. (`/package` performs the same join but is
+shaped for the Architect, not for editing.) Each requirement carries the flags a
+reviewer must not miss:
+
+| flag | meaning |
+|---|---|
+| `belowThreshold` | fails the absolute quality floor — blocks release |
+| `generated` | **analyst-authored to fill a coverage gap — no stakeholder wrote it**; `ratified` must become true |
+| `incompletelyJudged` | scored on fewer than all nine judges |
+| `textChanged` | refinement rewrote it; `originalText` is retained for drift audit |
+
+Plus `counts` for a header summary.
+
+### Following long runs
+
+```js
+const { job_id } = await analyst.runQuality(pid);
+const job = await analyst.waitForJob(job_id, { onProgress: j => render(j.progress) });
+```
+`waitForJob` polls and always works. `streamJob(jobId, handlers)` uses socket.io
+for per-item events when the socket.io client is on the page; `assess(text, handlers)`
+streams a live single-requirement score for an editor pane.
+
+Neither raises on `status: "error"` or `"cancelled"` — those are outcomes to render,
+not exceptions.

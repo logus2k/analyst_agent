@@ -27,9 +27,10 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Iterator
 
 from analyst_agent import store as pj
+from analyst_agent import config
 from analyst_agent.llm.client import AgentServerClient, LLMError
 
-WORKERS = 8
+WORKERS = config.LLM_CONCURRENCY
 PRESET = "incose_classifier"
 
 # The Architect's routing taxonomy (implementation.md §2.1.1) — each maps to a distinct
