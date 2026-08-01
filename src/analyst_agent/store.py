@@ -448,3 +448,64 @@ def save_convergence(pid: str, state: dict) -> dict | None:
     state["updated_at"] = _now()
     _write_json(os.path.join(_project_dir(pid), "convergence.json"), state)
     return state
+
+
+# ---- project vocabulary + requirement tree (glossary/tags/structure) ----
+
+def save_structure(pid: str, data: dict) -> None:
+    """Persist the project's vocabulary (glossary + tags) and requirement tree."""
+    _write_json(os.path.join(_project_dir(pid), "structure.json"), data)
+
+
+def get_structure(pid: str) -> dict | None:
+    return _read_json(os.path.join(_project_dir(pid), "structure.json"))
+
+
+# ---- gap assessment (the assessor's per-gap disposition) ----
+#
+# One assessment per project, recomputed when gaps change. Keyed on nothing but the
+# project: it is a snapshot of "how to proceed on the current gaps", overwritten each
+# run. Downstream (author/questions/dismiss) reads the dispositions from here.
+
+def get_gap_assessment(pid: str) -> dict | None:
+    return _read_json(os.path.join(_project_dir(pid), "gap_assessment.json"))
+
+
+def save_gap_assessment(pid: str, data: dict) -> dict | None:
+    if not get_project(pid):
+        return None
+    data["assessed_at"] = _now()
+    _write_json(os.path.join(_project_dir(pid), "gap_assessment.json"), data)
+    return data
+
+
+# ---- dismissed gaps (out-of-scope, recorded, never silently dropped) ----
+#
+# A gap the human (or the assessor, confirmed) judges NOT applicable to this system.
+# Keyed by `<domain>::<title>` (the gap has no id and its wording is stable enough
+# within a coverage run). Release excludes dismissed gaps from the blocking count,
+# but they stay recorded — with reason and who — so a dismissal is auditable, never
+# a silent drop.
+
+def get_dismissed_gaps(pid: str) -> dict:
+    return _read_json(os.path.join(_project_dir(pid), "dismissed_gaps.json")) or {}
+
+
+def dismiss_gap(pid: str, gap_key: str, reason: str, by: str | None = None,
+                title: str = "", severity: str = "", domain: str = "") -> dict | None:
+    if not get_project(pid):
+        return None
+    d = get_dismissed_gaps(pid)
+    d[gap_key] = {"gap_key": gap_key, "title": title, "severity": severity,
+                  "domain": domain, "reason": reason, "by": by, "at": _now()}
+    _write_json(os.path.join(_project_dir(pid), "dismissed_gaps.json"), d)
+    return d[gap_key]
+
+
+def undismiss_gap(pid: str, gap_key: str) -> bool:
+    d = get_dismissed_gaps(pid)
+    if gap_key not in d:
+        return False
+    del d[gap_key]
+    _write_json(os.path.join(_project_dir(pid), "dismissed_gaps.json"), d)
+    return True

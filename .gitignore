@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.venv/
 
 # Analysis state. The store is the authoritative live dataset (projects,
 # documents incl. source PDFs, quality/coverage runs, reviews) — it is data, not

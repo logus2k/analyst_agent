@@ -171,3 +171,56 @@ def test_clean_text_does_not_trip_the_placeholder_blocker(project):
     pkg = project([_req("REQ-0001", 4.8)], _classified("REQ-0001"))
     assert not any("unfilled" in b for b in pkg["manifest"]["blockers"])
     assert pkg["manifest"]["counts"]["with_placeholders"] == 0
+
+
+# --- coverage gaps block release (user directive 2026-07-31) --------------
+# A set was validated with 6 critical + 36 high coverage gaps because the gate
+# only checked that coverage had been RUN, not that gaps were closed.
+
+def _cov(project_build, gaps):
+    """Attach a coverage run with the given gaps to the fixture's project."""
+    from analyst_agent import store as pj
+    # the `project` fixture builds under a known pid; reach it via the last project
+    pid = pj.list_projects()[0]["id"]
+    pj.save_coverage_run(pid, "c1", {"gaps": gaps},
+                         {"run_id": "c1", "finished_at": "2026-01-01T00:00:00+00:00"})
+    return pid
+
+
+def test_critical_gap_blocks_release(project):
+    pkg = project([_req("REQ-0001", 4.8)], _classified("REQ-0001"))
+    from analyst_agent import store as pj, package
+    pid = pkg["manifest"]["project_id"]
+    pj.save_coverage_run(pid, "c1", {"gaps": [{"severity": "critical", "title": "g"}]},
+                         {"run_id": "c1", "finished_at": "x"})
+    r = package.readiness(pid)
+    assert any("coverage gap" in b for b in r["hard_blockers"])
+    assert r["can_release"] is False
+
+
+def test_high_gap_blocks_release(project):
+    pkg = project([_req("REQ-0001", 4.8)], _classified("REQ-0001"))
+    from analyst_agent import store as pj, package
+    pid = pkg["manifest"]["project_id"]
+    pj.save_coverage_run(pid, "c1", {"gaps": [{"severity": "high", "title": "g"}]},
+                         {"run_id": "c1", "finished_at": "x"})
+    assert any("coverage gap" in b for b in package.readiness(pid)["hard_blockers"])
+
+
+def test_medium_low_gaps_do_not_block(project):
+    pkg = project([_req("REQ-0001", 4.8)], _classified("REQ-0001"))
+    from analyst_agent import store as pj, package
+    pid = pkg["manifest"]["project_id"]
+    pj.save_coverage_run(pid, "c1",
+                         {"gaps": [{"severity": "medium", "title": "m"},
+                                   {"severity": "low", "title": "l"}]},
+                         {"run_id": "c1", "finished_at": "x"})
+    assert not any("coverage gap" in b for b in package.readiness(pid)["hard_blockers"])
+
+
+def test_no_gaps_does_not_block(project):
+    pkg = project([_req("REQ-0001", 4.8)], _classified("REQ-0001"))
+    from analyst_agent import store as pj, package
+    pid = pkg["manifest"]["project_id"]
+    pj.save_coverage_run(pid, "c1", {"gaps": []}, {"run_id": "c1", "finished_at": "x"})
+    assert not any("coverage gap" in b for b in package.readiness(pid)["hard_blockers"])

@@ -47,11 +47,13 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTex
 from analyst_agent import __version__
 from analyst_agent import config
 from analyst_agent import authoring
+from analyst_agent import gap_assessor as gap_assessor_mod
 from analyst_agent import converge as converge_mod
 from analyst_agent import coverage
 from analyst_agent import framing
 from analyst_agent import refine
 from analyst_agent import classify as classify_mod
+from analyst_agent import structure as structure_mod
 from analyst_agent import package as package_mod
 from analyst_agent import rescore as rescore_mod
 from analyst_agent import reissue as reissue_mod
@@ -67,7 +69,8 @@ STORE = config.STORE
 # What the "done/total" of each stage counts — used to label the progress readout.
 _STAGE_UNIT = {"ingest": "documents", "score": "requirements", "review": "requirements",
                "judges": "domains", "refine": "requirements", "classify": "requirements",
-               "author": "gaps", "converge": "rounds", "rescore": "requirements"}
+               "author": "gaps", "converge": "rounds", "rescore": "requirements",
+               "gap_assess": "gaps"}
 
 
 @dataclass
@@ -132,9 +135,9 @@ class JobManager:
             job.progress = {"stage": "review", "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
                             "unit": "requirements"}
-        elif et in ("refined", "classified", "authored", "rescored"):   # one per item finished
-            stage = {"refined": "refine", "classified": "classify",
-                     "authored": "author", "rescored": "rescore"}[et]
+        elif et in ("refined", "classified", "authored", "rescored", "gap_assessed"):  # one per item
+            stage = {"refined": "refine", "classified": "classify", "authored": "author",
+                     "rescored": "rescore", "gap_assessed": "gap_assess"}[et]
             job.stage = stage
             job.progress = {"stage": stage, "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
@@ -355,11 +358,63 @@ class JobManager:
             job.error = f"{type(e).__name__}: {e}"
             self._emit(job, {"type": "job_error", "message": job.error})
 
+    def _run_structure(self, job: "Job") -> None:
+        job.status = "running"; job.started_at = time.time()
+        self._emit(job, {"type": "stage", "stage": "structure", "status": "start"})
+        try:
+            data = structure_mod.run(job.project_id)
+            if data is None:
+                raise RuntimeError("no requirements to structure (run quality first)")
+            self._emit(job, {"type": "structure", "data": {
+                "terms": len(data["vocabulary"]["glossary"]),
+                "tags": len(data["vocabulary"]["tags"]),
+                "branches": len(data["tree"]["branches"]),
+                "unassigned": len(data["tree"]["unassigned"])}})
+            job.status = "done"
+            self._emit(job, {"type": "job_done", "project_id": job.project_id})
+        except Exception as e:  # noqa: BLE001
+            job.status = "error"; job.error = f"{type(e).__name__}: {e}"
+            self._emit(job, {"type": "job_error", "message": job.error})
+
+    def create_structure_run(self, pid: str) -> "Job":
+        job = Job(job_id=uuid.uuid4().hex, doc_id="", source_file="")
+        job.project_id, job.run_id, job.kind = pid, job.job_id, "structure"
+        self.jobs[job.job_id] = job
+        threading.Thread(target=self._run_structure, args=(job,), daemon=True).start()
+        return job
+
     def create_classify_run(self, pid: str, quality_run: str) -> Job:
         job = Job(job_id=uuid.uuid4().hex, doc_id="", source_file="")
         job.project_id, job.run_id, job.kind = pid, job.job_id, "classify"
         self.jobs[job.job_id] = job
         threading.Thread(target=self._run_classify, args=(job, quality_run), daemon=True).start()
+        return job
+
+    # --- gap assessment (triage each coverage gap: author / needs_input / dismiss) ---
+    def _run_gap_assess(self, job: Job) -> None:
+        job.status = "running"
+        job.started_at = time.time()
+        self._emit(job, {"type": "stage", "stage": "queued", "status": "done"})
+        try:
+            for event in gap_assessor_mod.iter_assess_gaps(
+                    job.project_id, should_cancel=job.cancel_event.is_set):
+                self._emit(job, event)
+            if job.cancel_event.is_set():
+                job.status = "cancelled"
+                self._emit(job, {"type": "job_cancelled", "project_id": job.project_id})
+            else:
+                job.status = "done"
+                self._emit(job, {"type": "job_done", "project_id": job.project_id})
+        except Exception as e:  # noqa: BLE001
+            job.status = "error"
+            job.error = f"{type(e).__name__}: {e}"
+            self._emit(job, {"type": "job_error", "message": job.error})
+
+    def create_gap_assess_run(self, pid: str) -> Job:
+        job = Job(job_id=uuid.uuid4().hex, doc_id="", source_file="")
+        job.project_id, job.run_id, job.kind = pid, job.job_id, "gap_assess"
+        self.jobs[job.job_id] = job
+        threading.Thread(target=self._run_gap_assess, args=(job,), daemon=True).start()
         return job
 
     # --- gap authoring (the Analyst closes coverage gaps, decisions 2 + 3) ---
@@ -1130,6 +1185,20 @@ def get_reissue(pid: str, run: str | None = None, format: str = "pdf"):
                     headers={"Content-Disposition": f'inline; filename="{name}_reissued.pdf"'})
 
 
+@api.post("/projects/{pid}/structure:run")
+def run_project_structure(pid: str, payload: dict | None = None) -> JSONResponse:
+    """Build the project's vocabulary (glossary + tags) and requirement tree
+    (single-parent feature branches + per-node cross-cutting tags). Consumed by the
+    Architect for per-aspect design and glossary-anchored naming. Streamed + abortable."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    if not pj.get_quality_scorecard(pid):
+        raise HTTPException(400, "no quality run to structure")
+    job = jm.create_structure_run(pid)
+    return JSONResponse(status_code=202,
+                        content={"job_id": job.job_id, "project_id": pid, "status": job.status})
+
+
 @api.post("/projects/{pid}/classify:run")
 def run_project_classify(pid: str, payload: dict | None = None) -> JSONResponse:
     """Classify every requirement of a quality run: `classes[]` (Architect routing),
@@ -1269,6 +1338,137 @@ def get_convergence_state(pid: str) -> JSONResponse:
     if not state:
         raise HTTPException(404, "no convergence run for this project")
     return JSONResponse(state)
+
+
+@api.post("/projects/{pid}/gaps:assess")
+def run_gap_assess(pid: str) -> JSONResponse:
+    """Triage every open coverage gap into a disposition: `author` (draft a requirement),
+    `needs_input` (needs a human-supplied value), or `dismiss` (out of scope, recorded).
+    Needs a coverage run. Streamed + abortable; persists the assessment."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    if not pj.get_coverage(pid):
+        raise HTTPException(400, "no coverage run \u2014 gaps must be identified first")
+    job = jm.create_gap_assess_run(pid)
+    return JSONResponse(status_code=202,
+                        content={"job_id": job.job_id, "project_id": pid, "status": job.status})
+
+
+@api.get("/projects/{pid}/gaps/assessment")
+def get_gap_assessment(pid: str) -> JSONResponse:
+    """The assessor's per-gap dispositions and rationale, plus a by-disposition count."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    a = pj.get_gap_assessment(pid)
+    if not a:
+        raise HTTPException(404, "no gap assessment \u2014 run gaps:assess first")
+    # Flag staleness (adjustment 2): a coverage run newer than the one assessed means
+    # the dispositions may no longer match the current gaps.
+    runs = pj.list_coverage_runs(pid)
+    latest = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"] if runs else None
+    a = {**a, "is_stale": bool(latest and a.get("coverage_run") and latest != a["coverage_run"]),
+         "current_coverage_run": latest}
+    a["dismissed"] = pj.get_dismissed_gaps(pid)
+    return JSONResponse(a)
+
+
+@api.put("/projects/{pid}/gaps/disposition")
+def override_gap_disposition(pid: str, payload: dict) -> JSONResponse:
+    """Human override of the assessor's verdict for one gap (adjustment 1):
+    `{"gap_key": "...", "disposition": "author"|"needs_input"|"dismiss", "reason": "..."}`.
+    gap_key is in the BODY, not the path — gap titles contain '/' which breaks path params.
+    Updates the persisted assessment; a `dismiss` also records the dismissal."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    gap_key = (payload or {}).get("gap_key")
+    if not gap_key:
+        raise HTTPException(400, "gap_key is required in the body")
+    a = pj.get_gap_assessment(pid)
+    if not a:
+        raise HTTPException(404, "no gap assessment")
+    disp = str((payload or {}).get("disposition") or "").strip().lower()
+    if disp not in ("author", "needs_input", "dismiss"):
+        raise HTTPException(400, "disposition must be author, needs_input or dismiss")
+    hit = None
+    for g in a.get("gaps", []):
+        if g.get("gap_key") == gap_key:
+            g["disposition"] = disp
+            g["overridden_by_human"] = True
+            if (payload or {}).get("reason"):
+                g["rationale"] = str(payload["reason"])[:500]
+            hit = g
+            break
+    if not hit:
+        raise HTTPException(404, "unknown gap_key")
+    import collections
+    a["by_disposition"] = dict(collections.Counter(x["disposition"] for x in a["gaps"]))
+    pj.save_gap_assessment(pid, a)
+    if disp == "dismiss":
+        pj.dismiss_gap(pid, gap_key, hit.get("rationale") or "human override", by="human",
+                       title=hit.get("title", ""), severity=hit.get("severity", ""),
+                       domain=hit.get("domain", ""))
+    return JSONResponse(hit)
+
+
+@api.post("/projects/{pid}/gaps/dismiss")
+def dismiss_one_gap(pid: str, payload: dict) -> JSONResponse:
+    """Dismiss one gap as out of scope, with a recorded reason. Body:
+    `{"gap_key": "...", "reason": "..."}` — gap_key is in the body (titles contain '/')."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    gap_key = (payload or {}).get("gap_key")
+    if not gap_key:
+        raise HTTPException(400, "gap_key is required in the body")
+    # carry the gap's title/severity/domain from the assessment if present, for the record
+    a = pj.get_gap_assessment(pid) or {}
+    meta = next((g for g in a.get("gaps", []) if g.get("gap_key") == gap_key), {})
+    d = pj.dismiss_gap(pid, gap_key, (payload or {}).get("reason") or "out of scope", by="human",
+                       title=meta.get("title", ""), severity=meta.get("severity", ""),
+                       domain=meta.get("domain", ""))
+    if d is None:
+        raise HTTPException(404, "unknown project")
+    return JSONResponse(d)
+
+
+@api.delete("/projects/{pid}/gaps/dismiss")
+def undismiss_one_gap(pid: str, gap_key: str) -> JSONResponse:
+    """Un-dismiss a gap (it blocks release again). gap_key is a query parameter."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    ok = pj.undismiss_gap(pid, gap_key)
+    if not ok:
+        raise HTTPException(404, "gap was not dismissed")
+    return JSONResponse({"undismissed": gap_key})
+
+
+@api.post("/projects/{pid}/gaps:apply")
+def apply_gap_assessment(pid: str) -> JSONResponse:
+    """Act on the assessment: DISMISS the dismiss-disposition gaps immediately (recorded),
+    and start an AUTHORING job for the author + needs_input gaps (a needs_input gap gets a
+    draft that carries its open question). Returns the dismiss result + the author job id."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    a = pj.get_gap_assessment(pid)
+    if not a:
+        raise HTTPException(400, "no gap assessment \u2014 run gaps:assess first")
+    dismissed = 0
+    for g in a.get("gaps", []):
+        if g.get("disposition") == "dismiss":
+            pj.dismiss_gap(pid, g.get("gap_key"), g.get("rationale") or "assessor: out of scope",
+                           by="assessor", title=g.get("title", ""),
+                           severity=g.get("severity", ""), domain=g.get("domain", ""))
+            dismissed += 1
+    to_author = sum(1 for g in a.get("gaps", []) if g.get("disposition") in ("author", "needs_input"))
+    job = None
+    if to_author:
+        runs = pj.list_quality_runs(pid)
+        run = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"] if runs else None
+        if run:
+            job = jm.create_author_run(pid, run)
+    return JSONResponse(status_code=202, content={
+        "dismissed": dismissed, "to_author": to_author,
+        "author_job_id": job.job_id if job else None,
+        "note": "authoring skips dismissed/dismiss-disposition gaps automatically"})
 
 
 @api.post("/projects/{pid}/coverage:run")

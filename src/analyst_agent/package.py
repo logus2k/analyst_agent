@@ -29,6 +29,11 @@ from __future__ import annotations
 from analyst_agent import store as pj
 from analyst_agent.authoring import unresolved_placeholders
 
+# Coverage-gap severities that BLOCK release. Critical and high are the ones that
+# damage downstream design (user directive, 2026-07-31); medium/low are reported
+# but do not block. Set to the full tuple to enforce decision 3 ("all severities").
+BLOCKING_GAP_SEVERITIES = ("critical", "high")
+
 def _requirement_record(req: dict, review_entry: dict | None) -> dict:
     """Join one scorecard requirement with its review/classification state."""
     e = review_entry or {}
@@ -97,6 +102,7 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
         return None
 
     review = pj.get_review(pid, run_id) or {}
+    structure = pj.get_structure(pid) or {}
     entries = review.get("requirements") or {}
     threshold = float((review.get("threshold") or {}).get("value", 4.3))
 
@@ -164,6 +170,26 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
         hard_blockers.append("problem statement not ratified")
     if not coverage:
         hard_blockers.append("no coverage run")
+    else:
+        # Open coverage gaps at a damaging severity block release. A gap is a hole in
+        # the SET's completeness; shipping it lets an incomplete spec reach the
+        # Architect, which is exactly what the gap-authoring + convergence loop exists
+        # to prevent. Critical and high are the severities that "damage the next
+        # phases" (user directive, 2026-07-31); medium/low are reported, not blocking.
+        # Closing a gap = authoring a requirement that covers it (a fresh coverage run
+        # then no longer reports it), never editing this list.
+        # Dismissed gaps (human-confirmed out of scope) no longer block — but they
+        # stay recorded and visible; a dismissal is auditable, not a silent drop.
+        dismissed = pj.get_dismissed_gaps(pid)
+        blocking_gaps = [g for g in (coverage.get("gaps") or [])
+                         if g.get("severity") in BLOCKING_GAP_SEVERITIES
+                         and f"{g.get('domain','')}::{g.get('title','')}" not in dismissed]
+        if blocking_gaps:
+            import collections
+            by_sev = collections.Counter(g.get("severity") for g in blocking_gaps)
+            detail = ", ".join(f"{by_sev[s]} {s}" for s in BLOCKING_GAP_SEVERITIES if by_sev[s])
+            hard_blockers.append(f"{len(blocking_gaps)} open coverage gap(s) "
+                                 f"must be closed before release ({detail})")
     blockers = list(hard_blockers)
     if release_status != "validated":
         blockers.append("no human sign-off (release_status is not 'validated')")
@@ -208,6 +234,13 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
         "problem_statement": ps,
         "coverage": coverage,
         "coverage_profile": profile,
+        # Project vocabulary + requirement tree (glossary of entities, controlled tags,
+        # single-parent feature branches with per-node cross-cutting tags). Empty {} when
+        # the structure stage has not been run. The Architect designs per branch and
+        # anchors entity names to the glossary; see the Architect contract.
+        "glossary": (structure.get("vocabulary") or {}).get("glossary") or [],
+        "tags": (structure.get("vocabulary") or {}).get("tags") or [],
+        "tree": structure.get("tree") or {},
     }
 
 

@@ -225,10 +225,29 @@ def iter_author_for_project(pid: str, run_id: str, coverage: dict | None = None,
     step = max(1, len(existing) // STYLE_SAMPLE)
     sample = existing[::step][:STYLE_SAMPLE]
 
-    gaps = coverage.get("gaps") or []
+    # Respect the gap assessment when one exists: author only gaps the assessor
+    # marked `author` or `needs_input` (a needs_input gap still gets a draft — it
+    # will carry an open_question for the missing value). Skip `dismiss`-disposition
+    # gaps and any human-dismissed gap — authoring a requirement for an out-of-scope
+    # gap is exactly the fake-requirement problem the assessor exists to prevent.
+    assessment = pj.get_gap_assessment(pid) or {}
+    disp_by_key = {g.get("gap_key"): g.get("disposition")
+                   for g in (assessment.get("gaps") or [])}
+    dismissed = pj.get_dismissed_gaps(pid)
+
+    def _skip(gap: dict) -> bool:
+        key = f"{gap.get('domain', '')}::{gap.get('title', '')}"
+        if key in dismissed:
+            return True
+        return disp_by_key.get(key) == "dismiss"
+
+    all_gaps = coverage.get("gaps") or []
+    gaps = [g for g in all_gaps if not _skip(g)]
+    skipped_disp = len(all_gaps) - len(gaps)
     yield {"type": "stage", "stage": "author", "status": "start", "done": 0,
            "total": len(gaps), "unit": "gaps",
-           "message": f"authoring for {len(gaps)} coverage gap(s)"}
+           "message": f"authoring for {len(gaps)} of {len(all_gaps)} gap(s) "
+                      f"({skipped_disp} dismissed/out-of-scope)"}
 
     authored: list[dict] = []          # everything authored this run
     pending: list[dict] = []           # not yet flushed to the store
