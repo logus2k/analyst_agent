@@ -40,9 +40,9 @@ from dataclasses import dataclass, field
 
 import httpx
 import socketio
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 
 from analyst_agent import __version__
 from analyst_agent import config
@@ -53,6 +53,8 @@ from analyst_agent import framing
 from analyst_agent import refine
 from analyst_agent import classify as classify_mod
 from analyst_agent import package as package_mod
+from analyst_agent import rescore as rescore_mod
+from analyst_agent import reissue as reissue_mod
 from analyst_agent import questions as questions_mod
 from analyst_agent import store as pj
 from analyst_agent.assess import iter_assessment
@@ -65,7 +67,7 @@ STORE = config.STORE
 # What the "done/total" of each stage counts — used to label the progress readout.
 _STAGE_UNIT = {"ingest": "documents", "score": "requirements", "review": "requirements",
                "judges": "domains", "refine": "requirements", "classify": "requirements",
-               "author": "gaps", "converge": "rounds"}
+               "author": "gaps", "converge": "rounds", "rescore": "requirements"}
 
 
 @dataclass
@@ -130,9 +132,9 @@ class JobManager:
             job.progress = {"stage": "review", "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
                             "unit": "requirements"}
-        elif et in ("refined", "classified", "authored"):   # one per item finished
+        elif et in ("refined", "classified", "authored", "rescored"):   # one per item finished
             stage = {"refined": "refine", "classified": "classify",
-                     "authored": "author"}[et]
+                     "authored": "author", "rescored": "rescore"}[et]
             job.stage = stage
             job.progress = {"stage": stage, "done": event.get("done"),
                             "total": event.get("total"), "status": "progress",
@@ -302,6 +304,37 @@ class JobManager:
         threading.Thread(target=self._run_refine, args=(job, quality_run), daemon=True).start()
         return job
 
+    # --- re-score reviewed requirements (the review-preserving "Re-Run") ---
+    def _run_rescore(self, job: Job, quality_run: str,
+                     changed_only: bool, set_level: bool) -> None:
+        job.status = "running"
+        job.started_at = time.time()
+        self._emit(job, {"type": "stage", "stage": "queued", "status": "done"})
+        try:
+            for event in rescore_mod.iter_rescore_for_project(
+                    job.project_id, quality_run, changed_only=changed_only,
+                    set_level=set_level, should_cancel=job.cancel_event.is_set):
+                self._emit(job, event)
+            if job.cancel_event.is_set():
+                job.status = "cancelled"
+                self._emit(job, {"type": "job_cancelled", "project_id": job.project_id})
+            else:
+                job.status = "done"
+                self._emit(job, {"type": "job_done", "project_id": job.project_id})
+        except Exception as e:  # noqa: BLE001
+            job.status = "error"
+            job.error = f"{type(e).__name__}: {e}"
+            self._emit(job, {"type": "job_error", "message": job.error})
+
+    def create_rescore_run(self, pid: str, quality_run: str,
+                           changed_only: bool = True, set_level: bool = True) -> Job:
+        job = Job(job_id=uuid.uuid4().hex, doc_id="", source_file="")
+        job.project_id, job.run_id, job.kind = pid, job.job_id, "rescore"
+        self.jobs[job.job_id] = job
+        threading.Thread(target=self._run_rescore,
+                         args=(job, quality_run, changed_only, set_level), daemon=True).start()
+        return job
+
     # --- classification (the Architect contract: classes[] + type + constraints[]) ---
     def _run_classify(self, job: Job, quality_run: str) -> None:
         job.status = "running"
@@ -442,6 +475,63 @@ async def _revalidate_assets(request, call_next):
 
 
 jm = JobManager(sio)
+
+
+# --- Authorization (see config.py) ---------------------------------------------------------
+# Browsing is public; mutations require a signed-in Google user, and per-project mutations
+# require the OWNER or the ADMIN. Identity is the `X-Auth-Request-Email` header set by nginx
+# from oauth2-proxy. These are FastAPI dependencies so an endpoint opts in by declaring one.
+
+def caller_email(request: Request) -> str | None:
+    """The authenticated caller's email, or the dev fallback, or None (anonymous)."""
+    hdr = (request.headers.get("x-auth-request-email") or "").strip().lower()
+    return hdr or config.DEV_EMAIL
+
+
+def require_signed_in(request: Request) -> str:
+    """Any signed-in Google user. Used for create-project and non-project mutations."""
+    email = caller_email(request)
+    if not email:
+        raise HTTPException(401, "sign in required")
+    return email
+
+
+def can_manage(proj: dict | None, email: str | None) -> bool:
+    """True if `email` may manage `proj`: the admin always; the owner of their own project.
+    Legacy projects with no owner are admin-only (fail-closed)."""
+    if not email:
+        return False
+    if email == config.ADMIN_EMAIL:
+        return True
+    owner = ((proj or {}).get("owner") or "").lower()
+    return bool(owner) and owner == email
+
+
+def _pid_from_path(path: str) -> str | None:
+    parts = path.strip("/").split("/")
+    return parts[1] if len(parts) >= 2 and parts[0] == "projects" else None
+
+
+# ONE gate for every write. Browsing (GET/HEAD) is public; every mutating method must carry a
+# signed-in identity, and a project-scoped mutation must come from the owner or the admin. A new
+# write endpoint is covered automatically — there is no per-route opt-in to forget. (socket.io
+# runs at the ASGI layer and never reaches this middleware; it is gated at nginx instead.)
+@api.middleware("http")
+async def _authz(request: Request, call_next):
+    if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        email = caller_email(request)
+        if not email:
+            return JSONResponse({"detail": "sign in required"}, status_code=401)
+        pid = _pid_from_path(request.url.path)
+        if pid:
+            proj = pj.get_project(pid)
+            if not proj:
+                return JSONResponse({"detail": "unknown project"}, status_code=404)
+            if not can_manage(proj, email):
+                return JSONResponse(
+                    {"detail": "only the project owner or the administrator can manage this project"},
+                    status_code=403)
+    return await call_next(request)
 
 
 @api.on_event("startup")
@@ -654,8 +744,10 @@ async def assess(sid, data):
 # Quality/Coverage runs are explicit (later phases). ---
 
 @api.post("/projects")
-async def create_project(payload: dict | None = None) -> dict:
-    return pj.create_project((payload or {}).get("name", ""))
+async def create_project(payload: dict | None = None,
+                         email: str = Depends(require_signed_in)) -> dict:
+    """Any signed-in Google user may create a project; they become its owner."""
+    return pj.create_project((payload or {}).get("name", ""), owner=email)
 
 
 @api.get("/projects")
@@ -727,6 +819,24 @@ async def put_req_review(pid: str, run: str, req_id: str, payload: dict) -> dict
     return entry
 
 
+@api.get("/projects/{pid}/threshold")
+def get_project_threshold(pid: str) -> dict:
+    """The project acceptance threshold (default 4.3). Every review seeds from it."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    return pj.get_project_threshold(pid)
+
+
+@api.put("/projects/{pid}/threshold")
+def put_project_threshold(pid: str, payload: dict) -> dict:
+    """Set the project threshold and push it onto every existing review session,
+    so the change takes effect immediately rather than only on the next run."""
+    t = pj.set_project_threshold(pid, payload or {})
+    if t is None:
+        raise HTTPException(404, "unknown project")
+    return t
+
+
 @api.get("/projects/{pid}/reviews/{run}/threshold")
 def get_review_threshold(pid: str, run: str) -> dict:
     doc = pj.get_review(pid, run)
@@ -787,11 +897,50 @@ def project_quality_runs(pid: str) -> dict:
 
 
 @api.get("/projects/{pid}/quality/scorecard")
-def project_quality_scorecard(pid: str, run: str | None = None) -> dict:
-    sc = pj.get_quality_scorecard(pid, run)
+def project_quality_scorecard(pid: str, run: str | None = None, merged: bool = True) -> dict:
+    """The scorecard the dashboard reads. By default it is the immutable run OVERLAID with
+    reviewed (re-scored) requirements, so accepted revisions show up. `merged=false` returns
+    the raw run untouched (what the Architect package and convergence loop read)."""
+    sc = pj.merged_scorecard(pid, run) if merged else pj.get_quality_scorecard(pid, run)
     if not sc:
         raise HTTPException(404, "no quality scorecard yet (run not finished or none run)")
     return sc
+
+
+@api.post("/projects/{pid}/reviews/{run}/requirements/{req_id}/rescore")
+def rescore_one_requirement(pid: str, run: str, req_id: str) -> dict:
+    """Re-assess ONE reviewed requirement's current text and persist the full C1–C9
+    breakdown (the per-Accept path — also callable headless by the Analyst itself).
+    Synchronous: a single requirement is ~seconds."""
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such review session")
+    patch = rescore_mod.rescore_requirement(pid, run, req_id)
+    if patch is None:
+        raise HTTPException(404, "unknown requirement, or it has no text to score")
+    return {"req_id": req_id, "overall": patch.get("overall_after"),
+            "judges_ok": patch.get("judges_ok"), "judges_total": patch.get("judges_total")}
+
+
+@api.post("/projects/{pid}/reviews/{run}/rescore:run")
+def run_review_rescore(pid: str, run: str, payload: dict | None = None) -> JSONResponse:
+    """Batch re-assessment of a review session's revised requirements — the review-preserving
+    "Re-Run". Re-scores every requirement whose text changed since it was last scored
+    (`changed_only`, default true), then recomputes set-level once. Streamed + abortable.
+
+    This does NOT re-ingest the source document (that would discard the human review); it
+    scores the reviewed `final_text`. Writes only into the review session.
+    """
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such quality run to re-score")
+    p = payload or {}
+    job = jm.create_rescore_run(pid, run,
+                                changed_only=bool(p.get("changed_only", True)),
+                                set_level=bool(p.get("set_level", True)))
+    return JSONResponse(status_code=202,
+                        content={"job_id": job.job_id, "project_id": pid,
+                                 "quality_run": run, "status": job.status})
 
 
 # --- Requirements Coverage — Problem Framing (stage 0). Explicit, user-triggered. ---
@@ -907,6 +1056,80 @@ def get_project_package(pid: str, run: str | None = None, format: str = "json"):
     return JSONResponse(content=pkg)
 
 
+# --- release gate (human sign-off: draft -> validated) ---
+
+@api.get("/projects/{pid}/release")
+def get_release_status(pid: str, run: str | None = None) -> dict:
+    """The release-gate verdict for the pipeline's Release panel: `release_status`,
+    `can_release` (all hard blockers cleared), `hard_blockers`, `blockers`, `architect_ready`,
+    counts, and who signed off. Light — no requirement payload."""
+    m = package_mod.readiness(pid, run)
+    if m is None:
+        raise HTTPException(404, "unknown project, or no quality run yet")
+    return m
+
+
+@api.post("/projects/{pid}/reviews/{run}/release")
+def set_release(pid: str, run: str, request: Request,
+                payload: dict | None = None) -> JSONResponse:
+    """Human release decision. `{"action":"approve"}` promotes the set to `validated` — but
+    only when every HARD blocker is cleared (quality floor, classification, ratified framing,
+    coverage, no placeholders); otherwise 409 with the offending blockers. `{"action":"revoke"}`
+    returns it to `draft`. The Analyst never self-promotes; this endpoint is the only writer.
+
+    The signer recorded in `released_by` is the AUTHENTICATED caller (the identity the auth
+    layer already established), never a client-supplied name."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such review session")
+    p = payload or {}
+    signer = caller_email(request)               # trusted identity, not a typed name
+    action = (p.get("action") or "approve").lower()
+    if action == "revoke":
+        pj.set_release_status(pid, run, "draft", note=p.get("note"))
+        return JSONResponse(content=package_mod.readiness(pid, run))
+    if action != "approve":
+        raise HTTPException(400, "action must be 'approve' or 'revoke'")
+    m = package_mod.readiness(pid, run)
+    if m is None:
+        raise HTTPException(404, "no quality run to release")
+    if not m.get("can_release"):
+        raise HTTPException(409, {"detail": "cannot release: hard blockers remain",
+                                  "hard_blockers": m.get("hard_blockers", [])})
+    pj.set_release_status(pid, run, "validated", approver=signer or "human", note=p.get("note"))
+    return JSONResponse(content=package_mod.readiness(pid, run))
+
+
+# --- reissue: the corrected, content-complete specification (md / html / pdf) ---
+
+@api.get("/projects/{pid}/reissue")
+def get_reissue(pid: str, run: str | None = None, format: str = "pdf"):
+    """The reissued specification — requirements grouped by source section, using the
+    corrected (`final_text`) wording. `format=pdf` (default, WeasyPrint), `md`, or `html`."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    name = (pj.get_project(pid).get("name") or "requirements").replace("/", "-")
+    if format == "md":
+        md = reissue_mod.build_markdown(pid, run)
+        if md is None:
+            raise HTTPException(404, "no quality run to reissue")
+        return PlainTextResponse(md, media_type="text/markdown; charset=utf-8")
+    if format == "html":
+        h = reissue_mod.build_html(pid, run)
+        if h is None:
+            raise HTTPException(404, "no quality run to reissue")
+        return HTMLResponse(h)
+    try:
+        pdf = reissue_mod.build_pdf(pid, run)
+    except Exception as e:  # noqa: BLE001 — the PDF stack is optional; report cleanly
+        raise HTTPException(503, f"PDF rendering unavailable: {type(e).__name__}: {e}")
+    if pdf is None:
+        raise HTTPException(404, "no quality run to reissue")
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="{name}_reissued.pdf"'})
+
+
 @api.post("/projects/{pid}/classify:run")
 def run_project_classify(pid: str, payload: dict | None = None) -> JSONResponse:
     """Classify every requirement of a quality run: `classes[]` (Architect routing),
@@ -929,6 +1152,38 @@ def run_project_classify(pid: str, payload: dict | None = None) -> JSONResponse:
     return JSONResponse(status_code=202,
                         content={"job_id": job.job_id, "project_id": pid,
                                  "quality_run": run, "status": job.status})
+
+
+@api.get("/projects/{pid}/classification")
+def get_classification_status(pid: str, run: str | None = None) -> dict:
+    """Lightweight classification status for the pipeline UI: how many requirements of a
+    quality run carry routing labels, plus the type/class distribution. `done` is true when
+    every requirement is classified."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    runs = pj.list_quality_runs(pid)
+    if not runs:
+        return {"run_id": None, "total": 0, "classified": 0, "unclassified": 0,
+                "done": False, "by_type": {}, "by_class": {}}
+    if not run:
+        run = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
+    review = pj.get_review(pid, run, seed=False) or {}
+    reqs = review.get("requirements") or {}
+    classified = 0
+    by_type: dict[str, int] = {}
+    by_class: dict[str, int] = {}
+    for e in reqs.values():
+        c = e.get("classification")
+        if c and c.get("classes"):
+            classified += 1
+            by_type[c.get("type")] = by_type.get(c.get("type"), 0) + 1
+            for cl in c["classes"]:
+                by_class[cl] = by_class.get(cl, 0) + 1
+    total = len(reqs)
+    return {"run_id": run, "total": total, "classified": classified,
+            "unclassified": total - classified, "done": total > 0 and classified == total,
+            "by_type": dict(sorted(by_type.items(), key=lambda kv: -kv[1])),
+            "by_class": dict(sorted(by_class.items(), key=lambda kv: -kv[1]))}
 
 
 @api.post("/projects/{pid}/author:run")

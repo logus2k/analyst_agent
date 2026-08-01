@@ -8,6 +8,13 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# System libraries WeasyPrint needs at runtime for the reissue PDF (pango/fontconfig +
+# a base font). pip cannot provide these — they must be present in the image.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfribidi0 \
+        libffi8 fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

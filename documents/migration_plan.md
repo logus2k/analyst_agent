@@ -254,6 +254,42 @@ The Architect can now delete its own classification step — §2.1.1 needs updat
   machine and the human sign-off endpoint that flips `release_status`. `package.py` already reads
   `review["release_status"]` and defaults to `draft`, so the gate only needs to write it.
 
+- **Re-scoring after review** ✅ DONE (2026-07-29). A human review changes a requirement's
+  TEXT; its quality must be recomputed from that text. New `rescore.py` +
+  `POST /projects/{pid}/reviews/{run}/rescore:run` (batch, changed-only, streamed) +
+  `POST …/requirements/{req_id}/rescore` (single, per-Accept, headless-callable). The dashboard
+  endpoint `GET …/quality/scorecard` now returns a **merged** view by default (`merged=false`
+  for raw): the immutable run overlaid with reviewed scores, but ONLY for requirements that carry
+  an authoritative C1–C9 breakdown — a bare `overall_after` from the live editor is not enough,
+  so the headline never moves while the radar still shows pre-review scores. `store.merged_scorecard`
+  + `_recompute_aggregates` (per-char means + `overall_health` = mean of per-req overall) +
+  `set_review_set_level`. Set-level (C10–C15) recomputes in the batch only (expensive, not in the
+  headline). reqoach: Overview **Step 3 "Re-run assessment"** → rescore (reviews preserved),
+  destructive re-extraction demoted to a confirmed **"Re-import from documents ⚠"**; review page
+  Accept/Save now persists the full breakdown the live editor already computed (no extra LLM call).
+  **Verified on a throwaway copy of the Restaurant project (60 reqs):** merged 2.14 → **4.54**,
+  per-char means all ~4.5 (consistent), 26 set-level overlaps, raw run still 2.145 (immutable),
+  all 60 reviews' `final_text`+`original_text` preserved. Backup of the real store before any
+  change: `scratchpad/store_backup_20260729_reviews.tgz` (verified 60 reviews, mean 4.55).
+
+- **P6b — release gate (human sign-off)** ✅ DONE (2026-07-29). `store.set_release_status` +
+  `package.readiness()` (manifest with `hard_blockers` + `can_release` = all hard blockers
+  cleared, sign-off excluded) + `GET /projects/{pid}/release` + `POST …/reviews/{run}/release`
+  (`action: approve|revoke`). Approve promotes `draft→validated` ONLY when `can_release`
+  (quality floor, classification, ratified framing, coverage, no placeholders); else **409** with
+  the offending blockers. Analyst never self-promotes. reqoach: new **Release** node (6th) in the
+  Overview — shows Ready/Blocked/Validated, Approve-for-Architect / Revoke, and the downloads.
+  **Verified:** Restaurant approve → `validated`+`architect_ready:true`+`released_by`; revoke →
+  `draft`; NIST (unclassified, below-threshold) approve → **409** with hard_blockers. Restaurant
+  left at **draft** for the human to sign off in the UI.
+- **P7 — reissue** ✅ DONE (2026-07-29). `reissue.py` reconstructs a content-complete corrected
+  spec (requirements grouped by `provenance.section_path`, document order, `final_text` wording,
+  with classes/type/constraints). `GET /projects/{pid}/reissue?format=pdf|md|html`. **PDF is a
+  real WeasyPrint PDF** (system libs pango/fontconfig/dejavu added to the analyst Dockerfile;
+  `weasyprint>=61` in requirements). Downloads wired into the Release node.
+  **Verified on Restaurant:** md structured correctly, html 16.9 KB, **pdf = valid PDF v1.7,
+  24 KB, `application/pdf`**. Analyst now **43 routes**.
+
 ### RESUME POINT (as of 2026-07-18)
 **P0–P5, P6a and P8 done and gate-verified. Next work item is P6b (the release gate).**
 

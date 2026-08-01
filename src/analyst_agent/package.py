@@ -142,24 +142,29 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
     # Readiness is REPORTED so a consumer can decide for itself; the Analyst never
     # self-promotes to `validated` (technical_architecture.md §8).
     release_status = review.get("release_status") or "draft"
-    blockers = []
+    # HARD blockers are the analytical preconditions a human cannot wave through — they must
+    # be FIXED, not approved around. The missing sign-off is NOT one of them (it is exactly
+    # what the human is about to provide), so `can_release` excludes it: a set may be ready
+    # to sign off while still `draft`.
+    hard_blockers = []
     if below:
-        blockers.append(f"{len(below)} requirement(s) below threshold {threshold}")
+        hard_blockers.append(f"{len(below)} requirement(s) below threshold {threshold}")
     if incomplete:
-        blockers.append(f"{len(incomplete)} requirement(s) scored on fewer than all judges")
+        hard_blockers.append(f"{len(incomplete)} requirement(s) scored on fewer than all judges")
     if placeholdered:
-        blockers.append(f"{len(placeholdered)} requirement(s) contain unfilled "
-                        f"placeholders (e.g. [VALUE], TBD)")
+        hard_blockers.append(f"{len(placeholdered)} requirement(s) contain unfilled "
+                             f"placeholders (e.g. [VALUE], TBD)")
     if unratified:
-        blockers.append(f"{len(unratified)} analyst-authored requirement(s) not ratified")
+        hard_blockers.append(f"{len(unratified)} analyst-authored requirement(s) not ratified")
     if unclassified:
-        blockers.append(f"{len(unclassified)} requirement(s) missing routing classes")
+        hard_blockers.append(f"{len(unclassified)} requirement(s) missing routing classes")
     if not ps:
-        blockers.append("no problem statement")
+        hard_blockers.append("no problem statement")
     elif not ps.get("ratified"):
-        blockers.append("problem statement not ratified")
+        hard_blockers.append("problem statement not ratified")
     if not coverage:
-        blockers.append("no coverage run")
+        hard_blockers.append("no coverage run")
+    blockers = list(hard_blockers)
     if release_status != "validated":
         blockers.append("no human sign-off (release_status is not 'validated')")
 
@@ -172,7 +177,12 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
             "run_id": run_id,
             "threshold": threshold,
             "release_status": release_status,
+            "released_at": review.get("released_at"),
+            "released_by": review.get("released_by"),
+            "release_note": review.get("release_note"),
             "architect_ready": not blockers,
+            "can_release": not hard_blockers,          # cleared to sign off (may still be draft)
+            "hard_blockers": hard_blockers,
             "blockers": blockers,
             "counts": {
                 "total": len(records),
@@ -199,6 +209,18 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
         "coverage": coverage,
         "coverage_profile": profile,
     }
+
+
+def readiness(pid: str, run_id: str | None = None) -> dict | None:
+    """The release-gate verdict WITHOUT the heavy requirements payload — for the UI's
+    Release panel and the sign-off endpoint. Returns the package manifest (blockers,
+    `hard_blockers`, `can_release`, counts, release metadata) or None if there is no run.
+
+    Computed from the same source as the package, so the two can never disagree. The
+    requirement records are assembled (cheap, no LLM) and discarded; only the verdict is kept.
+    """
+    pkg = build_package(pid, run_id)
+    return pkg["manifest"] if pkg else None
 
 
 def render_markdown(package: dict) -> str:

@@ -27,3 +27,13 @@ KNOWLEDGE = os.environ.get("ANALYST_KNOWLEDGE", os.path.join(_ROOT, "knowledge")
 LLM_CONCURRENCY = int(os.environ.get("LLM_CONCURRENCY", "2"))
 
 PORT = int(os.environ.get("PORT", "7803"))
+
+# --- Authorization (Google identity, enforced at the edge by oauth2-proxy) ---
+# Browsing is public; mutating a project requires the caller to be its OWNER or the ADMIN.
+# The caller's identity arrives as the `X-Auth-Request-Email` header, set by nginx from the
+# oauth2-proxy auth subrequest (a client cannot forge it — nginx overwrites any inbound value).
+ADMIN_EMAIL = (os.environ.get("ANALYST_ADMIN_EMAIL") or "logus2k@gmail.com").strip().lower()
+# Local-dev identity used ONLY when no auth header is present (i.e. hitting the analyst
+# directly, bypassing nginx). Unset in production → header-less mutations are rejected
+# (fail-closed). Set it to an email to develop without the oauth stack.
+DEV_EMAIL = (os.environ.get("ANALYST_DEV_EMAIL") or "").strip().lower() or None

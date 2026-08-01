@@ -52,10 +52,11 @@ def _write_json(path: str, data: dict) -> None:
 
 # ---- projects ----
 
-def create_project(name: str) -> dict:
+def create_project(name: str, owner: str | None = None) -> dict:
     pid = uuid.uuid4().hex
     meta = {"id": pid, "name": (name or "").strip() or "Untitled project",
-            "created_at": _now(), "documents": []}
+            "created_at": _now(), "owner": (owner or "").strip().lower() or None,
+            "documents": []}
     os.makedirs(os.path.join(_project_dir(pid), "documents"), exist_ok=True)
     _write_json(os.path.join(_project_dir(pid), "meta.json"), meta)
     return meta
@@ -154,6 +155,37 @@ def get_quality_scorecard(pid: str, run_id: str | None = None) -> dict | None:
 _DEFAULT_THRESHOLD = {"mode": "avg_ge", "value": 4.3}
 
 
+def get_project_threshold(pid: str) -> dict:
+    """The project's acceptance threshold. Every review of the project seeds from
+    this; the built-in default is 4.3. Stored on the project so a new quality run
+    does not silently reset a threshold the reviewer chose."""
+    proj = get_project(pid) or {}
+    t = proj.get("threshold")
+    if isinstance(t, dict) and t.get("value") is not None:
+        return t
+    return dict(_DEFAULT_THRESHOLD)
+
+
+def set_project_threshold(pid: str, threshold: dict, propagate: bool = True) -> dict | None:
+    """Set the project threshold, and by default push it onto every existing review
+    session — otherwise changing it would have no visible effect until the next run."""
+    proj = get_project(pid)
+    if not proj:
+        return None
+    t = {"mode": threshold.get("mode", "avg_ge"), "value": float(threshold.get("value", 4.3))}
+    if "pct" in threshold:
+        t["pct"] = float(threshold["pct"])
+    proj["threshold"] = t
+    _write_json(os.path.join(_project_dir(pid), "meta.json"), proj)
+    if propagate:
+        for run in list_quality_runs(pid):
+            doc = get_review(pid, run.get("run_id"), seed=False)
+            if doc:
+                doc["threshold"] = dict(t)
+                save_review(pid, run.get("run_id"), doc)
+    return t
+
+
 def _review_dir(pid: str, run_id: str) -> str:
     return os.path.join(_project_dir(pid), "reviews", run_id)
 
@@ -177,7 +209,7 @@ def get_review(pid: str, run_id: str, seed: bool = True) -> dict | None:
                      "final_text": r.get("text", ""), "note": "",
                      "overall_before": r.get("overall"), "overall_after": None,
                      "reviewed_at": None}
-    doc = {"run_id": run_id, "project_id": pid, "threshold": dict(_DEFAULT_THRESHOLD),
+    doc = {"run_id": run_id, "project_id": pid, "threshold": get_project_threshold(pid),
            "updated_at": _now(), "requirements": reqs}
     _write_json(path, doc)
     return doc
@@ -194,15 +226,137 @@ def upsert_req_review(pid: str, run_id: str, req_id: str, patch: dict) -> dict |
     if not doc or req_id not in doc.get("requirements", {}):
         return None
     entry = doc["requirements"][req_id]
-    for k in ("status", "final_text", "note", "overall_after", "refinement", "classification"):
+    # `characteristics`/`deterministic_findings`/`judges_*`/`scored_text` are the
+    # authoritative per-requirement re-assessment of the reviewed text (see rescore.py);
+    # they are what lets the dashboard show reviewed scores WITH a consistent C1–C9 radar.
+    for k in ("status", "final_text", "note", "overall_after", "refinement", "classification",
+              "characteristics", "deterministic_findings", "judges_ok", "judges_total",
+              "scored_text"):
         if k in patch:
             entry[k] = patch[k]
     # `reviewed_at` means "a human or the refinement loop touched this requirement".
-    # Classification is machine metadata about unchanged text, so it must not forge one.
-    if any(k in patch for k in ("status", "final_text", "note", "overall_after", "refinement")):
+    # A re-score (overall_after/characteristics without a status/text change) is MACHINE
+    # metadata about unchanged intent, so it stamps `scored_at`, never `reviewed_at`.
+    if any(k in patch for k in ("status", "final_text", "note", "refinement")):
         entry["reviewed_at"] = _now()
+    if any(k in patch for k in ("overall_after", "characteristics", "scored_text")):
+        entry["scored_at"] = _now()
     save_review(pid, run_id, doc)
     return entry
+
+
+def set_release_status(pid: str, run_id: str, status: str,
+                       approver: str | None = None, note: str | None = None) -> dict | None:
+    """Record the human release decision on a review session. `validated` stamps who signed
+    off and when; anything else (e.g. `draft` on revoke) clears that metadata. The Analyst
+    never sets `validated` itself — only this endpoint, driven by a human, does."""
+    doc = get_review(pid, run_id)
+    if not doc:
+        return None
+    doc["release_status"] = status
+    if status == "validated":
+        doc["released_at"] = _now()
+        doc["released_by"] = approver or "human"
+        doc["release_note"] = note or ""
+    else:
+        doc["released_at"] = None
+        doc["released_by"] = None
+        doc["release_note"] = note or ""
+    save_review(pid, run_id, doc)
+    return {"release_status": status, "released_at": doc.get("released_at"),
+            "released_by": doc.get("released_by"), "release_note": doc.get("release_note")}
+
+
+def set_review_set_level(pid: str, run_id: str, set_level: dict) -> dict | None:
+    """Persist a batch-recomputed set-level result (overlaps + C10–C15) onto the review
+    session. Kept separate from the immutable quality run so the original stays intact."""
+    doc = get_review(pid, run_id)
+    if not doc:
+        return None
+    doc["set_level_current"] = set_level
+    save_review(pid, run_id, doc)
+    return set_level
+
+
+def merged_scorecard(pid: str, run_id: str | None = None) -> dict | None:
+    """The quality scorecard the DASHBOARD reads: the immutable run, overlaid with the
+    reviewed (re-scored) state where it exists.
+
+    A requirement is overlaid ONLY when the review carries an authoritative characteristic
+    breakdown (`characteristics`) — a bare `overall_after` from the live editor is not
+    enough, because it would move the headline number while the C1–C9 radar still showed
+    the pre-review scores. So the dashboard flips to reviewed scores only after a re-score
+    (Accept-with-breakdown or the batch Re-Run). When nothing is overlaid the raw scorecard
+    is returned byte-for-byte, so un-reviewed projects are unaffected.
+    """
+    runs = list_quality_runs(pid)
+    if not runs:
+        return None
+    if run_id is None:
+        run_id = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
+    sc = _read_json(os.path.join(_quality_dir(pid, run_id), "scorecard.json"))
+    if not sc:
+        return None
+    review = get_review(pid, run_id, seed=False)
+    if not review:
+        return sc
+    entries = review.get("requirements") or {}
+
+    char_keys = list((sc.get("characteristic_names") or {}).keys())
+    overlaid = 0
+    merged_reqs: list[dict] = []
+    for r in sc.get("requirements", []):
+        e = entries.get(r.get("req_id"))
+        r2 = dict(r)
+        if e and e.get("characteristics"):          # authoritative breakdown present
+            overlaid += 1
+            r2["text"] = e.get("final_text") or r2.get("text")
+            r2["characteristics"] = e["characteristics"]
+            if e.get("deterministic_findings") is not None:
+                r2["deterministic_findings"] = e["deterministic_findings"]
+            if e.get("overall_after") is not None:
+                r2["overall"] = e["overall_after"]
+            if e.get("judges_ok") is not None:
+                r2["judges_ok"] = e["judges_ok"]
+                r2["judges_total"] = e.get("judges_total")
+            r2["review_status"] = e.get("status")
+        merged_reqs.append(r2)
+
+    if not overlaid:                                # nothing reviewed-and-scored → untouched
+        return sc
+
+    sc2 = dict(sc)
+    sc2["requirements"] = merged_reqs
+    sc2["aggregates"] = _recompute_aggregates(sc.get("aggregates") or {}, merged_reqs, char_keys)
+    if review.get("set_level_current"):
+        sc2["set_level"] = review["set_level_current"]
+    sc2["_merged"] = {"run_id": run_id, "overlaid": overlaid,
+                      "total": len(merged_reqs)}
+    return sc2
+
+
+def _recompute_aggregates(base: dict, reqs: list[dict], char_keys: list[str]) -> dict:
+    """Recompute the aggregates that change when reviewed scores are overlaid: the
+    per-characteristic means, the score distribution, and the headline `overall_health`
+    (mean of per-requirement overall — what the dashboard shows). Other keys are preserved.
+    """
+    ag = dict(base)
+    per_char: dict[str, float] = {}
+    for c in char_keys:
+        vs = [s for r in reqs
+              if (s := (r.get("characteristics") or {}).get(c, {}).get("score")) is not None]
+        if vs:
+            per_char[c] = round(sum(vs) / len(vs), 2)
+    ag["per_characteristic_mean"] = per_char
+    overalls = [o for r in reqs if (o := r.get("overall")) is not None]
+    ag["overall_health"] = round(sum(overalls) / len(overalls), 2) if overalls else None
+    dist: dict[str, int] = {}
+    for o in overalls:
+        b = str(int(o)) if o is not None else "na"
+        dist[b] = dist.get(b, 0) + 1
+    ag["score_distribution"] = dist
+    ag["total"] = len(reqs)
+    return ag
 
 
 def set_threshold(pid: str, run_id: str, threshold: dict) -> dict | None:

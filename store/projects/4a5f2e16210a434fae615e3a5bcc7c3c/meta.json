@@ -38,5 +38,9 @@
    "requirement_count": 386,
    "gap_count": 69
   }
- ]
+ ],
+ "threshold": {
+  "mode": "avg_ge",
+  "value": 4.0
+ }
 }

@@ -14,3 +14,7 @@ markdown-it-py>=3.0
 
 # Streaming: job progress + live single-requirement assessment.
 python-socketio>=5.11
+
+# Reissue: server-side PDF of the corrected specification (needs the system libs
+# pango/cairo installed in the Dockerfile — pip alone is not enough).
+weasyprint>=61

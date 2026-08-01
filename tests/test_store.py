@@ -216,3 +216,50 @@ def test_corrupt_json_reads_as_none_not_an_exception():
     with open(os.path.join(pj._project_dir(p["id"]), "meta.json"), "w") as f:
         f.write("{not json")
     assert pj.get_project(p["id"]) is None
+
+
+# --- project-level threshold (configurable, seeds reviews) ----------------
+
+def test_project_threshold_defaults_to_4_3():
+    p = pj.create_project("P")
+    assert pj.get_project_threshold(p["id"]) == {"mode": "avg_ge", "value": 4.3}
+
+
+def test_set_project_threshold_persists():
+    p = pj.create_project("P")
+    pj.set_project_threshold(p["id"], {"value": 4.0})
+    assert pj.get_project_threshold(p["id"])["value"] == 4.0
+    # survives a re-read of the project meta
+    assert pj.get_project(p["id"])["threshold"]["value"] == 4.0
+
+
+def test_new_review_seeds_from_project_threshold():
+    p = pj.create_project("P")
+    pj.set_project_threshold(p["id"], {"value": 4.0})
+    pj.save_quality_run(p["id"], "r1", {"requirements": [{"req_id": "REQ-0001", "text": "t"}]},
+                        {"run_id": "r1", "finished_at": "x"})
+    assert pj.get_review(p["id"], "r1")["threshold"]["value"] == 4.0
+
+
+def test_setting_project_threshold_propagates_to_existing_reviews():
+    """The key fix: changing it must affect the review already open, not just the
+    next run — otherwise the reviewer sets 4.0 and sees no change."""
+    p = pj.create_project("P")
+    pj.save_quality_run(p["id"], "r1", {"requirements": [{"req_id": "REQ-0001", "text": "t"}]},
+                        {"run_id": "r1", "finished_at": "x"})
+    pj.get_review(p["id"], "r1")                       # seeds at 4.3
+    pj.set_project_threshold(p["id"], {"value": 4.0})
+    assert pj.get_review(p["id"], "r1")["threshold"]["value"] == 4.0
+
+
+def test_propagate_false_leaves_existing_reviews():
+    p = pj.create_project("P")
+    pj.save_quality_run(p["id"], "r1", {"requirements": [{"req_id": "REQ-0001", "text": "t"}]},
+                        {"run_id": "r1", "finished_at": "x"})
+    pj.get_review(p["id"], "r1")
+    pj.set_project_threshold(p["id"], {"value": 4.0}, propagate=False)
+    assert pj.get_review(p["id"], "r1")["threshold"]["value"] == 4.3
+
+
+def test_set_project_threshold_unknown_project_is_none():
+    assert pj.set_project_threshold("nope", {"value": 4.0}) is None
