@@ -262,3 +262,29 @@ def test_questions_persisted_with_the_stalled_state(project, monkeypatch):
     st = pj.get_convergence(pid)
     assert st["outcome"] == converge.STALLED
     assert st["questions"][0]["id"] == "Q-0001"
+
+
+# --- Fix 3: diminishing-returns terminal state ----------------------------
+
+def test_plateau_with_progress_is_converged_pending_not_stalled(project):
+    """Gaps fall 10 -> 5 then plateau: authoring made progress, residual needs input."""
+    pid, _ = project([10, 5, 5, 5])
+    out = _outcome(_run(pid))
+    assert out == converge.CONVERGED_PENDING
+
+
+def test_plateau_with_no_progress_is_stalled(project):
+    """Gaps flat from the start: no progress -> genuine stall."""
+    pid, _ = project([8, 8, 8])
+    assert _outcome(_run(pid)) == converge.STALLED
+
+
+def test_converged_pending_carries_questions(project, monkeypatch):
+    pid, _ = project([10, 4, 4, 4])
+    monkeypatch.setattr(converge.questions_mod, "collect_questions",
+                        lambda *a, **k: [{"id": "Q-0001", "question": "What SLO?",
+                                          "req_ids": [], "gap_keys": ["d::g"], "blocking": True,
+                                          "sources": ["gap_needs_input"]}])
+    done = [e for e in _run(pid) if e.get("type") == "converge_done"][-1]
+    assert done["outcome"] == converge.CONVERGED_PENDING
+    assert done["questions"]

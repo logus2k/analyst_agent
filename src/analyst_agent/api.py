@@ -1429,7 +1429,7 @@ def override_gap_disposition(pid: str, payload: dict) -> JSONResponse:
     if disp == "dismiss":
         pj.dismiss_gap(pid, gap_key, hit.get("rationale") or "human override", by="human",
                        title=hit.get("title", ""), severity=hit.get("severity", ""),
-                       domain=hit.get("domain", ""))
+                       domain=hit.get("domain", ""), detail=hit.get("detail", ""))
     return JSONResponse(hit)
 
 
@@ -1447,7 +1447,7 @@ def dismiss_one_gap(pid: str, payload: dict) -> JSONResponse:
     meta = next((g for g in a.get("gaps", []) if g.get("gap_key") == gap_key), {})
     d = pj.dismiss_gap(pid, gap_key, (payload or {}).get("reason") or "out of scope", by="human",
                        title=meta.get("title", ""), severity=meta.get("severity", ""),
-                       domain=meta.get("domain", ""))
+                       domain=meta.get("domain", ""), detail=meta.get("detail", ""))
     if d is None:
         raise HTTPException(404, "unknown project")
     return JSONResponse(d)
@@ -1479,7 +1479,8 @@ def apply_gap_assessment(pid: str) -> JSONResponse:
         if g.get("disposition") == "dismiss":
             pj.dismiss_gap(pid, g.get("gap_key"), g.get("rationale") or "assessor: out of scope",
                            by="assessor", title=g.get("title", ""),
-                           severity=g.get("severity", ""), domain=g.get("domain", ""))
+                           severity=g.get("severity", ""), domain=g.get("domain", ""),
+                           detail=g.get("detail", ""))
             dismissed += 1
     to_author = sum(1 for g in a.get("gaps", []) if g.get("disposition") in ("author", "needs_input"))
     job = None

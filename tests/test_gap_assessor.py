@@ -223,3 +223,38 @@ def test_domain_input_no_section_when_nothing_dismissed():
     from analyst_agent import coverage
     dom = {"id": "d", "name": "D", "concerns": [], "questions": []}
     assert "RULED OUT OF SCOPE" not in coverage._domain_input(dom, [], {}, [], "p", "r")
+
+
+# --- Fix 1: reworded-dismissed suppression via embeddings -----------------
+
+def test_auto_dismiss_reworded_gap(tmp_path, monkeypatch):
+    from analyst_agent import store as pj, coverage
+    monkeypatch.setattr(pj, "STORE", str(tmp_path))
+    monkeypatch.setattr(pj, "PROJECTS_DIR", str(tmp_path / "projects"))
+    p = pj.create_project("P"); pid = p["id"]
+    pj.dismiss_gap(pid, "constraints::Tech Stack", "out of scope", by="human",
+                   title="Tech Stack", domain="constraints")
+    gaps = [{"domain": "constraints", "title": "Tech Stack Specificity", "severity": "high"},   # reworded dup
+            {"domain": "security", "title": "Input Validation", "severity": "critical"}]         # distinct
+    # stub embeddings: dismissed=vec[0]; reworded matches it (0.9), distinct doesn't
+    def fake_embed(texts):
+        # dismissed desc -> [1,0]; "Tech Stack Specificity" -> [1,0] (match); "Input Validation" -> [0,1]
+        return [[1.0, 0.0] if "Tech Stack" in t else [0.0, 1.0] for t in texts]
+    monkeypatch.setattr(coverage, "embed", fake_embed)
+    n = coverage._auto_dismiss_reworded(pid, gaps)
+    assert n == 1
+    d = pj.get_dismissed_gaps(pid)
+    assert "constraints::Tech Stack Specificity" in d
+    assert d["constraints::Tech Stack Specificity"]["by"] == "auto:reworded-match"
+    assert "security::Input Validation" not in d          # distinct gap untouched
+
+
+def test_auto_dismiss_fails_open_without_embeddings(tmp_path, monkeypatch):
+    from analyst_agent import store as pj, coverage
+    monkeypatch.setattr(pj, "STORE", str(tmp_path))
+    monkeypatch.setattr(pj, "PROJECTS_DIR", str(tmp_path / "projects"))
+    p = pj.create_project("P"); pid = p["id"]
+    pj.dismiss_gap(pid, "d::X", "no", by="human", title="X", domain="d")
+    def boom(texts): raise RuntimeError("embeddings down")
+    monkeypatch.setattr(coverage, "embed", boom)
+    assert coverage._auto_dismiss_reworded(pid, [{"domain": "d", "title": "Y", "severity": "high"}]) == 0

@@ -492,12 +492,14 @@ def get_dismissed_gaps(pid: str) -> dict:
 
 
 def dismiss_gap(pid: str, gap_key: str, reason: str, by: str | None = None,
-                title: str = "", severity: str = "", domain: str = "") -> dict | None:
+                title: str = "", severity: str = "", domain: str = "",
+                detail: str = "") -> dict | None:
     if not get_project(pid):
         return None
     d = get_dismissed_gaps(pid)
     d[gap_key] = {"gap_key": gap_key, "title": title, "severity": severity,
-                  "domain": domain, "reason": reason, "by": by, "at": _now()}
+                  "domain": domain, "detail": detail, "reason": reason,
+                  "by": by, "at": _now()}
     _write_json(os.path.join(_project_dir(pid), "dismissed_gaps.json"), d)
     return d[gap_key]
 

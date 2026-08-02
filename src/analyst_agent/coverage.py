@@ -19,6 +19,7 @@ from analyst_agent import config
 from analyst_agent import store as pj
 from analyst_agent.jobs import _ingest
 from analyst_agent.llm.client import AgentServerClient
+from analyst_agent.llm.retrieval import embed
 from analyst_agent.segment.pipeline import segment_items
 
 _SEV = {"critical": 0, "high": 1, "medium": 2, "low": 3}
@@ -175,6 +176,16 @@ def iter_coverage_for_project(pid: str, client: AgentServerClient | None = None,
         for g in out.get("gaps", []):
             all_gaps.append({**g, "domain": out["id"], "domain_name": out["name"]})
     all_gaps.sort(key=lambda g: _SEV.get(g.get("severity"), 4))
+
+    # Fix 1 — reworded-dismissed suppression. The prompt tells the judge not to
+    # re-raise dismissed gaps, but a judge can reword around it (measured: 1 of 6
+    # leaked). Catch the rewordings semantically: auto-dismiss any gap whose meaning
+    # matches an already-dismissed gap. Embedding cosine (equivalence), not the
+    # reranker (relevance) — same reasoning as `questions._merge_similar`.
+    suppressed = _auto_dismiss_reworded(pid, all_gaps)
+    if suppressed:
+        yield {"type": "stage", "stage": "judges", "status": "note",
+               "message": f"{suppressed} reworded dismissed gap(s) auto-suppressed"}
     summary = {}
     for out in results:
         summary[out.get("coverage", "unknown")] = summary.get(out.get("coverage", "unknown"), 0) + 1
@@ -196,6 +207,48 @@ def iter_coverage_for_project(pid: str, client: AgentServerClient | None = None,
         "synthesis": synthesis,
     }
     yield {"type": "coverage", "data": coverage}
+
+
+DISMISS_SIMILARITY = 0.80   # embedding cosine; a gap this close to a dismissed one is the same concern
+                            # (measured: reworded tech-stack pair titles ~0.75, title+detail higher)
+
+
+def _auto_dismiss_reworded(pid: str, gaps: list[dict]) -> int:
+    """Auto-dismiss gaps that are a reworded version of an already-dismissed gap.
+    Recorded (by="auto:reworded-match") and undismissable, never a silent drop.
+    Returns how many were suppressed. Fails open (0) if embeddings are unavailable."""
+    dismissed = pj.get_dismissed_gaps(pid)
+    if not dismissed or not gaps:
+        return 0
+    dis = list(dismissed.values())
+    def desc(g):
+        # title + the gap's OWN content (detail). Never the dismissal `reason` — that
+        # describes WHY it was dismissed, not WHAT it is, and tanks the match (0.62 vs 0.80).
+        return f"{g.get('title','')}. {g.get('detail','')}"[:400]
+    dis_keys = set(dismissed)
+    fresh = [g for g in gaps
+             if f"{g.get('domain','')}::{g.get('title','')}" not in dis_keys]
+    if not fresh:
+        return 0
+    try:
+        dvecs = embed([desc(d) for d in dis])
+        gvecs = embed([desc(g) for g in fresh])
+    except Exception:                                  # noqa: BLE001 — embeddings down
+        return 0
+    if len(dvecs) != len(dis) or len(gvecs) != len(fresh):
+        return 0
+    n = 0
+    for g, gv in zip(fresh, gvecs):
+        best = max((sum(a * b for a, b in zip(gv, dv)) for dv in dvecs), default=0.0)
+        if best >= DISMISS_SIMILARITY:
+            key = f"{g.get('domain','')}::{g.get('title','')}"
+            pj.dismiss_gap(pid, key,
+                           f"reworded duplicate of a dismissed gap (cosine {best:.2f})",
+                           by="auto:reworded-match", title=g.get("title", ""),
+                           severity=g.get("severity", ""), domain=g.get("domain", ""),
+                           detail=g.get("detail", ""))
+            n += 1
+    return n
 
 
 def _fallback_synthesis(all_gaps: list[dict], summary: dict, req_count: int, ps_doc: dict) -> dict:

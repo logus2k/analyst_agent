@@ -43,7 +43,8 @@ FLAT_ROUNDS_BEFORE_STALL = 2
 MIN_DROP = 1
 
 CONVERGED = "converged"
-STALLED = "stalled"
+CONVERGED_PENDING = "converged_pending_input"   # plateaued WITH progress; residual needs human values
+STALLED = "stalled"                             # plateaued with NO progress — genuinely stuck
 CAPPED = "capped"
 CANCELLED = "cancelled"
 
@@ -179,13 +180,28 @@ def iter_converge(pid: str, run_id: str, client: AgentServerClient | None = None
         if flat >= FLAT_ROUNDS_BEFORE_STALL:
             state["rounds"].append({"round": rnd, "gaps": gaps, "quality": quality,
                                     "authored": 0})
-            reason = (f"gap count stopped dropping ({state['gap_counts']}) — the "
-                      f"remaining {gaps} gap(s) need information the documents do not contain")
             qs = questions_mod.collect_questions(pid, run_id)
-            state.update(state=STALLED, outcome=STALLED, reason=reason,
+            # Diminishing returns, not failure. Coverage gaps are fractal — closing them
+            # exposes deeper ones — so the count plateaus above zero rather than reaching
+            # it. If the loop made NET PROGRESS (fewer gaps than round 1) and quality is
+            # clean, it did its job: authoring closed what it could, and the residual is
+            # human-input territory (the values in `questions`). That is `converged_pending
+            # _input`, not `stalled`. Only a plateau with NO progress is a true stall.
+            first_gaps = state["gap_counts"][0] if state["gap_counts"] else gaps
+            made_progress = gaps < first_gaps
+            if made_progress and _quality_clean(quality):
+                reason = (f"gap count plateaued at {gaps} after reducing from {first_gaps} — "
+                          f"authoring closed what it could; the remaining gaps need "
+                          f"human-supplied values (see questions)")
+                outcome = CONVERGED_PENDING
+            else:
+                reason = (f"gap count stopped dropping ({state['gap_counts']}) with no net "
+                          f"progress — the set is genuinely stuck and needs human review")
+                outcome = STALLED
+            state.update(state=outcome, outcome=outcome, reason=reason,
                          questions=qs, question_summary=questions_mod.summarize(qs))
             pj.save_convergence(pid, state)
-            yield {"type": "converge_done", "outcome": STALLED, "round": rnd,
+            yield {"type": "converge_done", "outcome": outcome, "round": rnd,
                    "gaps": gaps, "quality": quality, "reason": reason,
                    "questions": qs, "question_summary": questions_mod.summarize(qs)}
             return
