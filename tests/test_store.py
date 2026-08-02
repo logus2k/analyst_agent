@@ -263,3 +263,43 @@ def test_propagate_false_leaves_existing_reviews():
 
 def test_set_project_threshold_unknown_project_is_none():
     assert pj.set_project_threshold("nope", {"value": 4.0}) is None
+
+
+# --- ratification of authored requirements --------------------------------
+
+def _authored_run(pj, pid):
+    pj.save_quality_run(pid, "r1", {"requirements": [
+        {"req_id": "REQ-0001", "text": "extracted", "provenance": {"source_document": "s.pdf"}},
+        {"req_id": "GAP-0001", "text": "authored",
+         "provenance": {"origin": "analyst_authored", "ratified": False}}]},
+        {"run_id": "r1", "finished_at": "x"})
+
+
+def test_ratify_authored_requirement():
+    p = pj.create_project("P"); pid = p["id"]
+    _authored_run(pj, pid)
+    assert pj.ratify_requirement(pid, "r1", "GAP-0001", by="admin@x")["ratified"] is True
+    r = next(x for x in pj.get_quality_scorecard(pid, "r1")["requirements"] if x["req_id"] == "GAP-0001")
+    assert r["provenance"]["ratified"] is True and r["provenance"]["ratified_by"] == "admin@x"
+
+
+def test_cannot_ratify_a_non_authored_requirement():
+    p = pj.create_project("P"); pid = p["id"]
+    _authored_run(pj, pid)
+    assert pj.ratify_requirement(pid, "r1", "REQ-0001") is None      # extracted, not authored
+
+
+def test_unratify():
+    p = pj.create_project("P"); pid = p["id"]
+    _authored_run(pj, pid)
+    pj.ratify_requirement(pid, "r1", "GAP-0001")
+    pj.ratify_requirement(pid, "r1", "GAP-0001", ratified=False)
+    r = next(x for x in pj.get_quality_scorecard(pid, "r1")["requirements"] if x["req_id"] == "GAP-0001")
+    assert r["provenance"]["ratified"] is False
+
+
+def test_ratify_all_authored():
+    p = pj.create_project("P"); pid = p["id"]
+    _authored_run(pj, pid)
+    out = pj.ratify_all_authored(pid, "r1", by="admin@x")
+    assert out["ratified"] == ["GAP-0001"] and out["count"] == 1

@@ -72,10 +72,20 @@ def compact_problem_statement(ps: dict | None) -> str:
 
 
 def _domain_input(dom: dict, prof_archetypes: list[str], archetypes: dict,
-                  standards: list[dict], ps_compact: str, reqs_text: str) -> str:
+                  standards: list[dict], ps_compact: str, reqs_text: str,
+                  dismissed: list[dict] | None = None) -> str:
     lines = [f"DOMAIN: {dom['id']} — {dom['name']}",
              f"DOMAIN CONCERNS: {'; '.join(dom.get('concerns', []))}",
              f"DOMAIN QUESTIONS: {'; '.join(dom.get('questions', []))}", ""]
+    # Gaps a human already reviewed and ruled OUT OF SCOPE for this system. Re-raising
+    # them is churn: coverage is stateless, so without this it re-finds the same
+    # out-of-scope gaps (budget, geopolitics, schedule) on every run. Measured: this is
+    # the single biggest source of the loop failing to converge.
+    if dismissed:
+        lines.append("ALREADY REVIEWED AND RULED OUT OF SCOPE — DO NOT raise these again:")
+        for g in dismissed:
+            lines.append(f"  - {g.get('title', '')}: {g.get('reason', '')}")
+        lines.append("")
     priors = []
     for aid in prof_archetypes:
         a = archetypes.get(aid)
@@ -113,6 +123,11 @@ def iter_coverage_for_project(pid: str, client: AgentServerClient | None = None,
     profile = (pj.get_coverage_profile(pid) or {}).get("profile") or {}
     prof_archetypes = [a["id"] for a in profile.get("archetypes", [])] or list(archetypes)
 
+    # Dismissed gaps, grouped by domain, fed back so the judge stops re-raising them.
+    dismissed_by_domain: dict[str, list[dict]] = {}
+    for g in pj.get_dismissed_gaps(pid).values():
+        dismissed_by_domain.setdefault(g.get("domain", ""), []).append(g)
+
     yield {"type": "stage", "stage": "requirements", "status": "start"}
     reqs = gather_requirements(pid, client)
     reqs_text = "\n".join(f"{i + 1}. {r['text']}" for i, r in enumerate(reqs)) or "(no requirements specified yet)"
@@ -123,7 +138,8 @@ def iter_coverage_for_project(pid: str, client: AgentServerClient | None = None,
     results: list[dict] = [None] * len(domains)
 
     def judge(idx: int, dom: dict):
-        body = _domain_input(dom, prof_archetypes, archetypes, standards, ps_compact, reqs_text)
+        body = _domain_input(dom, prof_archetypes, archetypes, standards, ps_compact, reqs_text,
+                             dismissed=dismissed_by_domain.get(dom["id"]))
         try:
             out = client.complete_json("coverage_judge", body)
         except Exception as e:  # noqa: BLE001

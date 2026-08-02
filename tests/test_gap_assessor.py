@@ -206,3 +206,20 @@ def test_authoring_skips_dismissed_and_dismiss_disposition(tmp_path, monkeypatch
     start = [e for e in events if e["type"] == "stage" and e.get("status") == "start"][0]
     assert start["total"] == 1                # only "keep" — dismissed + dispdismiss skipped
     assert "2 dismissed/out-of-scope" in start["message"]
+
+
+# --- dismissal feedback into coverage ------------------------------------
+
+def test_domain_input_includes_dismissed_out_of_scope():
+    from analyst_agent import coverage
+    dom = {"id": "constraints", "name": "Constraints", "concerns": [], "questions": []}
+    body = coverage._domain_input(dom, [], {}, [], "problem", "1. a req",
+                                  dismissed=[{"title": "Budget", "reason": "project mgmt, not a requirement"}])
+    assert "RULED OUT OF SCOPE" in body
+    assert "Budget: project mgmt, not a requirement" in body
+
+
+def test_domain_input_no_section_when_nothing_dismissed():
+    from analyst_agent import coverage
+    dom = {"id": "d", "name": "D", "concerns": [], "questions": []}
+    assert "RULED OUT OF SCOPE" not in coverage._domain_input(dom, [], {}, [], "p", "r")

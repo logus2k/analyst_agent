@@ -509,3 +509,48 @@ def undismiss_gap(pid: str, gap_key: str) -> bool:
     del d[gap_key]
     _write_json(os.path.join(_project_dir(pid), "dismissed_gaps.json"), d)
     return True
+
+
+# ---- ratification of analyst-authored requirements ----
+#
+# An authored gap-filler is born `provenance.ratified = False` and blocks release
+# until a human accepts it (decision 2: analyst owns completeness, human owns truth).
+# Ratifying flips that flag in the scorecard. It does NOT clear other gates — a
+# ratified requirement still must clear threshold and carry no placeholder.
+
+def ratify_requirement(pid: str, run_id: str, req_id: str, ratified: bool = True,
+                       by: str | None = None) -> dict | None:
+    sc = get_quality_scorecard(pid, run_id)
+    if not sc:
+        return None
+    for r in sc.get("requirements", []):
+        if r.get("req_id") == req_id:
+            prov = r.setdefault("provenance", {})
+            if prov.get("origin") != "analyst_authored":
+                return None                          # only authored requirements are ratifiable
+            prov["ratified"] = bool(ratified)
+            prov["ratified_by"] = by
+            prov["ratified_at"] = _now() if ratified else None
+            meta = next((m for m in list_quality_runs(pid) if m.get("run_id") == run_id),
+                        {"run_id": run_id, "project_id": pid})
+            save_quality_run(pid, run_id, sc, meta)
+            return {"req_id": req_id, "ratified": bool(ratified)}
+    return None
+
+
+def ratify_all_authored(pid: str, run_id: str, by: str | None = None) -> dict:
+    """Ratify every analyst-authored requirement in one call — the batch a reviewer
+    uses after eyeballing the generated set. Returns the ids ratified."""
+    sc = get_quality_scorecard(pid, run_id) or {}
+    ids = []
+    for r in sc.get("requirements", []):
+        if (r.get("provenance") or {}).get("origin") == "analyst_authored":
+            r["provenance"]["ratified"] = True
+            r["provenance"]["ratified_by"] = by
+            r["provenance"]["ratified_at"] = _now()
+            ids.append(r.get("req_id"))
+    if ids:
+        meta = next((m for m in list_quality_runs(pid) if m.get("run_id") == run_id),
+                    {"run_id": run_id, "project_id": pid})
+        save_quality_run(pid, run_id, sc, meta)
+    return {"ratified": ids, "count": len(ids)}

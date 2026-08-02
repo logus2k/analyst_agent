@@ -103,6 +103,9 @@ def _merge_similar(items: list[dict], threshold: float = SIMILARITY_THRESHOLD) -
                 for rid in other["req_ids"]:
                     if rid not in rep["req_ids"]:
                         rep["req_ids"].append(rid)
+                for gk in other.get("gap_keys", []):
+                    if gk not in rep.setdefault("gap_keys", []):
+                        rep["gap_keys"].append(gk)
                 for src in other["sources"]:
                     if src not in rep["sources"]:
                         rep["sources"].append(src)
@@ -143,20 +146,22 @@ def collect_questions(pid: str, run_id: str | None = None) -> list[dict]:
 
     merged: dict[str, dict] = {}
 
-    def add(text: str, why: str, req_id: str, source: str, blocking: bool,
-            characteristic: str | None = None) -> None:
+    def add(text: str, why: str, req_id: str | None, source: str, blocking: bool,
+            characteristic: str | None = None, gap_key: str | None = None) -> None:
         text = (text or "").strip()
         if not text:
             return
         key = text
         q = merged.setdefault(key, {
-            "question": text, "why": why or "", "req_ids": [], "sources": [],
+            "question": text, "why": why or "", "req_ids": [], "gap_keys": [], "sources": [],
             "characteristic": characteristic, "blocking": False})
-        if req_id not in q["req_ids"]:
+        if req_id and req_id not in q["req_ids"]:
             q["req_ids"].append(req_id)
+        if gap_key and gap_key not in q["gap_keys"]:
+            q["gap_keys"].append(gap_key)
         if source not in q["sources"]:
             q["sources"].append(source)
-        # Blocking wins: one blocked requirement makes the question blocking.
+        # Blocking wins: one blocked requirement (or gap) makes the question blocking.
         q["blocking"] = q["blocking"] or blocking
 
     for req in scorecard.get("requirements", []):
@@ -189,6 +194,21 @@ def collect_questions(pid: str, run_id: str | None = None) -> list[dict]:
                 add(adv.get("suggestion", ""), adv.get("issue", ""), rid, "advisory",
                     bool(below), adv.get("characteristic"))
 
+    # 4. gap `needs_input` — a value only a stakeholder has, needed to close a
+    # blocking coverage gap (e.g. an availability target, a retention period). These
+    # come from the gap assessor, keyed to the gap rather than a requirement, and are
+    # blocking because the gap they belong to blocks release. Dismissed gaps are skipped.
+    assessment = pj.get_gap_assessment(pid) or {}
+    dismissed = pj.get_dismissed_gaps(pid)
+    for g in assessment.get("gaps", []):
+        if g.get("disposition") != "needs_input":
+            continue
+        if g.get("gap_key") in dismissed:
+            continue
+        question = g.get("question") or g.get("rationale")
+        add(question, f"To close coverage gap: {g.get('title', '')}",
+            None, "gap_needs_input", True, gap_key=g.get("gap_key"))
+
     # Identical strings merged above; embedding cosine now folds the ones that ASK
     # the same thing in different words.
     out = _merge_similar(list(merged.values()))
@@ -196,7 +216,8 @@ def collect_questions(pid: str, run_id: str | None = None) -> list[dict]:
     out.sort(key=lambda q: (not q["blocking"], -len(q["req_ids"])))
     for i, q in enumerate(out, 1):
         q["id"] = f"Q-{i:04d}"
-        q["affects"] = len(q["req_ids"])
+        q.setdefault("gap_keys", [])
+        q["affects"] = len(q["req_ids"]) + len(q["gap_keys"])
     return out
 
 
@@ -204,5 +225,6 @@ def summarize(questions: list[dict]) -> dict:
     return {"total": len(questions),
             "blocking": sum(1 for q in questions if q["blocking"]),
             "requirements_affected": len({r for q in questions for r in q["req_ids"]}),
+            "gaps_affected": len({g for q in questions for g in q.get("gap_keys", [])}),
             "by_source": {s: sum(1 for q in questions if s in q["sources"])
-                          for s in ("placeholder", "advisory", "authored_gap")}}
+                          for s in ("placeholder", "advisory", "authored_gap", "gap_needs_input")}}

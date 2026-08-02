@@ -244,3 +244,39 @@ def test_missing_run_yields_no_questions(tmp_path, monkeypatch):
     monkeypatch.setattr(pj, "PROJECTS_DIR", str(tmp_path / "projects"))
     p = pj.create_project("P")
     assert questions.collect_questions(p["id"], "nope") == []
+
+
+# --- gap needs_input surfaces as a question -------------------------------
+
+def test_gap_needs_input_becomes_a_blocking_question(tmp_path, monkeypatch):
+    from analyst_agent import store as pj
+    monkeypatch.setattr(pj, "STORE", str(tmp_path))
+    monkeypatch.setattr(pj, "PROJECTS_DIR", str(tmp_path / "projects"))
+    p = pj.create_project("P"); pid = p["id"]
+    pj.save_quality_run(pid, "r1", {"requirements": [
+        {"req_id": "REQ-0001", "text": "clean", "overall": 4.8}]},
+        {"run_id": "r1", "finished_at": "x"})
+    pj.save_gap_assessment(pid, {"gaps": [
+        {"gap_key": "reliability::Availability SLO", "title": "Availability SLO",
+         "disposition": "needs_input", "question": "What availability target applies?"},
+        {"gap_key": "constraints::Budget", "title": "Budget",
+         "disposition": "dismiss", "question": "irrelevant"}]})
+    qs = questions.collect_questions(pid, "r1")
+    gq = [q for q in qs if "gap_needs_input" in q["sources"]]
+    assert len(gq) == 1                                    # only the needs_input one
+    assert "availability target" in gq[0]["question"]
+    assert gq[0]["blocking"] is True
+    assert gq[0]["gap_keys"] == ["reliability::Availability SLO"]
+
+
+def test_dismissed_gap_needs_input_is_not_a_question(tmp_path, monkeypatch):
+    from analyst_agent import store as pj
+    monkeypatch.setattr(pj, "STORE", str(tmp_path))
+    monkeypatch.setattr(pj, "PROJECTS_DIR", str(tmp_path / "projects"))
+    p = pj.create_project("P"); pid = p["id"]
+    pj.save_quality_run(pid, "r1", {"requirements": [{"req_id": "REQ-0001", "text": "c", "overall": 4.8}]},
+                        {"run_id": "r1", "finished_at": "x"})
+    pj.save_gap_assessment(pid, {"gaps": [
+        {"gap_key": "d::G", "title": "G", "disposition": "needs_input", "question": "Q?"}]})
+    pj.dismiss_gap(pid, "d::G", "out of scope", by="human")
+    assert [q for q in questions.collect_questions(pid, "r1") if "gap_needs_input" in q["sources"]] == []

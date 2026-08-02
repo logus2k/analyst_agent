@@ -1158,6 +1158,29 @@ def set_release(pid: str, run: str, request: Request,
 
 # --- reissue: the corrected, content-complete specification (md / html / pdf) ---
 
+@api.post("/projects/{pid}/reviews/{run}/requirements/{req_id}/ratify")
+def ratify_requirement(pid: str, run: str, req_id: str, request: Request,
+                       payload: dict | None = None) -> JSONResponse:
+    """Human ratifies one analyst-authored requirement (or un-ratifies with
+    `{"ratified": false}`). Only authored requirements are ratifiable; ratifying does
+    NOT clear the threshold/placeholder gates."""
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such review session")
+    ratified = bool((payload or {}).get("ratified", True))
+    out = pj.ratify_requirement(pid, run, req_id, ratified=ratified, by=caller_email(request))
+    if out is None:
+        raise HTTPException(404, "unknown requirement, or it is not analyst-authored")
+    return JSONResponse(out)
+
+
+@api.post("/projects/{pid}/reviews/{run}/ratify:all")
+def ratify_all(pid: str, run: str, request: Request) -> JSONResponse:
+    """Ratify every analyst-authored requirement in the run at once."""
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such review session")
+    return JSONResponse(pj.ratify_all_authored(pid, run, by=caller_email(request)))
+
+
 @api.get("/projects/{pid}/reissue")
 def get_reissue(pid: str, run: str | None = None, format: str = "pdf"):
     """The reissued specification — requirements grouped by source section, using the
