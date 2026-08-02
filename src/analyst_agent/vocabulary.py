@@ -44,6 +44,10 @@ TERM_CANDIDATE_TOPK = int(config.__dict__.get("VOCAB_TERM_TOPK", 5))
 
 EXTRACTOR_AGENT = "analyst_vocab_extractor"
 CANONICALIZER_AGENT = vp.CANONICALIZER_AGENT_NAME
+KIND_CLASSIFIER_AGENT = "analyst_vocab_kind_classifier"
+#: Terms per kind-classification call. Small: labelling is independent per term, but the
+#: house pattern keeps batches modest so the model does not conflate items.
+KIND_CHUNK = 12
 
 
 @dataclass
@@ -51,6 +55,7 @@ class Term:
     """One canonical glossary entry."""
     name: str                       # canonical entity name, PascalCase (MenuItem)
     definition: str                 # one-sentence meaning, pins ambiguous words
+    kind: str = "entity"            # actor | entity | value — set by classify_kinds (LLM)
     aliases: list[str] = field(default_factory=list)   # surface forms seen, for audit
     req_ids: list[str] = field(default_factory=list)
 
@@ -144,6 +149,33 @@ class Vocabulary:
             tag.req_ids.append(req_id)
         return tag
 
+    # -- kind classification: the LLM labels each term actor|entity|value -------
+
+    def classify_kinds(self, client: "AgentServerClient | None" = None) -> None:
+        """Label every glossary term with its KIND — actor (a role/person/external system
+        that interacts with the system), entity (data the system stores/manages), or value
+        (a typed value or status, e.g. Price, ReservationStatus). The LLM decides from the
+        definition; this is the signal the Architect uses to keep actors, data and concerns
+        apart. Failures leave the default 'entity' — a safe, non-destructive fallback."""
+        client = client or self._client
+        if client is None:
+            from analyst_agent.llm.client import AgentServerClient as _C
+            client = self._client = _C()
+        terms = list(self._terms.values())
+        for i in range(0, len(terms), KIND_CHUNK):
+            chunk = terms[i:i + KIND_CHUNK]
+            payload = json.dumps({"terms": [{"name": t.name, "definition": t.definition}
+                                            for t in chunk]})
+            try:
+                out = client.complete_json(KIND_CLASSIFIER_AGENT, payload)
+            except LLMError:
+                continue
+            kinds = out.get("kinds", {})
+            for t in chunk:
+                k = str(kinds.get(t.name, "")).strip().lower()
+                if k in ("actor", "entity", "value"):
+                    t.kind = k
+
     # -- access ---------------------------------------------------------------
 
     @property
@@ -185,4 +217,5 @@ def extract(reqs: list[dict], client: AgentServerClient | None = None,
             name = c if isinstance(c, str) else c.get("tag")
             if name:
                 vocab.add_tag(name, req_id=rid)
+    vocab.classify_kinds(client)          # label each canonical term actor|entity|value
     return vocab
