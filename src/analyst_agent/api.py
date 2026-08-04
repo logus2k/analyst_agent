@@ -40,7 +40,7 @@ from dataclasses import dataclass, field
 
 import httpx
 import socketio
-from fastapi import Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 
@@ -593,6 +593,10 @@ async def _authz(request: Request, call_next):
 async def _startup() -> None:
     jm.bind_loop(asyncio.get_running_loop())
     os.makedirs(STORE, exist_ok=True)
+    # One-time, idempotent: lift any documents embedded under projects into the global KB.
+    n = pj.migrate_legacy_documents()
+    if n:
+        print(f"[kb] migrated {n} legacy document(s) into the Knowledge Base")
 
 
 @api.get("/health")
@@ -704,6 +708,111 @@ def list_documents() -> dict:
                 with open(meta_path, encoding="utf-8") as f:
                     docs.append(json.load(f))
     return {"documents": docs}
+
+
+# ---- Knowledge Base: global documents, many-to-many with projects -------------------------
+# A document is uploaded once and attached to 0..n projects. Visibility is per-user: the admin
+# sees everything; anyone else sees a document they own OR one attached to a project they own.
+# Attaching/detaching and deleting need the admin or the document's owner. Reads are NOT gated
+# by the write-middleware, so each handler filters by identity itself (anonymous -> nothing).
+
+def _owned_pids(email: str | None) -> set[str]:
+    if not email:
+        return set()
+    if email == config.ADMIN_EMAIL:
+        return {p["id"] for p in pj.list_projects()}
+    return {p["id"] for p in pj.list_projects() if (p.get("owner") or "").lower() == email}
+
+
+def _kb_can_see(doc: dict, email: str | None, owned: set[str]) -> bool:
+    if email and email == config.ADMIN_EMAIL:
+        return True
+    if email and (doc.get("owner") or "") == email:
+        return True
+    return any(p in owned for p in doc.get("projects", []))
+
+
+def _kb_can_manage(doc: dict, email: str | None) -> bool:
+    return bool(email) and (email == config.ADMIN_EMAIL or (doc.get("owner") or "") == email)
+
+
+def _kb_view(doc: dict, email: str | None, owned: set[str], names: dict) -> dict:
+    admin = email == config.ADMIN_EMAIL
+    # Only surface associations the viewer is entitled to see (avoid leaking others' project names).
+    vis = [p for p in doc.get("projects", []) if admin or p in owned]
+    return {**doc, "projects": vis, "project_names": [names.get(p, p) for p in vis]}
+
+
+@api.get("/kb/documents")
+def kb_list(request: Request) -> dict:
+    email = caller_email(request)
+    owned = _owned_pids(email)
+    names = {p["id"]: p.get("name") for p in pj.list_projects()}
+    out = [_kb_view(d, email, owned, names)
+           for d in pj.kb_list_documents() if _kb_can_see(d, email, owned)]
+    return {"documents": out}
+
+
+@api.post("/kb/documents")
+async def kb_upload(request: Request, files: list[UploadFile] = File(...),
+                    projects: str = Form("")) -> JSONResponse:
+    email = caller_email(request)                       # middleware already required sign-in
+    owned = _owned_pids(email)
+    pids = [p.strip() for p in (projects or "").split(",") if p.strip()]
+    pids = [p for p in pids if p in owned]               # attach only to projects you manage
+    saved, errors = [], []
+    for f in files:
+        fn = f.filename or "upload"
+        ext = os.path.splitext(fn)[1].lower()
+        if ext not in SUPPORTED_EXTENSIONS:
+            errors.append({"filename": fn, "error": f"unsupported extension {ext!r}"})
+            continue
+        saved.append(pj.kb_add_document(fn, ext, await f.read(), owner=email, projects=pids))
+    return JSONResponse(status_code=201, content={"documents": saved, "errors": errors})
+
+
+@api.patch("/kb/documents/{did}")
+async def kb_set_projects(did: str, request: Request) -> dict:
+    email = caller_email(request)
+    doc = pj.kb_get_document(did)
+    if not doc:
+        raise HTTPException(404, "unknown document")
+    if not _kb_can_manage(doc, email):
+        raise HTTPException(403, "only the document owner or the administrator can change this")
+    owned = _owned_pids(email)
+    admin = email == config.ADMIN_EMAIL
+    body = await request.json()
+    want = [p for p in (body.get("projects") or []) if isinstance(p, str)]
+    # Keep associations to projects the caller can't manage; replace the manageable set.
+    keep = [p for p in doc.get("projects", []) if not (admin or p in owned)]
+    add = [p for p in want if admin or p in owned]
+    return pj.kb_set_projects(did, keep + add) or {}
+
+
+@api.delete("/kb/documents/{did}")
+def kb_delete(did: str, request: Request) -> dict:
+    email = caller_email(request)
+    doc = pj.kb_get_document(did)
+    if not doc:
+        raise HTTPException(404, "unknown document")
+    if not _kb_can_manage(doc, email):
+        raise HTTPException(403, "only the document owner or the administrator can delete this")
+    pj.kb_delete_document(did)
+    return {"deleted": did}
+
+
+@api.get("/kb/documents/{did}/source")
+def kb_source(did: str, request: Request) -> FileResponse:
+    email = caller_email(request)
+    doc = pj.kb_get_document(did)
+    if not doc:
+        raise HTTPException(404, "unknown document")
+    if not _kb_can_see(doc, email, _owned_pids(email)):
+        raise HTTPException(403, "not allowed")
+    path = pj.kb_document_path(did)
+    if not path or not os.path.isfile(path):
+        raise HTTPException(404, "source missing")
+    return FileResponse(path, filename=doc.get("filename") or f"document{doc.get('ext', '')}")
 
 
 @api.get("/documents/{doc_id}/scorecard")

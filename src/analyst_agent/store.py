@@ -68,55 +68,164 @@ def list_projects() -> list[dict]:
         for pid in os.listdir(PROJECTS_DIR):
             m = _read_json(os.path.join(_project_dir(pid), "meta.json"))
             if m:
-                out.append({**m, "document_count": len(m.get("documents", []))})
+                out.append({**m, "document_count": len(_kb_docs_for(pid))})
     out.sort(key=lambda p: p.get("created_at", ""), reverse=True)
     return out
 
 
 def get_project(pid: str) -> dict | None:
-    return _read_json(os.path.join(_project_dir(pid), "meta.json"))
+    m = _read_json(os.path.join(_project_dir(pid), "meta.json"))
+    if m is not None:
+        # Documents live in the global Knowledge Base now; a project's document list is
+        # DERIVED from KB associations (many-to-many). The "documents" embedded in meta.json
+        # is vestigial and always overridden here so every reader sees the live association.
+        m["documents"] = _kb_docs_for(pid)
+    return m
 
 
 def delete_project(pid: str) -> bool:
-    """Remove a project and everything under it (documents, quality/coverage runs,
-    problem statement, profile). Returns False if the project doesn't exist."""
+    """Remove a project and its runs. Shared KB documents are NOT deleted — the project is
+    only detached from them. Returns False if the project doesn't exist."""
     d = _project_dir(pid)
     if not os.path.isdir(d):
         return False
+    for doc in kb_list_documents():
+        if pid in doc.get("projects", []):
+            kb_set_projects(doc["id"], [p for p in doc["projects"] if p != pid])
     shutil.rmtree(d, ignore_errors=True)
     return True
 
 
-# ---- documents ----
+# ---- documents: global Knowledge Base, many-to-many with projects --------------------------
+#
+# Layout (ANALYST_STORE):
+#   store/kb/<document_id>/
+#     source.<ext>
+#     meta.json   # {id, filename, ext, uploaded_at, size, owner, projects:[pid,...]}
+#
+# A document is uploaded ONCE into the KB and attached to 0..n projects. Per-project views
+# (list_documents / document_path) are DERIVED from the associations so the analysis pipeline
+# (framing / quality / coverage) keeps calling the same seam it always did.
 
-def add_document(pid: str, filename: str, ext: str, data: bytes) -> dict | None:
-    proj = get_project(pid)
-    if not proj:
+def _kb_dir() -> str:
+    return os.path.join(STORE, "kb")
+
+
+def _kb_doc_dir(did: str) -> str:
+    return os.path.join(_kb_dir(), did)
+
+
+def kb_list_documents() -> list[dict]:
+    d = _kb_dir()
+    out: list[dict] = []
+    if os.path.isdir(d):
+        for did in os.listdir(d):
+            m = _read_json(os.path.join(d, did, "meta.json"))
+            if m:
+                out.append(m)
+    out.sort(key=lambda x: x.get("uploaded_at", ""), reverse=True)
+    return out
+
+
+def kb_get_document(did: str) -> dict | None:
+    return _read_json(os.path.join(_kb_doc_dir(did), "meta.json"))
+
+
+def kb_document_path(did: str) -> str | None:
+    m = kb_get_document(did)
+    if not m:
         return None
-    did = uuid.uuid4().hex
-    ddir = os.path.join(_project_dir(pid), "documents", did)
+    return os.path.join(_kb_doc_dir(did), f"source{m['ext']}")
+
+
+def kb_add_document(filename: str, ext: str, data: bytes,
+                    owner: str | None = None, projects: list[str] | None = None,
+                    did: str | None = None) -> dict:
+    did = did or uuid.uuid4().hex
+    ddir = _kb_doc_dir(did)
     os.makedirs(ddir, exist_ok=True)
     with open(os.path.join(ddir, f"source{ext}"), "wb") as f:
         f.write(data)
-    dmeta = {"id": did, "project_id": pid, "filename": filename, "ext": ext,
-             "ingested_at": _now(), "size": len(data)}
-    _write_json(os.path.join(ddir, "meta.json"), dmeta)
-    proj.setdefault("documents", []).append(dmeta)
-    _write_json(os.path.join(_project_dir(pid), "meta.json"), proj)
-    return dmeta
+    meta = {"id": did, "filename": filename, "ext": ext, "uploaded_at": _now(),
+            "size": len(data), "owner": (owner or "").strip().lower() or None,
+            "projects": list(dict.fromkeys(projects or []))}
+    _write_json(os.path.join(ddir, "meta.json"), meta)
+    return meta
+
+
+def kb_set_projects(did: str, projects: list[str]) -> dict | None:
+    m = kb_get_document(did)
+    if not m:
+        return None
+    m["projects"] = list(dict.fromkeys(projects or []))
+    _write_json(os.path.join(_kb_doc_dir(did), "meta.json"), m)
+    return m
+
+
+def kb_delete_document(did: str) -> bool:
+    ddir = _kb_doc_dir(did)
+    if not os.path.isdir(ddir):
+        return False
+    shutil.rmtree(ddir, ignore_errors=True)
+    return True
+
+
+def _kb_docs_for(pid: str) -> list[dict]:
+    return [d for d in kb_list_documents() if pid in d.get("projects", [])]
+
+
+# ---- per-project document views (DERIVED from the KB; keep the pipeline seam stable) -------
+
+def add_document(pid: str, filename: str, ext: str, data: bytes) -> dict | None:
+    """Back-compat upload: store the bytes in the KB and attach to this one project."""
+    proj = _read_json(os.path.join(_project_dir(pid), "meta.json"))
+    if not proj:
+        return None
+    return kb_add_document(filename, ext, data, owner=proj.get("owner"), projects=[pid])
 
 
 def list_documents(pid: str) -> list[dict]:
-    proj = get_project(pid)
-    return proj.get("documents", []) if proj else []
+    return _kb_docs_for(pid)
 
 
 def document_path(pid: str, did: str) -> str | None:
-    ddir = os.path.join(_project_dir(pid), "documents", did)
-    dmeta = _read_json(os.path.join(ddir, "meta.json"))
-    if not dmeta:
-        return None
-    return os.path.join(ddir, f"source{dmeta['ext']}")
+    # `pid` is accepted for signature stability; the bytes live in the global KB.
+    return kb_document_path(did)
+
+
+def migrate_legacy_documents() -> int:
+    """One-time, idempotent: copy documents embedded under projects into the global KB.
+    Non-destructive — the project document dirs are left in place. Returns the count copied."""
+    migrated = 0
+    if not os.path.isdir(PROJECTS_DIR):
+        return 0
+    for pid in os.listdir(PROJECTS_DIR):
+        proj = _read_json(os.path.join(_project_dir(pid), "meta.json"))
+        if not proj:
+            continue
+        owner = proj.get("owner")
+        legacy_dir = os.path.join(_project_dir(pid), "documents")
+        if not os.path.isdir(legacy_dir):
+            continue
+        for did in os.listdir(legacy_dir):
+            dmeta = _read_json(os.path.join(legacy_dir, did, "meta.json"))
+            if not dmeta:
+                continue
+            existing = kb_get_document(did)
+            if existing:                                       # already in the KB
+                if pid not in existing.get("projects", []):
+                    kb_set_projects(did, existing.get("projects", []) + [pid])
+                continue
+            src = os.path.join(legacy_dir, did, f"source{dmeta.get('ext', '')}")
+            try:
+                with open(src, "rb") as f:
+                    data = f.read()
+            except OSError:
+                continue
+            kb_add_document(dmeta.get("filename", "document"), dmeta.get("ext", ""),
+                            data, owner=owner, projects=[pid], did=did)
+            migrated += 1
+    return migrated
 
 
 # ---- quality runs (explicit; written under the project) ----
