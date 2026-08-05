@@ -486,6 +486,44 @@ def get_problem_statement(pid: str) -> dict | None:
     return _read_json(os.path.join(_project_dir(pid), "problem_statement.json"))
 
 
+# ---- planner gap-loop: resolutions + per-project settings ----
+
+def save_planner_gap_resolution(pid: str, data: dict) -> None:
+    _write_json(os.path.join(_project_dir(pid), "planner_gaps", "resolution.json"), data)
+
+
+def get_planner_gap_resolution(pid: str) -> dict | None:
+    return _read_json(os.path.join(_project_dir(pid), "planner_gaps", "resolution.json"))
+
+
+def _default_gap_loop() -> dict:
+    return {"trigger": "auto", "apply": "auto"}
+
+
+def get_settings(pid: str) -> dict:
+    """Per-project settings. gap_loop.trigger/apply are 'auto' (default) or 'manual'."""
+    proj = _read_json(os.path.join(_project_dir(pid), "meta.json")) or {}
+    gl = (proj.get("settings") or {}).get("gap_loop") or {}
+    return {"gap_loop": {"trigger": gl.get("trigger", "auto"), "apply": gl.get("apply", "auto")}}
+
+
+def set_settings(pid: str, settings: dict) -> dict | None:
+    path = os.path.join(_project_dir(pid), "meta.json")
+    proj = _read_json(path)
+    if not proj:
+        return None
+    cur = proj.get("settings") or {}
+    gl = {**_default_gap_loop(), **(cur.get("gap_loop") or {})}
+    incoming = (settings or {}).get("gap_loop") or {}
+    for k in ("trigger", "apply"):
+        if incoming.get(k) in ("auto", "manual"):
+            gl[k] = incoming[k]
+    cur["gap_loop"] = gl
+    proj["settings"] = cur
+    _write_json(path, proj)
+    return get_settings(pid)
+
+
 def save_problem_statement(pid: str, statement: dict, ratified: bool = False) -> dict:
     if not get_project(pid):
         return None

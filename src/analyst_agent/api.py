@@ -1203,6 +1203,101 @@ def run_project_refine(pid: str, payload: dict | None = None) -> JSONResponse:
                                  "quality_run": run, "status": job.status})
 
 
+# --- Planner->Analyst gap-resolution loop (lightweight pollable job; NOT the socket.io JM) ---
+from analyst_agent import gap_resolver as gap_mod  # noqa: E402
+
+
+@dataclass
+class GapJob:
+    job_id: str
+    project_id: str
+    status: str = "queued"
+    stage: str | None = None
+    progress: dict = field(default_factory=dict)
+    error: str | None = None
+    result: dict | None = None
+    started_at: float | None = None
+
+    def snapshot(self) -> dict:
+        return {"job_id": self.job_id, "project_id": self.project_id, "kind": "gap_resolve",
+                "status": self.status, "stage": self.stage, "progress": self.progress,
+                "error": self.error, "result": self.result,
+                "elapsed_s": round(time.time() - self.started_at) if self.started_at else None}
+
+
+_gap_jobs: dict[str, GapJob] = {}
+
+
+def _run_gap_resolve(job: GapJob, gaps: list, apply: bool) -> None:
+    job.status = "running"
+    job.started_at = time.time()
+    job.stage = "resolve"
+    try:
+        def prog(i, total, rec):
+            job.progress = {"stage": "resolve", "status": "progress", "done": i, "total": total,
+                            "last": f"{rec.get('req_id')}: {rec.get('disposition')}"}
+        res = gap_mod.resolve_planner_gaps(job.project_id, gaps, apply=apply, progress=prog)
+        job.result = res
+        job.status = "done"
+        job.stage = "done"
+        job.progress = {"stage": "done", "status": "done", "total": res.get("total"),
+                        "counts": res.get("counts"), "affected": len(res.get("affected_req_ids", []))}
+    except Exception as e:  # noqa: BLE001
+        job.status = "error"
+        job.error = f"{type(e).__name__}: {e}"
+
+
+@api.post("/projects/{pid}/planner-gaps:resolve")
+def resolve_planner_gaps_endpoint(pid: str, payload: dict | None = None) -> JSONResponse:
+    """Route Planner-surfaced requirement gaps through the analyst_gap_resolver. Body:
+    {gaps:[{req_id, gap, question, requirement_text?}], apply?}. `apply` defaults to the
+    project's gap_loop.apply setting (auto). Runs as a pollable job (GET /gap-jobs/{id})."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    payload = payload or {}
+    gaps = payload.get("gaps") or []
+    if not gaps:
+        raise HTTPException(400, "no gaps provided")
+    apply = payload.get("apply")
+    if apply is None:
+        apply = pj.get_settings(pid)["gap_loop"]["apply"] == "auto"
+    job = GapJob(job_id=uuid.uuid4().hex, project_id=pid)
+    _gap_jobs[job.job_id] = job
+    threading.Thread(target=_run_gap_resolve, args=(job, gaps, bool(apply)), daemon=True).start()
+    return JSONResponse(status_code=202,
+                        content={"job_id": job.job_id, "project_id": pid,
+                                 "status": job.status, "apply": bool(apply)})
+
+
+@api.get("/gap-jobs/{job_id}")
+def gap_job_status(job_id: str) -> dict:
+    job = _gap_jobs.get(job_id)
+    if not job:
+        raise HTTPException(404, "unknown gap job")
+    return job.snapshot()
+
+
+@api.get("/projects/{pid}/planner-gaps")
+def get_planner_gaps(pid: str) -> dict:
+    return pj.get_planner_gap_resolution(pid) or {"records": [], "affected_req_ids": [],
+                                                  "counts": {}, "total": 0}
+
+
+@api.get("/projects/{pid}/settings")
+def get_project_settings(pid: str) -> dict:
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    return pj.get_settings(pid)
+
+
+@api.put("/projects/{pid}/settings")
+def put_project_settings(pid: str, payload: dict | None = None) -> dict:
+    s = pj.set_settings(pid, payload or {})
+    if s is None:
+        raise HTTPException(404, "unknown project")
+    return s
+
+
 @api.get("/projects/{pid}/package")
 def get_project_package(pid: str, run: str | None = None, format: str = "json"):
     """The Architect handover package for a quality run (latest run by default).
