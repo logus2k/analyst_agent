@@ -58,6 +58,7 @@ from analyst_agent import package as package_mod
 from analyst_agent import rescore as rescore_mod
 from analyst_agent import reissue as reissue_mod
 from analyst_agent import questions as questions_mod
+from analyst_agent import overlap_merge as overlap_merge_mod
 from analyst_agent import store as pj
 from analyst_agent.assess import iter_assessment
 from analyst_agent.ingest.dispatch import SUPPORTED_EXTENSIONS
@@ -983,6 +984,17 @@ async def put_req_review(pid: str, run: str, req_id: str, payload: dict) -> dict
     return entry
 
 
+@api.delete("/projects/{pid}/reviews/{run}/requirements/{req_id}")
+def delete_req(pid: str, run: str, req_id: str) -> dict:
+    """Purge one requirement from the scorecard AND the review (e.g. a junk authored GAP-*)."""
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such review session")
+    ok = pj.delete_requirement(pid, run, req_id)
+    if not ok:
+        raise HTTPException(404, "unknown requirement")
+    return {"deleted": req_id}
+
+
 @api.get("/projects/{pid}/threshold")
 def get_project_threshold(pid: str) -> dict:
     """The project acceptance threshold (default 4.3). Every review seeds from it."""
@@ -1296,6 +1308,113 @@ def put_project_settings(pid: str, payload: dict | None = None) -> dict:
     if s is None:
         raise HTTPException(404, "unknown project")
     return s
+
+
+# --- Human resolution of Planner gaps: answer a needs_input/flagged question -> refine the
+#     traced requirement and/or author new one(s). Human-in-the-loop: preview (scored, commits
+#     nothing) then apply the chosen text. See analyst_agent/answer.py. ---
+from analyst_agent import answer as answer_mod  # noqa: E402
+
+
+@api.post("/projects/{pid}/reviews/{run}/requirements/{req_id}/answer:preview")
+def answer_preview(pid: str, run: str, req_id: str, payload: dict | None = None) -> JSONResponse:
+    """Run the human's answer through the INCOSE refiner and return BOTH candidates —
+    `refine` (traced requirement + answer, re-scored) and `author` (answer as a new
+    requirement, scored) — with their scores. Commits nothing. Synchronous (~seconds)."""
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such review session")
+    p = payload or {}
+    ans = (p.get("answer") or "").strip()
+    if not ans:
+        raise HTTPException(400, "no answer provided")
+    out = answer_mod.preview(pid, run, req_id, p.get("question", ""), ans)
+    return JSONResponse(out)
+
+
+@api.post("/projects/{pid}/reviews/{run}/requirements/{req_id}/answer:apply")
+def answer_apply(pid: str, run: str, req_id: str, payload: dict | None = None) -> JSONResponse:
+    """Commit the chosen resolution(s): `refine_text` updates the traced requirement (re-scored);
+    each `author_texts` entry becomes a new authored requirement. Returns `affected_req_ids` so
+    the Planner can re-plan only those. Both/either/neither may be supplied."""
+    if not pj.get_review(pid, run):
+        raise HTTPException(404, "no such review session")
+    p = payload or {}
+    refine_text = (p.get("refine_text") or "").strip() or None
+    author_texts = [t for t in (p.get("author_texts") or []) if (t or "").strip()]
+    if not refine_text and not author_texts:
+        raise HTTPException(400, "nothing to apply (need refine_text and/or author_texts)")
+    out = answer_mod.apply(pid, run, req_id, refine_text=refine_text,
+                           author_texts=author_texts, question=p.get("question", ""),
+                           answer=p.get("answer", ""))
+    return JSONResponse(out)
+
+
+# --- Semantic-plausibility check (analyst_sense_judge): catches WELL-FORMED nonsense that
+#     INCOSE scoring (which grades form, not domain sense) passes. See analyst_agent/sense.py. ---
+from analyst_agent import sense as sense_mod  # noqa: E402
+
+
+@dataclass
+class SenseJob:
+    job_id: str
+    project_id: str
+    status: str = "queued"
+    progress: dict = field(default_factory=dict)
+    error: str | None = None
+    result: dict | None = None
+    started_at: float | None = None
+
+    def snapshot(self) -> dict:
+        return {"job_id": self.job_id, "project_id": self.project_id, "kind": "sense",
+                "status": self.status, "progress": self.progress, "error": self.error,
+                "result": self.result,
+                "elapsed_s": round(time.time() - self.started_at) if self.started_at else None}
+
+
+_sense_jobs: dict[str, SenseJob] = {}
+
+
+def _run_sense(job: SenseJob) -> None:
+    job.status = "running"
+    job.started_at = time.time()
+    try:
+        def prog(i, total, rid, verdict):
+            job.progress = {"status": "progress", "done": i, "total": total,
+                            "last": f"{rid}: {'implausible' if not verdict['plausible'] else 'ok'}"}
+        res = sense_mod.run(job.project_id, progress=prog)
+        job.result = {"total": res.get("total"), "implausible": res.get("implausible", []),
+                      "implausible_count": len(res.get("implausible", []))}
+        job.status = "done"
+        job.progress = {"status": "done", **job.result}
+    except Exception as e:  # noqa: BLE001
+        job.status = "error"
+        job.error = f"{type(e).__name__}: {e}"
+
+
+@api.post("/projects/{pid}/sense:run")
+def run_sense(pid: str) -> JSONResponse:
+    """Judge every requirement's SEMANTIC plausibility against the problem statement — the guard
+    INCOSE can't provide. Pollable (GET /sense-jobs/{id}); results at GET /projects/{pid}/sense."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    job = SenseJob(job_id=uuid.uuid4().hex, project_id=pid)
+    _sense_jobs[job.job_id] = job
+    threading.Thread(target=_run_sense, args=(job,), daemon=True).start()
+    return JSONResponse(status_code=202, content={"job_id": job.job_id, "project_id": pid,
+                                                  "status": job.status})
+
+
+@api.get("/sense-jobs/{job_id}")
+def sense_job_status(job_id: str) -> dict:
+    job = _sense_jobs.get(job_id)
+    if not job:
+        raise HTTPException(404, "unknown sense job")
+    return job.snapshot()
+
+
+@api.get("/projects/{pid}/sense")
+def get_sense_results(pid: str) -> dict:
+    return pj.get_sense(pid) or {"results": {}, "implausible": [], "total": 0}
 
 
 @api.get("/projects/{pid}/package")
@@ -1727,6 +1846,40 @@ def get_project_coverage(pid: str, run: str | None = None) -> dict:
     if not cov:
         raise HTTPException(404, "no coverage run yet")
     return cov
+
+
+@api.post("/projects/{pid}/coverage:dedup")
+def dedup_project_coverage(pid: str) -> dict:
+    """Collapse cross-domain duplicate gaps in the latest coverage run via the reranker, and
+    re-save — so the visible gap count reflects DISTINCT concerns, not the same one counted in
+    several domains. Idempotent (re-running merges nothing new)."""
+    runs = pj.list_coverage_runs(pid)
+    if not runs:
+        raise HTTPException(404, "no coverage run")
+    run_id = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
+    cov = pj.get_coverage(pid, run_id)
+    if not cov:
+        raise HTTPException(404, "no coverage run")
+    before = len(cov.get("gaps", []))
+    cov["gaps"] = coverage.dedup_gaps(cov.get("gaps", []))
+    meta = next((m for m in runs if m.get("run_id") == run_id),
+                {"run_id": run_id, "project_id": pid, "kind": "coverage"})
+    pj.save_coverage_run(pid, run_id, cov, meta)
+    return {"before": before, "after": len(cov["gaps"]), "merged": before - len(cov["gaps"])}
+
+
+@api.post("/projects/{pid}/overlaps:merge")
+def merge_project_overlaps(pid: str, apply: bool = True) -> dict:
+    """Auto-resolve the Overlaps tab: cluster the confirmed duplicate/overlap pairs and merge
+    each cluster into ONE requirement (survivor keeps the merged text, absorbed ones removed).
+    `apply=false` previews the proposed merges without changing anything. Either way an
+    `overlap_resolutions` record is written on the review for human review/undo."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    res = overlap_merge_mod.resolve_overlaps(pid, apply=apply)
+    if res.get("error"):
+        raise HTTPException(404, res["error"])
+    return res
 
 
 @api.get("/catalog/domains")

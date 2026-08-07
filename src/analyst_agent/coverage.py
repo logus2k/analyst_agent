@@ -19,7 +19,7 @@ from analyst_agent import config
 from analyst_agent import store as pj
 from analyst_agent.jobs import _ingest
 from analyst_agent.llm.client import AgentServerClient
-from analyst_agent.llm.retrieval import embed
+from analyst_agent.llm.retrieval import embed, rerank
 from analyst_agent.segment.pipeline import segment_items
 
 _SEV = {"critical": 0, "high": 1, "medium": 2, "low": 3}
@@ -186,6 +186,12 @@ def iter_coverage_for_project(pid: str, client: AgentServerClient | None = None,
     if suppressed:
         yield {"type": "stage", "stage": "judges", "status": "note",
                "message": f"{suppressed} reworded dismissed gap(s) auto-suppressed"}
+    # Collapse cross-domain duplicates (the same concern raised by several domain judges).
+    _before = len(all_gaps)
+    all_gaps = dedup_gaps(all_gaps)
+    if len(all_gaps) != _before:
+        yield {"type": "stage", "stage": "judges", "status": "note",
+               "message": f"merged {_before - len(all_gaps)} cross-domain duplicate gap(s)"}
     summary = {}
     for out in results:
         summary[out.get("coverage", "unknown")] = summary.get(out.get("coverage", "unknown"), 0) + 1
@@ -207,6 +213,55 @@ def iter_coverage_for_project(pid: str, client: AgentServerClient | None = None,
         "synthesis": synthesis,
     }
     yield {"type": "coverage", "data": coverage}
+
+
+DEDUP_SIMILARITY = 0.80     # reranker score; two gaps at/above this name the SAME concern
+_SEV_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+
+
+def _gap_desc(g: dict) -> str:
+    return f"{g.get('title','')}. {g.get('detail','')}"[:400]
+
+
+def dedup_gaps(gaps: list[dict], threshold: float = DEDUP_SIMILARITY, desc_fn=None) -> list[dict]:
+    """Collapse gaps/questions that name the SAME underlying concern (the 16-domain panel raises
+    'auth'/'validation'/'error-handling' separately in several domains; the planner asks 'the
+    fields of X' from several requirements). Greedy RERANKER clustering: the first item of a
+    cluster is the representative; each later duplicate folds into it — recording every `domain`
+    it spanned (`domains`), every `req_id` (`req_ids`), and the count (`duplicate_count`) — and
+    the cluster keeps the most severe severity. `desc_fn` builds the text compared (default:
+    title+detail; pass a question-based one for planner gaps). Fails OPEN (returns the input
+    unchanged) if the reranker is unavailable — never silently drops anything."""
+    desc_fn = desc_fn or _gap_desc
+    kept: list[dict] = []
+    reps: list[str] = []
+    for g in gaps or []:
+        merged = None
+        if reps:
+            try:
+                scores = rerank(desc_fn(g), reps)
+            except Exception:                       # noqa: BLE001 — reranker down -> keep distinct
+                scores = []
+            if scores:
+                bi = max(range(len(scores)), key=lambda i: scores[i])
+                if scores[bi] >= threshold:
+                    merged = kept[bi]
+        if merged is None:
+            g2 = dict(g)
+            g2["domains"] = [g["domain"]] if g.get("domain") else []
+            g2["req_ids"] = [g["req_id"]] if g.get("req_id") else []
+            g2["duplicate_count"] = 1
+            kept.append(g2)
+            reps.append(desc_fn(g))
+        else:
+            merged["duplicate_count"] = merged.get("duplicate_count", 1) + 1
+            if g.get("domain") and g["domain"] not in merged.get("domains", []):
+                merged.setdefault("domains", []).append(g["domain"])
+            if g.get("req_id") and g["req_id"] not in merged.get("req_ids", []):
+                merged.setdefault("req_ids", []).append(g["req_id"])
+            if _SEV_ORDER.get(g.get("severity"), 9) < _SEV_ORDER.get(merged.get("severity"), 9):
+                merged["severity"] = g.get("severity")
+    return kept
 
 
 DISMISS_SIMILARITY = 0.80   # embedding cosine; a gap this close to a dismissed one is the same concern

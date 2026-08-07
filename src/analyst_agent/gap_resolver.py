@@ -20,12 +20,13 @@ from __future__ import annotations
 
 from collections import Counter
 
+from analyst_agent import coverage
 from analyst_agent import store as pj
 from analyst_agent.coverage import compact_problem_statement
 from analyst_agent.llm.client import AgentServerClient
 
 RESOLVER_AGENT = "analyst_gap_resolver"
-DISPOSITIONS = {"refine", "author", "needs_input", "dismiss", "wont_do"}
+DISPOSITIONS = {"refine", "author", "assume", "needs_input", "dismiss", "wont_do"}
 
 
 def _latest_run_id(pid: str) -> str | None:
@@ -60,6 +61,8 @@ def resolve_gap(gap: dict, problem_statement: str, client: AgentServerClient) ->
         "rationale": out.get("rationale", ""),
         "refined_text": (out.get("refined_text") or "").strip(),
         "authored_requirement": (out.get("authored_requirement") or "").strip(),
+        "assumption": (out.get("assumption") or "").strip(),
+        "answer": (out.get("answer") or "").strip(),
         "question": (out.get("question") or "").strip(),
         "source_question": gap.get("question", ""),
         "gap": gap.get("gap", ""),
@@ -74,13 +77,21 @@ def resolve_planner_gaps(pid: str, gaps: list[dict], apply: bool = True,
     run_id = _latest_run_id(pid)
     ps_text = compact_problem_statement(pj.get_problem_statement(pid))
 
+    # Collapse duplicate questions across requirements ("the fields of the Reservation entity"
+    # asked from several reqs) so the same gap is resolved ONCE — the representative carries
+    # `req_ids` for every requirement that raised it, so the resolution covers them all.
+    gaps = coverage.dedup_gaps(
+        gaps, desc_fn=lambda x: f"{x.get('question','')} {x.get('gap','')}"[:400])
+
     records: list[dict] = []
     affected: set[str] = set()
     total = len(gaps)
     for i, g in enumerate(gaps, 1):
+        cluster = g.get("req_ids") or ([g["req_id"]] if g.get("req_id") else [])
         if not g.get("requirement_text") and run_id:
             g["requirement_text"] = _requirement_text(pid, run_id, g.get("req_id"))
         rec = resolve_gap(g, ps_text, client)
+        rec["req_ids"] = cluster          # every requirement this one gap answers
         rec["applied"] = False
         if apply and run_id:
             if rec["disposition"] == "refine" and rec["refined_text"]:
@@ -92,6 +103,27 @@ def resolve_planner_gaps(pid: str, gaps: list[dict], apply: bool = True,
                 # Recorded now; inserting a NEW requirement into the scorecard/review is the
                 # heavier authoring path (author:run) — surfaced for review, applied separately.
                 affected.add(rec["req_id"])
+            elif rec["disposition"] == "assume" and rec["answer"]:
+                # A sensible default was chosen: nothing to rewrite, but the assumption is
+                # recorded (below) as an answered_gap so the Architect/Planner design against it,
+                # and surfaced for human review (never blocks).
+                rec["applied"] = True
+                affected.add(rec["req_id"])
+            # When actually RESOLVED (refine/author/assume — NOT needs_input, which still needs a
+            # human), the gap is answered for EVERY requirement in the cluster: record an
+            # answered_gap on each so the Planner injects it and none of them re-asks.
+            resolution = (rec.get("refined_text") or rec.get("authored_requirement")
+                          or rec.get("answer") or "")
+            if resolution and rec["disposition"] in ("refine", "author", "assume"):
+                for rid in cluster:
+                    prior = list((pj.get_review(pid, run_id) or {}).get("requirements", {})
+                                 .get(rid, {}).get("answered_gaps") or [])
+                    prior.append({"question": g.get("question", ""),
+                                  "answer": rec.get("answer", ""),
+                                  "assumption": rec.get("assumption", ""),
+                                  "resolution": resolution})
+                    pj.upsert_req_review(pid, run_id, rid, {"answered_gaps": prior})
+                    affected.add(rid)
         records.append(rec)
         if progress:
             progress(i, total, rec)

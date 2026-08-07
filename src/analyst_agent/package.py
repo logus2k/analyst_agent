@@ -77,6 +77,9 @@ def _requirement_record(req: dict, review_entry: dict | None) -> dict:
             "refinement": e.get("refinement"),           # per-attempt history, if refined
         },
 
+        # Human answers to this requirement's planner-surfaced gaps (question + resolution). The
+        # Planner injects these as authoritative context so an answered question is not re-asked.
+        "answered_gaps": e.get("answered_gaps") or [],
         "lineage": req.get("lineage"),
         "provenance": req.get("provenance"),
     }
@@ -97,7 +100,13 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
     if run_id is None:
         run_id = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
 
-    scorecard = pj.get_quality_scorecard(pid, run_id)
+    # Use the MERGED scorecard (raw run overlaid with the review's re-scored characteristics
+    # where an edit/refine produced an authoritative breakdown) — the same view the dashboard
+    # reads. The raw scorecard keeps the PRE-EDIT C1–C9 for every edited requirement, so its
+    # per-characteristic scores contradict the (correctly updated) overall_after. The package
+    # feeds the Architect/Planner and the release gate, so it must show the current text's
+    # scores, not the stale ones.
+    scorecard = pj.merged_scorecard(pid, run_id) or pj.get_quality_scorecard(pid, run_id)
     if not scorecard:
         return None
 
@@ -105,6 +114,10 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
     structure = pj.get_structure(pid) or {}
     entries = review.get("requirements") or {}
     threshold = float((review.get("threshold") or {}).get("value", 4.3))
+    # Semantic-plausibility verdicts (analyst_sense_judge). Overlaid onto each requirement and
+    # gated as a hard blocker — a well-formed-but-nonsense requirement must not reach the Architect.
+    sense = pj.get_sense(pid) or {}
+    sense_results = sense.get("results") or {}
 
     # The Architect consumes a clean set: duplicates never leave the Analyst.
     records, excluded = [], 0
@@ -112,7 +125,13 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
         if (req.get("lineage") or {}).get("duplicate_of"):
             excluded += 1
             continue
-        records.append(_requirement_record(req, entries.get(req.get("req_id"))))
+        rec = _requirement_record(req, entries.get(req.get("req_id")))
+        rec["analysis"]["plausibility"] = sense_results.get(rec["req_id"])
+        records.append(rec)
+    # Implausible = a sense verdict of plausible:false, restricted to requirements actually in
+    # this set (not excluded duplicates).
+    in_set = {r["req_id"] for r in records}
+    implausible = sorted(rid for rid in (sense.get("implausible") or []) if rid in in_set)
 
     scored = [r["analysis"]["score"] for r in records if r["analysis"]["score"] is not None]
     at_or_above = sum(1 for s in scored if s >= threshold)
@@ -193,6 +212,12 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
     blockers = list(hard_blockers)
     if release_status != "validated":
         blockers.append("no human sign-off (release_status is not 'validated')")
+    # Semantic-plausibility is ADVISORY, not a hard gate: the judge is a useful signal but
+    # over-flags mild modelling awkwardness, so a human reviews the flagged requirements rather
+    # than release being auto-blocked. Surfaced via manifest.implausible_requirements + per-req.
+    plausibility_advisory = (
+        f"{len(implausible)} requirement(s) flagged by the semantic-plausibility check for review "
+        f"(well-formed but possibly incoherent): {', '.join(implausible)}" if implausible else None)
 
     return {
         "manifest": {
@@ -210,6 +235,8 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
             "can_release": not hard_blockers,          # cleared to sign off (may still be draft)
             "hard_blockers": hard_blockers,
             "blockers": blockers,
+            "implausible_requirements": implausible,
+            "plausibility_advisory": plausibility_advisory,
             "counts": {
                 "total": len(records),
                 "excluded_duplicates": excluded,

@@ -340,7 +340,7 @@ def upsert_req_review(pid: str, run_id: str, req_id: str, patch: dict) -> dict |
     # they are what lets the dashboard show reviewed scores WITH a consistent C1–C9 radar.
     for k in ("status", "final_text", "note", "overall_after", "refinement", "classification",
               "characteristics", "deterministic_findings", "judges_ok", "judges_total",
-              "scored_text"):
+              "scored_text", "answered_gaps"):
         if k in patch:
             entry[k] = patch[k]
     # `reviewed_at` means "a human or the refinement loop touched this requirement".
@@ -606,6 +606,37 @@ def save_structure(pid: str, data: dict) -> None:
 
 def get_structure(pid: str) -> dict | None:
     return _read_json(os.path.join(_project_dir(pid), "structure.json"))
+
+
+def delete_requirement(pid: str, run_id: str, req_id: str) -> bool:
+    """Remove one requirement from BOTH the scorecard and the review session. Used to purge
+    junk (e.g. low-value authored `GAP-*` requirements). Returns True if anything was removed."""
+    removed = False
+    sc = get_quality_scorecard(pid, run_id)
+    if sc:
+        kept = [r for r in sc.get("requirements", []) if r.get("req_id") != req_id]
+        if len(kept) != len(sc.get("requirements", [])):
+            sc["requirements"] = kept
+            meta = next((m for m in list_quality_runs(pid) if m.get("run_id") == run_id), None) \
+                or {"run_id": run_id, "project_id": pid, "kind": "quality"}
+            meta["total"] = len(kept)
+            save_quality_run(pid, run_id, sc, meta)
+            removed = True
+    review = get_review(pid, run_id, seed=False)
+    if review and req_id in (review.get("requirements") or {}):
+        del review["requirements"][req_id]
+        save_review(pid, run_id, review)
+        removed = True
+    return removed
+
+
+def save_sense(pid: str, data: dict) -> None:
+    """Persist the semantic-plausibility verdicts (analyst_sense_judge over the requirement set)."""
+    _write_json(os.path.join(_project_dir(pid), "sense.json"), data)
+
+
+def get_sense(pid: str) -> dict | None:
+    return _read_json(os.path.join(_project_dir(pid), "sense.json"))
 
 
 # ---- gap assessment (the assessor's per-gap disposition) ----
