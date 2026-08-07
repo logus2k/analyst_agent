@@ -1586,6 +1586,17 @@ def get_project_structure(pid: str) -> dict:
             "branch_names": [b.get("name") for b in branches]}
 
 
+@api.get("/projects/{pid}/glossary")
+def get_project_glossary(pid: str) -> dict:
+    """The project vocabulary the Structure stage built — glossary entries (name, definition,
+    kind, aliases, req_ids) and controlled tags (name, description, req_ids). Empty when
+    Structure has not run. Feeds the Requirements → Glossary sub-tab."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    vocab = (pj.get_structure(pid) or {}).get("vocabulary") or {}
+    return {"glossary": vocab.get("glossary") or [], "tags": vocab.get("tags") or []}
+
+
 @api.post("/projects/{pid}/classify:run")
 def run_project_classify(pid: str, payload: dict | None = None) -> JSONResponse:
     """Classify every requirement of a quality run: `classes[]` (Architect routing),
