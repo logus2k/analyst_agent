@@ -1310,6 +1310,31 @@ def put_project_settings(pid: str, payload: dict | None = None) -> dict:
     return s
 
 
+@api.post("/projects/{pid}/gates/{gate}/approve")
+def approve_gate(pid: str, gate: str, request: Request) -> dict:
+    """Human sign-off on a release gate (architect|planner) — lets the downstream agent proceed
+    when the gate is in manual mode. The signer is the authenticated caller."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    who = (request.headers.get("x-auth-request-email")
+           or request.headers.get("x-forwarded-email") or "human").strip().lower()
+    g = pj.set_gate_approval(pid, gate, True, who or "human")
+    if g is None:
+        raise HTTPException(404, "unknown gate")
+    return g
+
+
+@api.post("/projects/{pid}/gates/{gate}/revoke")
+def revoke_gate(pid: str, gate: str) -> dict:
+    """Revoke a prior gate approval — re-blocks the downstream agent (manual mode)."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    g = pj.set_gate_approval(pid, gate, False)
+    if g is None:
+        raise HTTPException(404, "unknown gate")
+    return g
+
+
 # --- Human resolution of Planner gaps: answer a needs_input/flagged question -> refine the
 #     traced requirement and/or author new one(s). Human-in-the-loop: preview (scored, commits
 #     nothing) then apply the chosen text. See analyst_agent/answer.py. ---
@@ -1543,6 +1568,22 @@ def run_project_structure(pid: str, payload: dict | None = None) -> JSONResponse
     job = jm.create_structure_run(pid)
     return JSONResponse(status_code=202,
                         content={"job_id": job.job_id, "project_id": pid, "status": job.status})
+
+
+@api.get("/projects/{pid}/structure")
+def get_project_structure(pid: str) -> dict:
+    """Lightweight structure status for the pipeline UI: is the vocabulary+tree built, and
+    the headline metrics (feature branches, glossary terms, tags). `done` is true once at
+    least one branch exists — the Architect needs this to design per aspect."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    st = pj.get_structure(pid) or {}
+    tree = st.get("tree") or {}
+    vocab = st.get("vocabulary") or {}
+    branches = tree.get("branches") or []
+    return {"done": len(branches) > 0, "branches": len(branches),
+            "glossary": len(vocab.get("glossary") or []), "tags": len(vocab.get("tags") or []),
+            "branch_names": [b.get("name") for b in branches]}
 
 
 @api.post("/projects/{pid}/classify:run")

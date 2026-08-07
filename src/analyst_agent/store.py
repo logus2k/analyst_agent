@@ -500,11 +500,32 @@ def _default_gap_loop() -> dict:
     return {"trigger": "auto", "apply": "auto"}
 
 
+#: Release gates that hand one agent's output to the next. Each gate is 'auto' (pass on
+#: completion) or 'manual' (a human must approve before the downstream agent proceeds), default
+#: auto. `analyst` gates requirements→Architect (in manual mode it defers to the existing
+#: requirements-release sign-off), `architect` gates design→Planner, `planner` gates plan→Build.
+_GATE_KEYS = ("analyst", "architect", "planner")
+
+
+def _gate_view(g: dict) -> dict:
+    mode = g.get("mode", "auto")
+    approved = bool(g.get("approved", False))
+    return {"mode": mode if mode in ("auto", "manual") else "auto",
+            "approved": approved, "approved_by": g.get("approved_by"),
+            "approved_at": g.get("approved_at"),
+            # effective: auto gates are always satisfied; manual gates need a human approval.
+            "effective": (mode != "manual") or approved}
+
+
 def get_settings(pid: str) -> dict:
-    """Per-project settings. gap_loop.trigger/apply are 'auto' (default) or 'manual'."""
+    """Per-project settings. gap_loop.trigger/apply are 'auto' (default) or 'manual'; `gates`
+    carry each release gate's mode + approval status."""
     proj = _read_json(os.path.join(_project_dir(pid), "meta.json")) or {}
-    gl = (proj.get("settings") or {}).get("gap_loop") or {}
-    return {"gap_loop": {"trigger": gl.get("trigger", "auto"), "apply": gl.get("apply", "auto")}}
+    s = proj.get("settings") or {}
+    gl = s.get("gap_loop") or {}
+    gates = s.get("gates") or {}
+    return {"gap_loop": {"trigger": gl.get("trigger", "auto"), "apply": gl.get("apply", "auto")},
+            "gates": {k: _gate_view(gates.get(k) or {}) for k in _GATE_KEYS}}
 
 
 def set_settings(pid: str, settings: dict) -> dict | None:
@@ -519,9 +540,41 @@ def set_settings(pid: str, settings: dict) -> dict | None:
         if incoming.get(k) in ("auto", "manual"):
             gl[k] = incoming[k]
     cur["gap_loop"] = gl
+    # Gate mode changes (auto/manual). Changing a gate's mode does NOT touch its approval flag.
+    incoming_gates = (settings or {}).get("gates") or {}
+    gates = cur.get("gates") or {}
+    for gk in _GATE_KEYS:
+        ig = incoming_gates.get(gk) or {}
+        if ig.get("mode") in ("auto", "manual"):
+            g = gates.get(gk) or {}
+            g["mode"] = ig["mode"]
+            gates[gk] = g
+    cur["gates"] = gates
     proj["settings"] = cur
     _write_json(path, proj)
     return get_settings(pid)
+
+
+def set_gate_approval(pid: str, gate: str, approved: bool, by: str | None = None) -> dict | None:
+    """Record (or clear) a human approval on a release gate. Approving a manual gate lets the
+    downstream agent proceed; revoking blocks it again. Returns the gate view or None."""
+    if gate not in _GATE_KEYS:
+        return None
+    path = os.path.join(_project_dir(pid), "meta.json")
+    proj = _read_json(path)
+    if not proj:
+        return None
+    cur = proj.get("settings") or {}
+    gates = cur.get("gates") or {}
+    g = gates.get(gate) or {}
+    g["approved"] = bool(approved)
+    g["approved_by"] = by if approved else None
+    g["approved_at"] = _now() if approved else None
+    gates[gate] = g
+    cur["gates"] = gates
+    proj["settings"] = cur
+    _write_json(path, proj)
+    return _gate_view(g)
 
 
 def save_problem_statement(pid: str, statement: dict, ratified: bool = False) -> dict:
