@@ -98,10 +98,13 @@ def resolve_overlaps(pid: str, run_id: str | None = None, apply: bool = True,
                 "absorbed_count": 0, "applied": False, "error": "no quality run"}
 
     review = pj.get_review(pid, run_id, seed=False) or {}
-    set_level = review.get("set_level_current") or {}
-    overlaps = set_level.get("overlaps") or []
     # current text (reviewed where present) so we merge the up-to-date wording
     sc = pj.merged_scorecard(pid, run_id) or pj.get_quality_scorecard(pid, run_id) or {}
+    # Overlaps are detected during quality and written to the SCORECARD's set_level; the review's
+    # `set_level_current` is only populated by a rescore. Read from the review if present, else
+    # fall back to the scorecard — otherwise an auto-run right after quality merges nothing.
+    overlaps = ((review.get("set_level_current") or {}).get("overlaps")
+                or (sc.get("set_level") or {}).get("overlaps") or [])
     text_by_id = {r.get("req_id"): (r.get("text") or "")
                   for r in sc.get("requirements", []) if r.get("req_id")}
 

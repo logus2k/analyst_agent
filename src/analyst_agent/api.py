@@ -1610,6 +1610,24 @@ def get_refine_status(pid: str, run: str | None = None) -> dict:
             "rejected": rejected, "considered": considered, "mean_after": mean_after}
 
 
+@api.get("/projects/{pid}/overlaps")
+def get_overlaps_status(pid: str, run: str | None = None) -> dict:
+    """Overlap-merge status for the pipeline UI: duplicate pairs detected (set-level) and how
+    many were merged. `done` once a merge has run (an overlap_resolutions record exists)."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    runs = pj.list_quality_runs(pid)
+    if not runs:
+        return {"done": False, "detected": 0, "merged": 0, "absorbed": 0}
+    if not run:
+        run = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
+    review = pj.get_review(pid, run, seed=False) or {}
+    detected = len(((review.get("set_level_current") or {}).get("overlaps")) or [])
+    res = review.get("overlap_resolutions") or {}
+    return {"done": bool(res), "detected": detected,
+            "merged": res.get("merged_count", 0), "absorbed": res.get("absorbed_count", 0)}
+
+
 @api.get("/projects/{pid}/glossary")
 def get_project_glossary(pid: str) -> dict:
     """The project vocabulary the Structure stage built — glossary entries (name, definition,
