@@ -450,10 +450,19 @@ def _recompute_aggregates(base: dict, reqs: list[dict], char_keys: list[str]) ->
     (mean of per-requirement overall — what the dashboard shows). Other keys are preserved.
     """
     ag = dict(base)
+
+    def _char_map(r: dict) -> dict:
+        # characteristics is normally a dict keyed C1–C9, but tolerate the list shape
+        # (assess_requirement's format) so a stray writer can never 500 the whole package.
+        ch = r.get("characteristics")
+        if isinstance(ch, list):
+            return {c["id"]: c for c in ch if isinstance(c, dict) and c.get("id")}
+        return ch or {}
+
     per_char: dict[str, float] = {}
     for c in char_keys:
         vs = [s for r in reqs
-              if (s := (r.get("characteristics") or {}).get(c, {}).get("score")) is not None]
+              if (s := _char_map(r).get(c, {}).get("score")) is not None]
         if vs:
             per_char[c] = round(sum(vs) / len(vs), 2)
     ag["per_characteristic_mean"] = per_char

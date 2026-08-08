@@ -63,11 +63,17 @@ def _judge(client: AgentServerClient, cid: str, suffix: str, text: str) -> dict:
 
 
 def _review(client: AgentServerClient, text: str, characteristics: list[dict],
-            deterministic: list[dict]) -> dict:
+            deterministic: list[dict], source_context: str = "") -> dict:
     """Ask the Reviewer for rewrites/advisories, given the defective scores and
-    deterministic findings. Mirrors the bundle produced in produce_scorecard."""
+    deterministic findings. `source_context` is the surrounding document text (+ problem
+    statement) the reviewer prompt asks for — without it, terse fragments like "Opening hours"
+    cannot be rewritten into a proper requirement because their intent is unknowable. Mirrors
+    the bundle produced in produce_scorecard."""
     names = {cid: name for cid, _, name in CHARACTERISTICS}
-    bundle = [f"REQUIREMENT: {text}", "\nASSESSMENT:"]
+    bundle = [f"REQUIREMENT: {text}"]
+    if source_context and source_context.strip():
+        bundle.append(f"\nSOURCE CONTEXT:\n{source_context.strip()}")
+    bundle.append("\nASSESSMENT:")
     for c in characteristics:
         if (s := c.get("score")) is not None and s < 5:
             bundle.append(
@@ -110,7 +116,8 @@ def _needs_review(characteristics: list[dict]) -> bool:
 
 
 def assess_requirement(text: str, client: AgentServerClient | None = None,
-                       review: bool = True, workers: int | None = None) -> dict:
+                       review: bool = True, workers: int | None = None,
+                       source_context: str = "") -> dict:
     """Full single-requirement assessment: deterministic + 9 judges + review.
 
     Returns {text, deterministic, characteristics, overall, review}. The judges
@@ -134,7 +141,7 @@ def assess_requirement(text: str, client: AgentServerClient | None = None,
         "review": None,
     }
     if review and _needs_review(characteristics):
-        result["review"] = _review(client, text, characteristics, deterministic)
+        result["review"] = _review(client, text, characteristics, deterministic, source_context)
     return result
 
 

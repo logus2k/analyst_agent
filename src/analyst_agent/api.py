@@ -1586,6 +1586,30 @@ def get_project_structure(pid: str) -> dict:
             "branch_names": [b.get("name") for b in branches]}
 
 
+@api.get("/projects/{pid}/refine")
+def get_refine_status(pid: str, run: str | None = None) -> dict:
+    """Lightweight refinement status for the pipeline UI: how many below-threshold requirements
+    were rewritten toward INCOSE compliance, how many still need a human, and the mean score
+    after refinement. `done` once any requirement carries refinement history."""
+    if not pj.get_project(pid):
+        raise HTTPException(404, "unknown project")
+    runs = pj.list_quality_runs(pid)
+    if not runs:
+        return {"done": False, "refined": 0, "needs_human": 0, "considered": 0, "mean_after": None}
+    if not run:
+        run = sorted(runs, key=lambda r: r.get("finished_at") or "")[-1]["run_id"]
+    reqs = (pj.get_review(pid, run, seed=False) or {}).get("requirements") or {}
+    refined = sum(1 for e in reqs.values() if e.get("status") == "accepted_refined")
+    needs = sum(1 for e in reqs.values() if e.get("status") == "needs_human")
+    rejected = sum(1 for e in reqs.values() if e.get("status") == "rejected")
+    considered = sum(1 for e in reqs.values() if e.get("refinement"))
+    afters = [e.get("overall_after") for e in reqs.values()
+              if e.get("overall_after") is not None and e.get("status") != "rejected"]
+    mean_after = round(sum(afters) / len(afters), 2) if afters else None
+    return {"done": considered > 0, "refined": refined, "needs_human": needs,
+            "rejected": rejected, "considered": considered, "mean_after": mean_after}
+
+
 @api.get("/projects/{pid}/glossary")
 def get_project_glossary(pid: str) -> dict:
     """The project vocabulary the Structure stage built — glossary entries (name, definition,

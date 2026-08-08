@@ -119,10 +119,14 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
     sense = pj.get_sense(pid) or {}
     sense_results = sense.get("results") or {}
 
-    # The Architect consumes a clean set: duplicates never leave the Analyst.
+    # The Architect consumes a clean set: duplicates and common-sense-REJECTED items never leave
+    # the Analyst (a reviewer/adjudicator marked them not a genuine product requirement).
     records, excluded = [], 0
     for req in scorecard.get("requirements", []):
         if (req.get("lineage") or {}).get("duplicate_of"):
+            excluded += 1
+            continue
+        if (entries.get(req.get("req_id")) or {}).get("status") == "rejected":
             excluded += 1
             continue
         rec = _requirement_record(req, entries.get(req.get("req_id")))

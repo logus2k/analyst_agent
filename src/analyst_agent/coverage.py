@@ -55,6 +55,13 @@ def _v(x) -> str:
 def compact_problem_statement(ps: dict | None) -> str:
     if not ps:
         return "(no problem statement — infer intent from the requirements)"
+    # Accept EITHER the full problem-statement doc ({version, ratified, statement:{...}}) or the
+    # inner statement block. Some callers pass the whole doc; without this unwrap `purpose` etc.
+    # resolve to None and the compacted context is empty — which silently starves refine/resolve.
+    if isinstance(ps.get("statement"), dict):
+        ps = ps["statement"]
+    if not isinstance(ps, dict) or not ps:
+        return "(no problem statement — infer intent from the requirements)"
     parts = [f"purpose: {_v(ps.get('purpose'))}"]
     if ps.get("context"):
         parts.append(f"context: {_v(ps.get('context'))}")
