@@ -50,6 +50,10 @@ class AgentServerClient:
 
     @staticmethod
     def _parse_json(content: str) -> dict:
+        # Thinking-enabled models emit a <think>...</think> block (with braces) before the JSON —
+        # strip it first so json.loads and the brace-slice below don't choke on the reasoning.
+        if "</think>" in content:
+            content = content.rsplit("</think>", 1)[1]
         content = content.strip()
         try:
             return json.loads(content)
