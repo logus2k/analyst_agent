@@ -574,6 +574,11 @@ def _pid_from_path(path: str) -> str | None:
 # runs at the ASGI layer and never reaches this middleware; it is gated at nginx instead.)
 @api.middleware("http")
 async def _authz(request: Request, call_next):
+    # The cross-agent FACTORY relay is INTERNAL (server-to-server; no public nginx route reaches it),
+    # so it carries no user session — exempt it from the owner/admin gate. It only fans a stage event
+    # out over socket.io to the project room; it mutates nothing.
+    if request.url.path.startswith("/relay/"):
+        return await call_next(request)
     if request.method in ("POST", "PUT", "DELETE", "PATCH"):
         email = caller_email(request)
         if not email:
@@ -837,6 +842,38 @@ async def join(sid, data):
     await sio.enter_room(sid, job_id)
     for event in list(job.events):
         await sio.emit(event["type"], {**event, "job_id": job_id, "replay": True}, to=sid)
+
+
+#: Last FACTORY stage event per (project, lane) — so a client that joins mid-run gets an immediate
+#: replay of where each downstream lane stands (the Analyst's own jobs replay from job.events above;
+#: the downstream agents are separate services, so we buffer their relayed events here).
+_factory_last: dict[str, dict[str, dict]] = {}
+
+
+@sio.event
+async def join_project(sid, data):
+    """The pipeline Overview subscribes to a PROJECT room to receive live `factory_stage` events from
+    EVERY downstream agent (Architect/Planner/Builder/Deploy), not just one job. Replays the last known
+    state of each lane so a late joiner is immediately correct."""
+    pid = (data or {}).get("pid") or (data or {}).get("project_id")
+    if not pid:
+        return
+    await sio.enter_room(sid, f"project:{pid}")
+    for ev in (_factory_last.get(pid) or {}).values():
+        await sio.emit("factory_stage", {**ev, "replay": True}, to=sid)
+
+
+@api.post("/relay/{pid}")
+async def factory_relay(pid: str, payload: dict | None = None) -> dict:
+    """Cross-agent FACTORY relay (INTERNAL): a downstream agent POSTs a stage event; we fan it out over
+    socket.io to the project room the Overview joined, so its lanes update live instead of by polling.
+    Payload: {lane, stage, status, message?, progress?}. Best-effort, mutates nothing."""
+    ev = {"type": "factory_stage", "project_id": pid, **(payload or {})}
+    lane = ev.get("lane")
+    if lane:                                              # remember per-lane so late joiners replay
+        _factory_last.setdefault(pid, {})[lane] = ev
+    await sio.emit("factory_stage", ev, room=f"project:{pid}")
+    return {"ok": True}
 
 
 # --- Live single-requirement assessor, folded onto the SAME socket.io server ---
