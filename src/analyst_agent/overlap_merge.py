@@ -142,3 +142,60 @@ def resolve_overlaps(pid: str, run_id: str | None = None, apply: bool = True,
         doc["overlap_resolutions"] = result
         pj.save_review(pid, run_id, doc)
     return result
+
+
+# --------------------------------------------------------------------------- #
+# Reconciling detected pairs against what the merge actually did                #
+# --------------------------------------------------------------------------- #
+# Detection writes pairs of req_ids into the scorecard's `set_level.overlaps`.
+# The merge then REMOVES the absorbed requirements — but never revisits those
+# pairs, so every pair naming an absorbed id becomes a dangling reference. The
+# UI resolves the id to nothing and renders half a comparison: observed on a live
+# run, all 21 pairs had a `b_id` that no longer existed.
+#
+# The resolutions log (`overlap_resolutions.records`) is the authority on what
+# folded into what, so reconcile against it rather than dropping pairs blindly:
+#
+#   both sides fold to the SAME survivor  -> the merge already resolved it
+#   one side folded, the other did not    -> re-point to the survivor
+#   an id is gone with no record          -> unresolvable, kept and marked so it
+#                                            is visible rather than silently lost
+
+
+def survivor_map(review: dict | None) -> dict:
+    """absorbed req_id -> survivor req_id, from the resolutions log."""
+    res = ((review or {}).get("overlap_resolutions") or {})
+    out = {}
+    for rec in res.get("records") or []:
+        surv = rec.get("survivor")
+        if not surv:
+            continue
+        for aid in rec.get("absorbed") or []:
+            out[aid] = surv
+    return out
+
+
+def reconcile_overlaps(overlaps: list, review: dict | None, live_ids) -> list:
+    """Re-point detected pairs at surviving requirements and label their state.
+
+    Every pair keeps its original ids in `detected_a`/`detected_b` so the history
+    stays auditable; `status` says what became of it.
+    """
+    surv = survivor_map(review)
+    live = set(live_ids or ())
+    out = []
+    for o in overlaps or []:
+        if not isinstance(o, dict):
+            continue
+        a, b = o.get("a_id"), o.get("b_id")
+        ra, rb = surv.get(a, a), surv.get(b, b)
+        item = {**o, "detected_a": a, "detected_b": b, "a_id": ra, "b_id": rb}
+        if ra and rb and ra == rb:
+            item["status"] = "merged"          # the merge folded these together
+        elif (ra in live) and (rb in live):
+            item["status"] = "open"            # still two distinct live requirements
+        else:
+            item["status"] = "unresolvable"    # absorbed with no record, or deleted
+            item["missing"] = [x for x in (ra, rb) if x not in live]
+        out.append(item)
+    return out

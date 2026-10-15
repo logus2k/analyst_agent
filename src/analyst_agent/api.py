@@ -44,7 +44,7 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, Respon
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 
-from analyst_agent import __version__
+from analyst_agent import defaults as defaults_mod, __version__
 from analyst_agent import config
 from analyst_agent import authoring
 from analyst_agent import gap_assessor as gap_assessor_mod
@@ -1791,7 +1791,8 @@ def run_project_converge(pid: str, payload: dict | None = None) -> JSONResponse:
 
 
 @api.get("/projects/{pid}/questions")
-def get_open_questions(pid: str, run: str | None = None) -> JSONResponse:
+def get_open_questions(pid: str, run: str | None = None,
+                       defaults: str = "1") -> JSONResponse:
     """What the Analyst needs a human to answer before the set can converge.
 
     Aggregated from data already stored — unfilled placeholders, the INCOSE
@@ -1802,6 +1803,17 @@ def get_open_questions(pid: str, run: str | None = None) -> JSONResponse:
     if not pj.get_project(pid):
         raise HTTPException(404, "unknown project")
     qs = questions_mod.collect_questions(pid, run)
+    # Propose the conventional default for every question that has one, so the
+    # human reviews assumptions instead of answering an interrogation. Opt out
+    # with ?defaults=0. Never blocks the listing: on any failure the questions
+    # come back exactly as before.
+    if str(defaults).strip().lower() not in ("0", "false", "no"):
+        try:
+            ps = (pj.get_problem_statement(pid) or {}).get("statement") or {}
+            qs = defaults_mod.propose_for_questions(
+                qs, coverage_mod.compact_problem_statement(ps))
+        except Exception:  # noqa: BLE001 — advisory; questions must still list
+            pass
     return JSONResponse({"project_id": pid, "summary": questions_mod.summarize(qs),
                          "questions": qs})
 

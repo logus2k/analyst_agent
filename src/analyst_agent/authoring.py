@@ -55,6 +55,88 @@ _PLACEHOLDER_RE = re.compile(
     re.IGNORECASE)
 
 
+# --------------------------------------------------------------------------- #
+# Drift guard — never author a technology the sources never mention             #
+# --------------------------------------------------------------------------- #
+# Observed on a live run: for a single-restaurant menu app whose SRS never says
+# "Kubernetes", the author drafted "The system shall deploy within a Kubernetes
+# cluster" — and the pipeline then asked the human to justify its own invention.
+# Same for MTBF and backup cadence. A gap is a hole in the SPEC; filling it with
+# a named technology the spec never chose is drift, not coverage.
+#
+# This is a LEXICAL question — does this token appear anywhere in the sources —
+# so it is answered by exact matching, not by similarity. (Similarity was tried
+# and measured: real gaps scored BELOW invented ones, so it cannot separate them.)
+#
+# Only DISTINCTIVE tokens count: a proper noun or an acronym, i.e. something that
+# names a specific product, standard or metric. Ordinary prose is ignored.
+
+#: capitalised words too common to be a technology choice
+_DRIFT_STOPWORDS = frozenset({
+    "the", "system", "shall", "must", "when", "each", "all", "user", "users",
+    "admin", "data", "service", "services", "api", "ui", "id", "url", "http",
+    "https", "json", "and", "or", "for", "with", "from", "into", "per", "any",
+    "a", "an", "it", "this", "that", "these", "those", "if", "then", "not",
+})
+
+
+def _distinctive_tokens(text: str) -> set:
+    """Proper nouns, acronyms and Title Case PHRASES in `text` — what NAMES something.
+
+    Consecutive capitalised words are kept together: "Mean Time Between Failures"
+    is one named thing, not four. Splitting it reported "Between" and "Failures"
+    as inventions, which is noise; as a phrase it is checked — correctly — as a
+    single unfamiliar name.
+    """
+    out, run = set(), []
+
+    def flush():
+        if not run:
+            return
+        if len(run) > 1:
+            out.add(" ".join(run))          # a named phrase, checked as a unit
+        else:
+            tok = run[0]
+            # a lone Capitalised word only counts when it is long enough to be a
+            # name rather than an ordinary sentence opener
+            if tok.isupper() or any(c.isupper() for c in tok[1:]) or len(tok) > 4:
+                out.add(tok)
+        run.clear()
+
+    for raw in (text or "").replace("/", " ").split():
+        tok = raw.strip(".,;:()[]{}\"'`?!*").strip()
+        stop = raw.endswith((".", ";", ":"))
+        if len(tok) < 3 or not tok[0].isalpha() or tok.lower() in _DRIFT_STOPWORDS \
+                or not tok[0].isupper():
+            flush()
+            continue
+        if tok.isupper() and len(tok) >= 3:  # an acronym stands alone
+            flush()
+            out.add(tok)
+        else:
+            run.append(tok)
+        if stop:
+            flush()
+    flush()
+    return out
+
+
+def drift_terms(text: str, corpus: str) -> list:
+    """Distinctive tokens in `text` that appear NOWHERE in the source corpus.
+
+    A trailing version digit is stripped before the check, so `OAuth2` counts as
+    grounded when the sources say `OAuth` — a version bump is not an invention.
+    """
+    low = (corpus or "").lower()
+    out = []
+    for t in _distinctive_tokens(text):
+        base = t.lower().rstrip("0123456789") or t.lower()
+        if t.lower() in low or base in low:
+            continue
+        out.append(t)
+    return sorted(out)
+
+
 def unresolved_placeholders(text: str) -> list[str]:
     """Placeholder tokens left in a requirement, in order of appearance.
 
@@ -224,6 +306,12 @@ def iter_author_for_project(pid: str, run_id: str, coverage: dict | None = None,
     problem = _compact_statement(ps_doc.get("statement") or {})
     step = max(1, len(existing) // STYLE_SAMPLE)
     sample = existing[::step][:STYLE_SAMPLE]
+    # Everything the sources actually say — the problem statement plus every
+    # EXTRACTED requirement (never the authored ones, or drift would bootstrap
+    # itself: one invented term would ground the next). See drift_terms.
+    grounding_corpus = " ".join(
+        [problem] + [r.get("text", "") for r in scorecard.get("requirements", [])
+                     if (r.get("provenance") or {}).get("origin") != "analyst_authored"])
 
     # Respect the gap assessment when one exists: author only gaps the assessor
     # marked `author` or `needs_input` (a needs_input gap still gets a draft — it
@@ -282,6 +370,20 @@ def iter_author_for_project(pid: str, run_id: str, coverage: dict | None = None,
             blocked += 1
             yield {"type": "authored", "gap_id": gap_id(gap), "done": i, "total": len(gaps),
                    "status": "needs_input", "question": drafted.get("question", "")}
+            continue
+
+        # DRIFT GUARD. A gap is a hole in the SPEC; filling it with a technology
+        # the sources never chose is invention, not coverage. Observed live: a
+        # "deploy within a Kubernetes cluster" requirement for a menu app, whose
+        # open question then asked the human to justify it. Reject the draft and
+        # record why, rather than shipping it and interrogating the human about it.
+        invented = drift_terms(drafted["text"], grounding_corpus)
+        if invented:
+            yield {"type": "gap", "stage": "author", "gap": gap.get("title", ""),
+                   "status": "drift_rejected", "terms": invented,
+                   "message": ("draft introduces " + ", ".join(invented)
+                               + " — absent from every source document and from the "
+                                 "problem statement; not authored")}
             continue
 
         dup, idx = is_duplicate(drafted["text"], existing)

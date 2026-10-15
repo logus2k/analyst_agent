@@ -26,7 +26,7 @@ what the manifest prevents.
 """
 from __future__ import annotations
 
-from analyst_agent import store as pj
+from analyst_agent import overlap_merge, store as pj
 from analyst_agent.authoring import unresolved_placeholders
 
 # Coverage-gap severities that BLOCK release. Critical and high are the ones that
@@ -83,6 +83,16 @@ def _requirement_record(req: dict, review_entry: dict | None) -> dict:
         "lineage": req.get("lineage"),
         "provenance": req.get("provenance"),
     }
+
+
+def _reconciled_set_level(scorecard: dict, review: dict | None, requirements: list) -> dict:
+    """set_level with its overlap pairs re-pointed at surviving requirements."""
+    sl = dict(scorecard.get("set_level") or {})
+    pairs = sl.get("overlaps")
+    if pairs:
+        live = {r.get("req_id") for r in (requirements or []) if isinstance(r, dict)}
+        sl["overlaps"] = overlap_merge.reconcile_overlaps(pairs, review, live)
+    return sl
 
 
 def build_package(pid: str, run_id: str | None = None) -> dict | None:
@@ -259,7 +269,10 @@ def build_package(pid: str, run_id: str | None = None) -> dict | None:
             "source_documents": project.get("documents") or [],
         },
         "requirements": records,
-        "set_level": scorecard.get("set_level") or {},
+        # Overlap pairs are reconciled against the merge before they leave the
+        # Analyst: an un-reconciled pair names requirements the merge removed, and
+        # every consumer then shows half a comparison (see overlap_merge).
+        "set_level": _reconciled_set_level(scorecard, review, records),
         "aggregates": scorecard.get("aggregates") or {},
         "characteristic_names": scorecard.get("characteristic_names") or {},
         "problem_statement": ps,

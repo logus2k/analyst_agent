@@ -26,6 +26,7 @@ from typing import Iterator
 
 from analyst_agent import config, coverage as coverage_mod, store as pj
 from analyst_agent.llm.client import AgentServerClient, LLMError
+from analyst_agent.llm.retrieval import rerank
 
 GAP_ASSESSOR_AGENT = "incose_gap_assessor"
 DISPOSITIONS = ("author", "needs_input", "dismiss")
@@ -34,13 +35,56 @@ DISPOSITIONS = ("author", "needs_input", "dismiss")
 SAMPLE_SIZE = 12
 
 
-def _assessor_input(gap: dict, problem: str, sample: list[str]) -> str:
+# --------------------------------------------------------------------------- #
+# Declared scope is EVIDENCE, not decoration                                    #
+# --------------------------------------------------------------------------- #
+# The problem statement carries an explicit `scope.out`, and it was already being
+# passed to the assessor — which nonetheless dismissed 1 gap in 66 on a live run,
+# while asking the human about backup cadence and Kubernetes topology for a
+# single-restaurant SQLite app. Prompt text alone does not move this model (the
+# same lesson the Architect learned with its omission judge), so the scope signal
+# is computed deterministically and applied in CODE.
+#
+# Semantic, so the RERANKER decides it — never string matching: "backup and
+# restore procedures" and "disaster recovery" are the same subject in different
+# words, and no amount of normalising finds that.
+#
+# Two bands, because a wrong dismiss ships a real hole to the Architect:
+#   >= HARD  the gap IS the out-of-scope subject      -> dismissed in code, audited
+#   >= SOFT  same neighbourhood                       -> handed to the assessor as
+#            explicit evidence, which still makes the call
+SCOPE_OUT_HARD = 0.85     # reranker sigmoid; deliberately above the 0.8 used for overlap
+SCOPE_OUT_SOFT = 0.60     # the dedup threshold — "related", not "the same"
+
+
+def _scope_out_match(gap: dict, scope_out: list) -> tuple:
+    """(score, matched_out_scope_item) for the best match, or (0.0, "")."""
+    items = [str(x).strip() for x in (scope_out or []) if str(x).strip()]
+    if not items:
+        return 0.0, ""
+    subject = " ".join(str(gap.get(k) or "") for k in ("title", "detail")).strip()
+    if not subject:
+        return 0.0, ""
+    try:
+        scores = rerank(subject, items)
+    except Exception:      # noqa: BLE001 — no reranker → no scope evidence, never a crash
+        return 0.0, ""
+    if not scores:
+        return 0.0, ""
+    best = max(range(len(scores)), key=lambda i: scores[i])
+    return float(scores[best]), items[best]
+
+
+def _assessor_input(gap: dict, problem: str, sample: list[str],
+                    scope_evidence: str = "") -> str:
     lines = ["GAP",
              f"  domain:   {gap.get('domain_name') or gap.get('domain', '')}",
              f"  title:    {gap.get('title', '')}",
              f"  severity: {gap.get('severity', '')}",
              f"  detail:   {gap.get('detail', '')}",
              f"  question: {gap.get('question', '')}"]
+    if scope_evidence:
+        lines += ["", "SCOPE EVIDENCE", scope_evidence]
     if problem:
         lines += ["", "PROBLEM STATEMENT", problem]
     if sample:
@@ -50,7 +94,8 @@ def _assessor_input(gap: dict, problem: str, sample: list[str]) -> str:
 
 
 def assess_gap(gap: dict, problem: str, sample: list[str],
-               client: AgentServerClient | None = None) -> dict:
+               client: AgentServerClient | None = None,
+               scope_out: list | None = None) -> dict:
     """Triage one gap. Never raises.
 
     On any failure the disposition is `needs_input` — the SAFE direction: a gap the
@@ -60,8 +105,19 @@ def assess_gap(gap: dict, problem: str, sample: list[str],
     client = client or AgentServerClient()
     fallback = {"disposition": "needs_input", "applies_to_system": True,
                 "rationale": "", "question": gap.get("question", "")}
+
+    score, item = _scope_out_match(gap, scope_out or [])
+    if score >= SCOPE_OUT_HARD:
+        return {"disposition": "dismiss", "applies_to_system": False,
+                "rationale": (f"outside the declared scope of this system — the problem "
+                              f"statement puts \"{item}\" out of scope (match {score:.2f})"),
+                "question": "", "scope_out_score": round(score, 3), "scope_out_item": item}
+    evidence = (f"This gap's subject matches an item the problem statement declares OUT of "
+                f"scope: \"{item}\" (similarity {score:.2f}). Weigh that before choosing a "
+                f"disposition.") if score >= SCOPE_OUT_SOFT else ""
     try:
-        r = client.complete_json(GAP_ASSESSOR_AGENT, _assessor_input(gap, problem, sample))
+        r = client.complete_json(GAP_ASSESSOR_AGENT,
+                                 _assessor_input(gap, problem, sample, evidence))
     except (LLMError, AttributeError, KeyError, TypeError) as e:
         return {**fallback, "error": f"{type(e).__name__}: {e}"}
     if not isinstance(r, dict):
@@ -100,7 +156,10 @@ def iter_assess_gaps(pid: str, client: AgentServerClient | None = None,
     gaps = coverage.get("gaps") or []
 
     ps_doc = pj.get_problem_statement(pid) or {}
-    problem = coverage_mod.compact_problem_statement(ps_doc.get("statement") or {})
+    statement = ps_doc.get("statement") or {}
+    problem = coverage_mod.compact_problem_statement(statement)
+    # The declared out-of-scope list, applied as evidence per gap (see _scope_out_match).
+    scope_out = ((statement.get("scope") or {}).get("out")) or []
     scorecard = pj.get_quality_scorecard(pid) or {}
     sample = [r.get("text", "") for r in scorecard.get("requirements", [])[:SAMPLE_SIZE]]
 
@@ -112,7 +171,7 @@ def iter_assess_gaps(pid: str, client: AgentServerClient | None = None,
     assessed: list[dict] = []
     done = 0
     with ThreadPoolExecutor(max_workers=config.LLM_CONCURRENCY) as ex:
-        futures = {ex.submit(assess_gap, g, problem, sample, client): g for g in gaps}
+        futures = {ex.submit(assess_gap, g, problem, sample, client, scope_out): g for g in gaps}
         from concurrent.futures import as_completed
         for fut in as_completed(futures):
             if cancelled():

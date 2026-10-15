@@ -126,6 +126,41 @@ def _score(req: dict, entry: dict) -> float | None:
     return after if after is not None else req.get("overall")
 
 
+# --------------------------------------------------------------------------- #
+# Audience split — who is a given ask actually addressed to?                    #
+# --------------------------------------------------------------------------- #
+# The INCOSE reviewer writes its `suggestion` TO AN AUTHOR: "Consider elevating
+# this to a higher-level functional requirement", "Break this requirement down
+# into verifiable obligations", "Confirm with stakeholders that ...". Treating
+# every suggestion as a stakeholder question (on the premise that an advisory is
+# "a question in all but punctuation") floods the human queue with instructions
+# nobody outside the analysis can act on — measured on a live run, roughly a third
+# of the queue.
+#
+# An ask belongs to a HUMAN only when it asks for something the human HOLDS: a
+# value, a choice, a policy. Lexical and deterministic — an interrogative form —
+# with no regex and no model call. Anything else is a refinement instruction and
+# is routed back to the refiner, which is what the advisory was written for.
+
+#: openers that make a sentence a request for information from someone else
+_INTERROGATIVE_OPENERS = (
+    "what", "which", "who", "whom", "whose", "when", "where", "why", "how",
+    "is ", "are ", "does ", "do ", "did ", "can ", "could ", "should ", "shall ",
+    "will ", "would ", "must ", "has ", "have ", "may ",
+)
+
+
+def _is_human_question(text: str) -> bool:
+    """True when this reads as a question addressed to a person."""
+    t = (text or "").strip()
+    if not t:
+        return False
+    if t.endswith("?"):
+        return True
+    low = t.lower()
+    return any(low.startswith(o) for o in _INTERROGATIVE_OPENERS)
+
+
 def collect_questions(pid: str, run_id: str | None = None) -> list[dict]:
     """Every open question blocking release, merged and ordered.
 
@@ -186,12 +221,18 @@ def collect_questions(pid: str, run_id: str | None = None) -> list[dict]:
                 f"Needed to complete {rid}, generated for gap: {prov.get('gap_title', '')}",
                 rid, "authored_gap", bool(below or holes))
 
-        # 3. reviewer advisories on requirements still unresolved
+        # 3. reviewer advisories on requirements still unresolved — but ONLY the ones
+        # actually addressed to a human. An advisory phrased as an instruction to the
+        # author ("Break this down…", "Consider elevating…") is refiner input, not a
+        # stakeholder question; surfacing it just buries the real asks.
         if entry.get("status") in _UNRESOLVED and (below or holes):
             for adv in ((req.get("review") or {}).get("advisories") or []):
                 if not isinstance(adv, dict):
                     continue
-                add(adv.get("suggestion", ""), adv.get("issue", ""), rid, "advisory",
+                suggestion = adv.get("suggestion", "")
+                if not _is_human_question(suggestion):
+                    continue
+                add(suggestion, adv.get("issue", ""), rid, "advisory",
                     bool(below), adv.get("characteristic"))
 
     # 4. gap `needs_input` — a value only a stakeholder has, needed to close a
@@ -205,7 +246,14 @@ def collect_questions(pid: str, run_id: str | None = None) -> list[dict]:
             continue
         if g.get("gap_key") in dismissed:
             continue
-        question = g.get("question") or g.get("rationale")
+        # Same audience test: the assessor sometimes records an author-instruction
+        # rather than a stakeholder question. Fall back to the gap's own question
+        # before dropping it, so a real ask is never lost to phrasing.
+        question = g.get("question") or ""
+        if not _is_human_question(question):
+            question = g.get("gap_question") or g.get("rationale") or question
+        if not _is_human_question(question):
+            continue
         add(question, f"To close coverage gap: {g.get('title', '')}",
             None, "gap_needs_input", True, gap_key=g.get("gap_key"))
 
